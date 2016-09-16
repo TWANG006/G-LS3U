@@ -30,4 +30,45 @@
 #define DEBUG_MSG(x) do {} while(0);
 #endif // TW_DEBUG_MSG
 
+
+
+#include <string>
+#include <vector>
+#include <cfloat>
+
+/* The fftw3 lib should either be enabled by install MKL or use the
+ 3rd fftw lib downloaded online */
+#include <fftw3.h>
+
+
+namespace WFT_FPA
+{
+#ifdef WFT_FPA_DOUBLE
+	using real_t = double;
+	using fftw3Plan = fftw_plan;
+	using fftw3Complex = fftw_complex;
+#else
+	using real_t = float;
+	using fftw3Plan = fftwf_plan;
+	using fftw_complex = fftwf_complex;
+#endif // WFT_FPA_DOUBLE
+	using int_t = int;
+	using uint_t = unsigned int;
+	using uint8 = unsigned char;
+
+	enum class WFT_FPA_TYPE
+	{
+		WFF,
+		WFR
+	};
+
+	enum class PARALLEL_COMPUTING_TYPE
+	{
+		Sequential,
+		Multicore,
+		CUDA
+	};
+}
+
+
 #endif // WFT_FPA_H

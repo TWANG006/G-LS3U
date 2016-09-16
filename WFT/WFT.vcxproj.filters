@@ -15,8 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WFT-FPA.h">
+    <ClInclude Include="WFT_Seq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WFT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WFT_Seq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

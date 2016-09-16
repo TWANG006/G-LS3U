@@ -1,4 +1,4 @@
-function z=wft2a(type,f,sigmax,wxl,wxi,wxh,sigmay,wyl,wyi,wyh,thr)
+function z=fp_wft2a(type,f,sigmax,wxl,wxi,wxh,sigmay,wyl,wyi,wyh,thr)
 %FUNCTION
 %   z=fp_wft2a(type,f,sigmax,wxl,wxi,wxh,sigmay,wyl,wyi,wyh,thr)
 %
@@ -52,7 +52,7 @@ function z=wft2a(type,f,sigmax,wxl,wxi,wxh,sigmay,wyl,wyi,wyh,thr)
 %   analysis: principles, applications and implementations,"  
 %   Optics and Lasers in Engineering, 45(2): 304-317, 2007.
 %[3]Q. Kemao, H. Wang, and W. Gao, “Windowed Fourier transform for fringe 
-%   pattern analysis: theoretical analyses,” Appl. Opt. 47, 5408-5419 (2008).
+%   pattern analysis: theoretical analyses,?Appl. Opt. 47, 5408-5419 (2008).
 %
 %INFO
 %   Last update: 28/07/2011, 12/12/2012

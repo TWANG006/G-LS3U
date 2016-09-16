@@ -10,12 +10,12 @@
 #define BLOCK_SIZE_64 64
 
 //!- Macro for library dll export utility
-#if defined (_WIN32)
-#    if defined (WFT_FPA_DLL_EXPORTS_MODE)
-#        define WFT_FPA_DLL_EXPORTS __declspec(dllexport)
-#    else
-#        define WFT_FPA_DLL_EXPORTS __declspec(dllimport)
-#    endif
+#if defined (_WIN32) 
+#		if defined (WFT_FPA_DLL_EXPORTS_MODE)
+#			define WFT_FPA_DLL_EXPORTS __declspec(dllexport)
+#		else
+#			define WFT_FPA_DLL_EXPORTS __declspec(dllimport)
+#		endif
 #else
 #    define WFT_FPA_DLL_EXPORTS
 #endif

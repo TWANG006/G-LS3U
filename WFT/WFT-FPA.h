@@ -68,7 +68,7 @@ namespace WFT_FPA
 		Multicore,
 		CUDA
 	};
-}
+} //WFT_FPA
 
 
 #endif // WFT_FPA_H

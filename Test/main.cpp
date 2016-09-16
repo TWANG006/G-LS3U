@@ -7,10 +7,32 @@
 
 using namespace std;
 
+class Test
+{
+public:
+
+
+
+	void operator()(int a, int b, int c, int d)
+	{
+		cout<<a+b+c+d<<endl;
+	}
+
+private:
+	int x;
+};
+
 int main()
 {
+	vector<float> B{
+		0.8147f, 0.6324f, 0.9575f, 0.9572f,
+		0.9058f, 0.0975f, 0.9649f, 0.4854f,
+		0.1270f, 0.2785f, 0.1576f, 0.8003f,
+		0.9134f, 0.5469f, 0.9706f, 0.1419f};
+
 	fftwf_complex *A = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex) * 16);
 	fftwf_complex *m_freqDom1 = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex) * 16);
+	fftwf_complex *m_freqDom2 = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex) * 4 * (4 / 2 + 1));
 
 	A[0][0] = 0.8147; A[0][1] = 0;
 	A[1][0] = 0.6324; A[1][1] = 0;
@@ -30,7 +52,9 @@ int main()
 	A[15][0] = 0.1419; A[15][1] = 0;
 
 	fftwf_plan plan1 = fftwf_plan_dft_2d(4, 4, A, m_freqDom1, FFTW_FORWARD, FFTW_ESTIMATE);
+	fftwf_plan plan2 = fftwf_plan_dft_r2c_2d(4,4, B.data(), m_freqDom2, FFTW_ESTIMATE);
 	fftwf_execute(plan1);
+	fftwf_execute(plan2);
 
 	for (int y = 0; y < 4; y++)
 	{
@@ -41,7 +65,19 @@ int main()
 		}
 	}
 	
-	cout<<add(1,2)<<endl;
+	cout<<add(1,2)<<endl<<endl;
+
+	for(int i=0; i<12; i++)
+	{
+		cout << i << "real" << m_freqDom1[i][0] << "imag" << m_freqDom1[i][1] << "\n";
+	}
+
+	fftwf_free(A);
+	fftwf_free(m_freqDom1);
+	fftwf_free(m_freqDom2);
+
+	fftwf_destroy_plan(plan1);
+	fftwf_destroy_plan(plan2);
 
 	return 0;
 }

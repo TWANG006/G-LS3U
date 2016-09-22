@@ -63,7 +63,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\3rd\gtest\;$(ProjectDir)..\AIA;$(ProjectDir)..\WFT;$(ProjectDir)..\DPRA;$(OPENCV_DIR)\..\..\include;$(ProjectDir)..\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIB_3rd)\gtest\;$(ProjectDir)..\AIA;$(ProjectDir)..\WFT;$(ProjectDir)..\DPRA;$(OPENCV_DIR)\..\..\include;$(ProjectDir)..\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
@@ -83,7 +83,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\3rd\gtest\;$(ProjectDir)..\AIA;$(ProjectDir)..\WFT;$(ProjectDir)..\DPRA;$(OPENCV_DIR)\..\..\include;$(ProjectDir)..\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIB_3rd)\gtest\;$(ProjectDir)..\AIA;$(ProjectDir)..\WFT;$(ProjectDir)..\DPRA;$(OPENCV_DIR)\..\..\include;$(ProjectDir)..\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>

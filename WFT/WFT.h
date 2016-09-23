@@ -3,11 +3,27 @@
 
 #include "WFT-FPA.h"
 
-namespace WFT_FPA
-{
-	struct WFT_Host_Handle{
-		
+namespace WFT_FPA{
+namespace WFT{
+
+	// WFF: Windowed Fourier Filtering
+	// WFR: Windowed Fourier Ridges
+	enum class WFT_TYPE
+	{
+		WFF,
+		WFR
 	};
-} // WFT_FPA;
+
+	struct WFT_Host_Handle
+	{
+				
+	};
+
+	class WFT_Base{
+
+	};
+
+}// namespace WFT
+}// namespace WFT_FPA;
 
 #endif // !WFT_H

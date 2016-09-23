@@ -56,12 +56,6 @@ namespace WFT_FPA
 	using uint_t = unsigned int;
 	using uint8 = unsigned char;
 
-	enum class WFT_FPA_TYPE
-	{
-		WFF,
-		WFR
-	};
-
 	enum class PARALLEL_COMPUTING_TYPE
 	{
 		Sequential,

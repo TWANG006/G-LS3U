@@ -1,9 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include <fftw3.h>
-
-#include "WFT-Utils.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -65,14 +63,21 @@ int main()
 		}
 	}
 	
-	cout<<add(1,2)<<endl<<endl;
+	cout<<WFT_FPA::add(1,2)<<endl<<endl;
 
 	for(int i=0; i<12; i++)
 	{
 		cout << i << "real" << m_freqDom1[i][0] << "imag" << m_freqDom1[i][1] << "\n";
 	}
 
-	fftwf_free(A);
+	cout<<A[0][0]<<endl;
+	cufftComplex *fromFFTW = reinterpret_cast<cufftComplex*>(A);
+	cout<<fromFFTW[0].x<<endl;
+
+	free(fromFFTW);
+
+
+	//fftwf_free(A);
 	fftwf_free(m_freqDom1);
 	fftwf_free(m_freqDom2);
 

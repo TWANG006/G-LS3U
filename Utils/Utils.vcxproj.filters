@@ -18,12 +18,12 @@
     <ClInclude Include="WFT-FPA.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WFT-Utils.h">
+    <ClInclude Include="Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="WFT-Utils.cpp">
+    <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

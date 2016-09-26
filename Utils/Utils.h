@@ -4,8 +4,7 @@
 #include "WFT-FPA.h"
 #include <fftw3.h>
 
-namespace WFT_FPA
-{
+namespace WFT_FPA{
 
 	WFT_FPA_DLL_EXPORTS int add(int a, int b);
 	

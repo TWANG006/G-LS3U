@@ -97,10 +97,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="WFT_Seq.cpp" />
+    <ClCompile Include="WFT.cpp" />
+    <ClCompile Include="WFT2_CPU.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WFT_Seq.h" />
+    <ClInclude Include="WFT.h" />
+    <ClInclude Include="WFT2_CPU.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

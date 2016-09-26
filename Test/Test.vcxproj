@@ -70,7 +70,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310d.lib;Utilsd.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world310d.lib;Utilsd.lib;WFTd.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

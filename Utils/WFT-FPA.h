@@ -67,7 +67,16 @@ namespace WFT_FPA
 		Multicore,
 		CUDA
 	};
-}
+
+namespace WFT
+{
+	enum class WFT_TYPE
+	{
+		WFF,	// Windowed Fourier Filter
+		WFR		// Windowed Fourier Ridges
+	};
+}	// namespace WFT
+}	// namespace WFT_FPA
 
 
 #endif // WFT_FPA_H

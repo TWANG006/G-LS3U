@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Utils.h"
+#include "WFT.h"
 
 using namespace std;
 
@@ -22,7 +23,14 @@ private:
 
 int main()
 {
-	vector<float> B{
+	WFT_FPA::WFT::WFT2_HostResults *h = new WFT_FPA::WFT::WFT2_HostResults();
+
+	delete h;
+
+	int n = WFT_FPA::WFT::getFirstGreater(1);
+	cout<<n<<", "<<WFT_FPA::WFT::OPT_FFT_SIZE[n]<< endl;
+
+	/*vector<float> B{
 		0.8147f, 0.6324f, 0.9575f, 0.9572f,
 		0.9058f, 0.0975f, 0.9649f, 0.4854f,
 		0.1270f, 0.2785f, 0.1576f, 0.8003f,
@@ -74,15 +82,13 @@ int main()
 	cufftComplex *fromFFTW = reinterpret_cast<cufftComplex*>(A);
 	cout<<fromFFTW[0].x<<endl;
 
-	free(fromFFTW);
 
-
-	//fftwf_free(A);
+	fftwf_free(A);
 	fftwf_free(m_freqDom1);
 	fftwf_free(m_freqDom2);
 
 	fftwf_destroy_plan(plan1);
-	fftwf_destroy_plan(plan2);
+	fftwf_destroy_plan(plan2);*/
 
 	return 0;
 }

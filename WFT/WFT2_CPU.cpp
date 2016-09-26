@@ -120,11 +120,27 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	// Allocate memory for padded arrays
 	m_fPadded = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
 	m_gwavePadded = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
+
+	// Allocate memory for the output z
+	if(WFT_TYPE::WFF == m_type)
+	{
+		z.m_filtered = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iWidth*m_iHeight);
+	}
+	else if(WFT_TYPE::WFR == m_type)
+	{
+		z.m_wx = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_wy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_phase = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_phase_comp = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_b = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_r = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_cx =(real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_cy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+	}
 #else
 	// Allocate memory for padded arrays
 	m_fPadded = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
 	m_gwavePadded = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-	
 	// Allocate memory for the output z
 	if(WFT_TYPE::WFF == m_type)
 	{
@@ -144,7 +160,30 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 #endif // WFT_FPA_DOUBLE
 	
 	/* Generate the windows g (g is the same across the calculation) *
-	 *	g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)      */
+	 * g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)	     * 
+	 * And set padded region of both m_fPadded and m_gwavePadded to  *
+	 * zeros.						                                 */
+	for (auto i = 0; i < m_iPaddedHeight; i++)
+	{
+		for (auto j = 0; j < m_iPaddedWidth; j++)
+		{
+			int id = i * m_iPaddedWidth + j;	// 1D index of 2D array elems
+			int iWinWidth = 2 * m_iSx + 1;		// Gaussian Window width
+			int iWinHeight = 2 * m_iSy + 1;		// Gaussian Window height
+
+			// Construct m_gwavePadded matrix
+			// Except the first 2*sx+1 by 2*sy+1 elements, all are 0's. Also, all imags are 0's
+			if (i < iWinHeight && j < iWinWidth)
+			{
+
+			}
+			m_gwavePadded[id][1] = 0;
+
+			// Set m_fPadded to zeros, because it will be filled later when execute
+			// the functor
+			m_fPadded[id][0] = m_fPadded[id][1] = 0;	// Both real & imag are set to 0
+		}
+	}
 
 	return 0;
 }

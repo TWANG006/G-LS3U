@@ -39,31 +39,12 @@ WFT2_cpu::WFT2_cpu(
 		m_rWyh = real_t(2.0);
 	}
 
-	/* General parameters intitialization */
-	m_iSx = int(round(m_rSigmaX));
-	m_iSy = int(round(m_rSigmaY));
-
-	// Do the first padding in order to perform the cyclic convolution using FFT
-	// The padding size is size(A) + size(B) - 1;
-	m_iPaddedHeight = m_iHeight + 2 * m_iSy;
-	m_iPaddedWidth = m_iWidth + 2 * m_iSx;
-	
-	// Do the second padding in order to fit the optimized size for FFT
-	int iH = getFirstGreater(m_iPaddedHeight);
-	int iW = getFirstGreater(m_iPaddedWidth);
-	// Check whether the preferred size is within 4096
-	if(-1 == iH || -1 == iW)
+	/* Do the Initialization */
+	if(-1 == WFT2_Initialize(z))
 	{
 		std::cout<<"FFT padding is out of range [4096]. Shrink the size of either the image or the Gaussian Window!"<<std::endl;
 		throw -1;
 	}
-	else
-	{
-		m_iPaddedHeight = OPT_FFT_SIZE[iH];
-		m_iPaddedWidth	= OPT_FFT_SIZE[iW];
-	}
-
-	/* Allocate required memory */
 	
 }
 
@@ -87,7 +68,7 @@ WFT2_cpu::WFT2_cpu(
 	, m_rWyh(rWyh)
 	, m_rThr(rThr)
 {
-
+	WFT2_Initialize(z);	
 }
 
 WFT2_cpu::~WFT2_cpu()
@@ -108,14 +89,64 @@ void WFT2_cpu::operator() (fftw3Complex *f, WFT2_HostResults &z)
 
 
 /* Private functions */
-void WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
+int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 {
-	// Memory Allocation (Already padded)
+	/* General parameters intitialization */
+	m_iSx = int(round(m_rSigmaX));
+	m_iSy = int(round(m_rSigmaY));
 
-	// Generate the windows g (g is the same across the calculation)
+	// Do the first padding in order to perform the cyclic convolution using FFT
+	// The padding size is size(A) + size(B) - 1;
+	m_iPaddedHeight = m_iHeight + 2 * m_iSy;
+	m_iPaddedWidth = m_iWidth + 2 * m_iSx;
+	
+	// Do the second padding in order to fit the optimized size for FFT
+	int iH = getFirstGreater(m_iPaddedHeight);
+	int iW = getFirstGreater(m_iPaddedWidth);
+	// Check whether the preferred size is within 4096
+	if(-1 == iH || -1 == iW)
+	{
+		// Out of range
+		return -1;
+	}
+	else
+	{
+		m_iPaddedHeight = OPT_FFT_SIZE[iH];
+		m_iPaddedWidth	= OPT_FFT_SIZE[iW];
+	}
 
-	// Do the first Fourier Transform on 
+	/* Memory Allocation (Already padded) */
+#ifdef WFT_FPA_DOUBLE
+	// Allocate memory for padded arrays
+	m_fPadded = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
+	m_gwavePadded = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
+#else
+	// Allocate memory for padded arrays
+	m_fPadded = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
+	m_gwavePadded = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
+	
+	// Allocate memory for the output z
+	if(WFT_TYPE::WFF == m_type)
+	{
+		z.m_filtered = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iWidth*m_iHeight);
+	}
+	else if(WFT_TYPE::WFR == m_type)
+	{
+		z.m_wx = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_wy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_phase = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_phase_comp = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_b = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_r = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_cx =(real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_cy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+	}
+#endif // WFT_FPA_DOUBLE
+	
+	/* Generate the windows g (g is the same across the calculation) *
+	 *	g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)      */
 
+	return 0;
 }
 
 

@@ -22,7 +22,7 @@ public:
 		WFT_TYPE type,
 		WFT2_HostResults &z);
 
-	// 
+	// Parameters are set by the input parameters
 	WFT2_cpu(
 		int iWidth, int iHeight,
 		WFT_TYPE type,
@@ -33,38 +33,39 @@ public:
 
 	~WFT2_cpu();
 
+	// Make this class a callable object (functor)
 	void operator() (fftw3Complex *f, WFT2_HostResults &z);
 
 private:
-	void WFT2_Initialize(WFT2_HostResults &z);
+	int WFT2_Initialize(WFT2_HostResults &z);
 
 private:
 	/* Internal arrays */
-	fftw3Complex *m_fPadded;	// Padded f 
-	fftw3Complex *m_gwavePadded;// Padded gwave
+	fftw3Complex	*m_fPadded;		// Padded f 
+	fftw3Complex	*m_gwavePadded;	// Padded gwave
 
 	/* Internal Parameters */
-	int			m_iWidth;		// width of the fringe pattern
-	int			m_iHeight;		// height of the fringe pattern	
-	/* Initially, size(A) + size(B) - 1, search the lookup table for ** 
+	int				m_iWidth;		// width of the fringe pattern
+	int				m_iHeight;		// height of the fringe pattern	
+	/* Initially, size(A) + size(B) - 1, search the lookup table for * 
 	 * Optimized size for the FFT									 */
-	int			m_iPaddedWidth;	// width after padding for optimized FFT
-	int			m_iPaddedHeight;// height after padding for optimized FFT
-	WFT_TYPE	m_type;			// 'WFF' or 'WFR'
-	int			m_iSx;			// half Windows size along x
-	int			m_iSy;			// half Windows size along y
-	real_t		m_rSigmaX;		// sigma of the window in x-axis
-	real_t		m_rWxl;			// lower bound of frequency in x-axis
-	real_t		m_rWxi;			// step size of frequency in x-axis
-	real_t		m_rWxh;			// upper bound of frequency in x-axis
-	real_t		m_rSigmaY;		// sigma of the window in x-axis
-	real_t		m_rWyl;			// lower bound of frequency in y-axis
-	real_t		m_rWyh;			// upper bound of frequency in y-axis
-	real_t		m_rWyi;			// step size of frequency in y-axis	
+	int				m_iPaddedWidth;	// width after padding for optimized FFT
+	int				m_iPaddedHeight;// height after padding for optimized FFT
+	WFT_TYPE		m_type;			// 'WFF' or 'WFR'
+	int				m_iSx;			// half Windows size along x
+	int				m_iSy;			// half Windows size along y
+	real_t			m_rSigmaX;		// sigma of the window in x-axis
+	real_t			m_rWxl;			// lower bound of frequency in x-axis
+	real_t			m_rWxi;			// step size of frequency in x-axis
+	real_t			m_rWxh;			// upper bound of frequency in x-axis
+	real_t			m_rSigmaY;		// sigma of the window in x-axis
+	real_t			m_rWyl;			// lower bound of frequency in y-axis
+	real_t			m_rWyh;			// upper bound of frequency in y-axis
+	real_t			m_rWyi;			// step size of frequency in y-axis	
 	/* threshold for 'wff', no needed for 'wfr' *
 	 * NOTE: if m_rThr < 0, it is calculated as *
 	 * m_rThr = 6 * sqrt(mean2(abs(f).^2)/3)    */
-	real_t		m_rThr;		
+	real_t			m_rThr;		
 };
 
 }	// namespace WFT_FPA

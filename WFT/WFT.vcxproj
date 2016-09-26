@@ -100,7 +100,6 @@
     <ClCompile Include="WFT_Seq.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WFT2.h" />
     <ClInclude Include="WFT_Seq.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

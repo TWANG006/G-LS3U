@@ -163,7 +163,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	 * g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)	     * 
 	 * And set padded region of both m_fPadded and m_gwavePadded to  *
 	 * zeros.						                                 */
-	for (auto i = 0; i < m_iPaddedHeight; i++)
+	real_t rNorm2Factor = 0;					// Factor used for normalization
+	for (auto i= 0; i < m_iPaddedHeight; i++)
 	{
 		for (auto j = 0; j < m_iPaddedWidth; j++)
 		{
@@ -175,7 +176,13 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 			// Except the first 2*sx+1 by 2*sy+1 elements, all are 0's. Also, all imags are 0's
 			if (i < iWinHeight && j < iWinWidth)
 			{
+				int y = i - (iWinHeight - 1) / 2;
+				int x = j - (iWinWidth - 1) / 2;
 
+				m_gwavePadded[id][0] = exp(-real_t(x*x)/2/m_rSigmaX/m_rSigmaX 
+					- real_t(y*y)/2/m_rSigmaY/m_rSigmaY);
+
+				rNorm2Factor += m_gwavePadded[id][0] * m_gwavePadded[id][0];
 			}
 			m_gwavePadded[id][1] = 0;
 
@@ -184,6 +191,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 			m_fPadded[id][0] = m_fPadded[id][1] = 0;	// Both real & imag are set to 0
 		}
 	}
+	// Do the normalization: g = g/sqrt(sum(sum(g.*g));
+	rNorm2Factor = sqrt(rNorm2Factor);
 
 	return 0;
 }

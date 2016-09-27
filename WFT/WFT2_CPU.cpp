@@ -193,6 +193,14 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	}
 	// Do the normalization: g = g/sqrt(sum(sum(g.*g));
 	rNorm2Factor = sqrt(rNorm2Factor);
+	for (auto i = 0; i < 2 * m_iSy + 1; i++)
+	{
+		for (auto j = 0; j < 2 * m_iSx + 1; j++)
+		{
+			int id = i*m_iPaddedWidth + j;
+			m_gwavePadded[id][0] /= rNorm2Factor;
+		}
+	}
 
 	return 0;
 }

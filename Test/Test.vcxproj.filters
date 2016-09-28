@@ -30,5 +30,8 @@
     <ClCompile Include="Utils_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WFT2_CPU_Initialization_Test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

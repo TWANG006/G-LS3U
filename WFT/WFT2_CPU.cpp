@@ -247,8 +247,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 			m_gwavePadded[id][0] /= rNorm2Factor;
 		}
 	}
-	std::cout<<m_gwavePadded[0][0]<<", "<< m_gwavePadded[0][1]<<std::endl;
-	std::cout<<m_gwavePadded[60*m_iPaddedWidth+60][0]<<std::endl;
+	/*std::cout<<m_gwavePadded[0][0]<<", "<< m_gwavePadded[0][1]<<std::endl;
+	std::cout<<m_gwavePadded[60*m_iPaddedWidth+60][0]<<std::endl;*/
 
 	return 0;
 }

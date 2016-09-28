@@ -96,8 +96,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FFTW_C2C_Test.cpp" />
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Utils_Test.cpp" />
+    <ClCompile Include="WFT2_CPU_ConstructorTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

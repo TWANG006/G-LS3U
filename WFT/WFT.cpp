@@ -36,17 +36,19 @@ WFT2_HostResults::WFT2_HostResults()
 
 WFT2_HostResults::~WFT2_HostResults()
 {
-	free(m_filtered);	m_filtered = nullptr;
-	free(m_wx);			m_wx = nullptr;
-	free(m_phase);		m_phase = nullptr;
-	free(m_phase_comp); m_phase_comp = nullptr;
-	free(m_b);			m_b = nullptr;
-	free(m_r);			m_r = nullptr;
-	free(m_cx);			m_cx = nullptr;
-	free(m_cy);			m_cy = nullptr;
-
-	//std::cout<<"D is called"<<std::endl;
+#ifdef WFT_FPA_DOUBLE
+	fftw_free(m_filtered);	m_filtered = nullptr;
+#else
+	fftwf_free(m_filtered);	m_filtered = nullptr;
+#endif // WFT_FPA_DOUBLE	
+	free(m_wx);				m_wx = nullptr;
+	free(m_phase);			m_phase = nullptr;
+	free(m_phase_comp);		m_phase_comp = nullptr;
+	free(m_b);				m_b = nullptr;
+	free(m_r);				m_r = nullptr;
+	free(m_cx);				m_cx = nullptr;
+	free(m_cy);				m_cy = nullptr;
 }
 
-}
-}
+}	// namespace WFT
+}	// namespace WFT_FPA

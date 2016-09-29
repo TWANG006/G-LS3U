@@ -52,14 +52,12 @@ private:
 
 	/* Sequential & Multi-threaded Implementations of the WFF2&WFR2
 	   algorithm												    */
-	void WFF2_Common(fftw3Complex *f);	
-	void WFF2_Seq(fftw3Complex *f, WFT2_HostResults &z);
-	void WFF2_Mul(fftw3Complex *f, WFT2_HostResults &z);	
-	void WFR2_Seq(fftw3Complex *f, WFT2_HostResults &z);
-	void WFR2_Mul(fftw3Complex *f, WFT2_HostResults &z);
+	void WFF2_SetThreashold(fftw3Complex *f);	
+	void WFF2(fftw3Complex *f, WFT2_HostResults &z);
+	void WFR2(fftw3Complex *f, WFT2_HostResults &z);
 	
 
-private:
+public:
 	/* Internal arrays */
 	fftw3Complex	*m_fPadded;			// Padded f 
 	fftw3Complex	*m_gwavePadded;		// Padded gwave

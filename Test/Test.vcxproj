@@ -92,7 +92,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310.lib;Utils.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world310.lib;Utils.lib;WFT.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -100,7 +100,7 @@
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Utils_Test.cpp" />
-    <ClCompile Include="WFT2_CPU_ConstructorTest.cpp" />
+    <ClCompile Include="WFT2_CPU_ComputationTest.cpp" />
     <ClCompile Include="WFT2_CPU_Initialization_Test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

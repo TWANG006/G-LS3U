@@ -65,6 +65,7 @@
       <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS_MODE;_DEBUG;_WINDOWS;_USRDLL;WFT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(SolutionDir)\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -85,6 +86,7 @@
       <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;WFT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(SolutionDir)\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

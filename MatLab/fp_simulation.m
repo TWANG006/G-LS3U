@@ -1,4 +1,4 @@
-function f = fp_simulation(type, width, height, nV, b, k)
+function f = fp_simulation(type, width, height, name, nV, b, k)
 %PURPOSE
 %   Generate the simulated fringe pattern images based on the "type"
 %
@@ -23,7 +23,7 @@ if(width == height)
     N = width;
 end;
 
-if nargin ==3
+if nargin ==4
     nV = 1;
     b = 1;
     if strcmp(type, 'peaks')
@@ -54,5 +54,17 @@ else
     error('Invalid type');
 end
 
+rows = height;
+cols = width;
+
 % write the image to disk
+filename = name; 
+fileID = fopen(filename,'wt');
+fprintf(fileID, '%d,%d\n', rows,cols);
+for i=1:height
+    for j=1:width
+        fprintf(fileID, '%s,%s\n', real(f(i,j)),imag(f(i,j)));
+    end
+end
+fclose(fileID);
 

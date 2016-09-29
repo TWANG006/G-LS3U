@@ -51,7 +51,7 @@ TEST(FFTW3_C2C_In_place, FFTW3_C2C)
 	// Do scaling
 	for(int i=0; i<16; i++)
 	{
-		WFT_FPA::fftwComplexScale<fftwf_complex, float>(m_freqDom1[i], 1/16.0f);
+		WFT_FPA::fftwComplexScale(m_freqDom1[i], 1/16.0f);
 	}
 		
 	fftwf_execute(plan3);

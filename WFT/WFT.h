@@ -1,6 +1,7 @@
 #ifndef WFT_H
 #define WFT_H
 
+//#define WFT_FPA_DOUBLE
 #include "WFT-FPA.h"
 #include <vector>
 

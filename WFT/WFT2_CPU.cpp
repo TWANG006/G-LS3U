@@ -1,7 +1,8 @@
 #include "WFT2_CPU.h"
 #include <iostream>
-
+#include <omp.h>
 #include "Utils.h"
+
 
 namespace WFT_FPA{
 namespace WFT{
@@ -15,7 +16,7 @@ WFT2_cpu::WFT2_cpu(
 	, m_iHeight(iHeight)
 	, m_type(type)
 	, m_rThr(-1)
-	, m_iNumberThreads(1)
+	, m_iNumberThreads(iNumberThreads)
 {
 	/* Type specific parameter initializations*/
 	if(WFT_TYPE::WFF == m_type)
@@ -50,6 +51,8 @@ WFT2_cpu::WFT2_cpu(
 		throw -1;
 	}
 	
+	
+
 }
 
 WFT2_cpu::WFT2_cpu(
@@ -72,7 +75,7 @@ WFT2_cpu::WFT2_cpu(
 	, m_rWyi(rWyi)
 	, m_rWyh(rWyh)
 	, m_rThr(rThr)
-	, m_iNumberThreads(1)
+	, m_iNumberThreads(iNumberThreads)
 {
 	/* Do the Initialization */
 	if(-1 == WFT2_Initialize(z))
@@ -111,7 +114,12 @@ void WFT2_cpu::operator() (
 	fftw3Complex *f, 
 	WFT2_HostResults &z)
 {
-
+	if(WFT_FPA::WFT::WFT_TYPE::WFF == m_type)
+		WFF2(f,z);
+	else if(WFT_FPA::WFT::WFT_TYPE::WFR == m_type)
+		WFR2(f,z);
+	std::cout << m_iPaddedHeight << ", " << m_iPaddedWidth << std::endl;
+	std::cout << "The threashold is = " << m_rThr << std::endl;
 }
 
 
@@ -153,7 +161,7 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	/* Make the FFTW plans */
 	m_planForwardf = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, m_fPadded, m_fPaddedFq, FFTW_FORWARD, FFTW_ESTIMATE);
 	m_planForwardgwave = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, m_gwavePadded, m_gwavePaddedFq, FFTW_FORWARD, FFTW_ESTIMATE);
-	m_planInverseSf = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, m_Sf, m_Sf, FFTW_BACKWARD, FFTW_ESTIMATE)
+	m_planInverseSf = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, m_Sf, m_Sf, FFTW_BACKWARD, FFTW_ESTIMATE);
 #else
 	/* Allocate memory for padded arrays */
 	m_fPadded = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
@@ -168,6 +176,7 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	m_planInverseSf = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, m_Sf, m_Sf, FFTW_BACKWARD, FFTW_ESTIMATE);
 #endif
 
+	omp_set_num_threads(m_iNumberThreads);
 	/* Allocate memory for the output z */
 	if(WFT_TYPE::WFF == m_type)
 	{
@@ -176,10 +185,15 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 #else
 		z.m_filtered = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iWidth*m_iHeight);
 #endif
+		
+
 		for (int i = 0; i < m_iWidth*m_iHeight; i++)
 		{
-			z.m_filtered[i][0] = z.m_filtered[i][1] = 0;
+			z.m_filtered[i][0] = 0;
+			z.m_filtered[i][1] = 0;
 		}
+
+		
 	}
 	else if(WFT_TYPE::WFR == m_type)
 	{
@@ -192,7 +206,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 		z.m_cx =(real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
 		z.m_cy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
 
-		for(int i=0; i<m_iWidth*m_iHeight; i++)
+	
+		for (int i = 0; i < m_iWidth*m_iHeight; i++)
 		{
 			z.m_wx[i] = 0;
 			z.m_wy[i] = 0;
@@ -203,79 +218,89 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 			z.m_cx[i] = 0;
 			z.m_cy[i] = 0;
 		}
+		
 	}
 	
 	/* Generate the windows g (g is the same across the calculation) *
 	 * g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)	     * 
 	 * And set padded region of both m_fPadded and m_gwavePadded to  *
 	 * zeros.						                                 */
-	real_t rNorm2Factor = 0;					// Factor used for normalization
-	for (auto i= 0; i < m_iPaddedHeight; i++)
+	real_t rNorm2Factor = 0;			// Factor used for normalization
+	int iWinWidth = 2 * m_iSx + 1;		// Gaussian Window width
+	int iWinHeight = 2 * m_iSy + 1;		// Gaussian Window height
+	
+	double start = omp_get_wtime();
+	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
-		for (auto j = 0; j < m_iPaddedWidth; j++)
+		real_t rNorm2FactorLocal = 0;
+		
+		int id;
+		int x, y;
+
+		/* Get thread params */
+		int tid = omp_get_thread_num();
+		int inthread = omp_get_num_threads();
+
+		for (int i = tid; i < m_iPaddedHeight; i += inthread)
 		{
-			int id = i * m_iPaddedWidth + j;	// 1D index of 2D array elems
-			int iWinWidth = 2 * m_iSx + 1;		// Gaussian Window width
-			int iWinHeight = 2 * m_iSy + 1;		// Gaussian Window height
-
-			// Construct m_gwavePadded matrix
-			// Except the first 2*sx+1 by 2*sy+1 elements, all are 0's. Also, all imags are 0's
-			if (i < iWinHeight && j < iWinWidth)
+			for (int j = 0; j < m_iPaddedWidth; j++)
 			{
-				int y = i - (iWinHeight - 1) / 2;
-				int x = j - (iWinWidth - 1) / 2;
+				id = i * m_iPaddedWidth + j;	// 1D index of 2D array elems				
 
-				m_gwavePadded[id][0] = exp(-real_t(x*x)/2/m_rSigmaX/m_rSigmaX 
-					- real_t(y*y)/2/m_rSigmaY/m_rSigmaY);
+				// Construct m_gwavePadded matrix
+				// Except the first 2*sx+1 by 2*sy+1 elements, all are 0's. Also, all imags are 0's
+				if (i < iWinHeight && j < iWinWidth)
+				{
+					y = i - (iWinHeight - 1) / 2;
+					x = j - (iWinWidth - 1) / 2;
 
-				rNorm2Factor += m_gwavePadded[id][0] * m_gwavePadded[id][0];
+					m_gwavePadded[id][0] = exp(-real_t(x*x) / 2 / m_rSigmaX / m_rSigmaX
+						- real_t(y*y) / 2 / m_rSigmaY / m_rSigmaY);
+
+					rNorm2FactorLocal += m_gwavePadded[id][0] * m_gwavePadded[id][0];
+				}
+				else
+				{
+					m_gwavePadded[id][0] = 0;
+				}
+				m_gwavePadded[id][1] = 0;
+
+				// Set m_fPadded to zeros, because it will be filled later when execute
+				// the functor. Both real & imag are set to 0
+				m_fPadded[id][0] = m_fPadded[id][1] = 0;
 			}
-			m_gwavePadded[id][1] = 0;
-
-			// Set m_fPadded to zeros, because it will be filled later when execute
-			// the functor. Both real & imag are set to 0
-			m_fPadded[id][0] = m_fPadded[id][1] = 0;	
 		}
+		// Accumulate the per-thread results one-by-one
+		#pragma omp critical
+			rNorm2Factor += rNorm2FactorLocal;
 	}
-	// Do the normalization: g = g/sqrt(sum(sum(g.*g));
+	double end = omp_get_wtime();
+	std::cout << "Initialization time = " << 1000 * (end - start) << std::endl;
 	rNorm2Factor = sqrt(rNorm2Factor);
-	for (auto i = 0; i < 2 * m_iSy + 1; i++)
+
+	// Do the normalization for gwave	
+	for (int i = 0; i < 2 * m_iSy + 1; i++)
 	{
-		for (auto j = 0; j < 2 * m_iSx + 1; j++)
+		for (int j = 0; j < 2 * m_iSx + 1; j++)
 		{
 			int id = i*m_iPaddedWidth + j;
 			m_gwavePadded[id][0] /= rNorm2Factor;
 		}
-	}
-	/*std::cout<<m_gwavePadded[0][0]<<", "<< m_gwavePadded[0][1]<<std::endl;
+	}	
+	
+	/*std::cout<<m_gwavePadded[9][0]<<", "<< m_gwavePadded[9][1]<<std::endl;
 	std::cout<<m_gwavePadded[60*m_iPaddedWidth+60][0]<<std::endl;*/
+	
 
 	return 0;
 }
 
 void WFT2_cpu::WFT2_feed_fPadded(fftw3Complex *f)
 {
-	for (int i = 0; i < m_iHeight; i++)
+	
+	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
-		for (int j = 0; j < m_iWidth; j++)
-		{
-			int idf = i*m_iWidth + j;
-			int idfPadded = i*m_iPaddedWidth + j;
-
-			m_fPadded[idfPadded][0] = f[idf][0];
-			m_fPadded[idfPadded][1] = f[idf][1];
-		}
-	}
-}
-
-void WFT2_cpu::WFF2_Common(fftw3Complex *f)
-{
-	/* If m_rThr < 0, use the default values for the Threashold in WFF2 algorithm 
-		m_rThr = 6 * sqrt( mean2( abs(f).^2 ) / 3)				
-	   As well as feed the f into its padded m_fPadded							  */
-	if(m_rThr < 0)
-	{
-		real_t rTemp = 0;
+		#pragma omp for
 		for (int i = 0; i < m_iHeight; i++)
 		{
 			for (int j = 0; j < m_iWidth; j++)
@@ -283,15 +308,57 @@ void WFT2_cpu::WFF2_Common(fftw3Complex *f)
 				int idf = i*m_iWidth + j;
 				int idfPadded = i*m_iPaddedWidth + j;
 
-				real_t abs = fftwComplexAbs<fftw3Complex, real_t>(f[idf]);
-				abs = abs*abs;
-				rTemp += abs;
-
-				// Feed the array
 				m_fPadded[idfPadded][0] = f[idf][0];
 				m_fPadded[idfPadded][1] = f[idf][1];
 			}
 		}
+	}
+	
+}
+
+void WFT2_cpu::WFF2_SetThreashold(fftw3Complex *f)
+{
+	/* If m_rThr < 0, use the default values for the Threashold in WFF2 algorithm 
+		m_rThr = 6 * sqrt( mean2( abs(f).^2 ) / 3)				
+	   As well as feed the f into its padded m_fPadded							  */
+	if(m_rThr < 0)
+	{
+		real_t rTemp = 0;
+
+		#pragma omp parallel num_threads(m_iNumberThreads)
+		{
+			real_t rTempLocal = 0;
+
+			/* Get thread params */
+			int tid = omp_get_thread_num();
+			int inthread = omp_get_num_threads();
+			int idf, idfPadded;
+			real_t abs;
+
+			for (int i = tid; i < m_iHeight; i += inthread)
+			{
+				for (int j = 0; j < m_iWidth; j++)
+				{
+					idf = i*m_iWidth + j;
+					idfPadded = i*m_iPaddedWidth + j;
+
+					abs = fftwComplexAbs(f[idf]);
+					abs = abs*abs;
+					rTempLocal += abs;
+
+					// Feed the array
+					m_fPadded[idfPadded][0] = f[idf][0];
+					m_fPadded[idfPadded][1] = f[idf][1];
+				}
+			}
+
+			#pragma omp critical
+			{
+				rTemp += rTempLocal;
+			}
+
+		}		
+
 		rTemp = rTemp / (m_iWidth * m_iHeight) / 3;
 		m_rThr = 6 * sqrt(rTemp);
 	}
@@ -309,24 +376,13 @@ void WFT2_cpu::WFF2_Common(fftw3Complex *f)
 #endif // WFT_FPA_DOUBLE
 }
 
-void WFT2_cpu::WFF2_Seq(fftw3Complex *f, WFT2_HostResults &z)
+void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z)
 {
-	WFF2_Common(f);
-}
-
-void WFT2_cpu::WFF2_Mul(fftw3Complex *f, WFT2_HostResults &z)
-{
-	WFF2_Common(f);
+	WFF2_SetThreashold(f);
 }
 
 
-
-void WFT2_cpu::WFR2_Seq(fftw3Complex *f, WFT2_HostResults &z)
-{
-	WFT2_feed_fPadded(f);
-}
-
-void WFT2_cpu::WFR2_Mul(fftw3Complex *f, WFT2_HostResults &z)
+void WFT2_cpu::WFR2(fftw3Complex *f, WFT2_HostResults &z)
 {
 	WFT2_feed_fPadded(f);
 }

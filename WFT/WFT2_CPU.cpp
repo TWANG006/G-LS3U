@@ -118,8 +118,8 @@ void WFT2_cpu::operator() (
 		WFF2(f,z);
 	else if(WFT_FPA::WFT::WFT_TYPE::WFR == m_type)
 		WFR2(f,z);
-	std::cout << m_iPaddedHeight << ", " << m_iPaddedWidth << std::endl;
-	std::cout << "The threashold is = " << m_rThr << std::endl;
+	/*std::cout << m_iPaddedHeight << ", " << m_iPaddedWidth << std::endl;
+	std::cout << "The threashold is = " << m_rThr << std::endl;*/
 }
 
 
@@ -176,7 +176,6 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	m_planInverseSf = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, m_Sf, m_Sf, FFTW_BACKWARD, FFTW_ESTIMATE);
 #endif
 
-	omp_set_num_threads(m_iNumberThreads);
 	/* Allocate memory for the output z */
 	if(WFT_TYPE::WFF == m_type)
 	{
@@ -197,6 +196,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	}
 	else if(WFT_TYPE::WFR == m_type)
 	{
+		/*double start = omp_get_wtime();*/
+
 		z.m_wx = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
 		z.m_wy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
 		z.m_phase = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
@@ -206,6 +207,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 		z.m_cx =(real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
 		z.m_cy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
 
+		//double end = omp_get_wtime();
+		//std::cout << "Alloc time = " << 1000 * (end - start) << std::endl;
 	
 		for (int i = 0; i < m_iWidth*m_iHeight; i++)
 		{
@@ -226,27 +229,34 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	 * And set padded region of both m_fPadded and m_gwavePadded to  *
 	 * zeros.						                                 */
 	real_t rNorm2Factor = 0;			// Factor used for normalization
-	int iWinWidth = 2 * m_iSx + 1;		// Gaussian Window width
-	int iWinHeight = 2 * m_iSy + 1;		// Gaussian Window height
 	
-	double start = omp_get_wtime();
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
+		int iWinWidth = 2 * m_iSx + 1;		// Gaussian Window width
+		int iWinHeight = 2 * m_iSy + 1;		// Gaussian Window height
 		real_t rNorm2FactorLocal = 0;
-		
-		int id;
-		int x, y;
-		real_t rtemp;
 
 		/* Get thread params */
 		int tid = omp_get_thread_num();
 		int inthread = omp_get_num_threads();
 
+		int id = 0;
+		int x = 0, y = 0;
+
 		for (int i = tid; i < m_iPaddedHeight; i += inthread)
 		{
 			for (int j = 0; j < m_iPaddedWidth; j++)
 			{
-				id = i * m_iPaddedWidth + j;	// 1D index of 2D array elems				
+				id = i * m_iPaddedWidth + j;	// 1D index of 2D array elems		
+
+				// Set m_gwavePadded to 0's
+				m_gwavePadded[id][0] = 0;
+				m_gwavePadded[id][1] = 0;
+
+				// Set m_fPadded to zeros, because it will be filled later when execute
+				// the functor. Both real & imag are set to 0
+				m_fPadded[id][0] = 0;
+				m_fPadded[id][1] = 0;
 
 				// Construct m_gwavePadded matrix
 				// Except the first 2*sx+1 by 2*sy+1 elements, all are 0's. Also, all imags are 0's
@@ -258,26 +268,15 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 					m_gwavePadded[id][0] = exp(-real_t(x*x) / 2 / m_rSigmaX / m_rSigmaX
 						- real_t(y*y) / 2 / m_rSigmaY / m_rSigmaY);
 
-					rtemp = m_gwavePadded[id][0] * m_gwavePadded[id][0];
-					rNorm2FactorLocal += rtemp;
-				}
-				else
-				{
-					m_gwavePadded[id][0] = 0;
-				}
-				m_gwavePadded[id][1] = 0;
-
-				// Set m_fPadded to zeros, because it will be filled later when execute
-				// the functor. Both real & imag are set to 0
-				m_fPadded[id][0] = m_fPadded[id][1] = 0;
+					rNorm2FactorLocal += m_gwavePadded[id][0] * m_gwavePadded[id][0];
+				}				
 			}
 		}
 		// Accumulate the per-thread results one-by-one
 		#pragma omp critical
 			rNorm2Factor += rNorm2FactorLocal;
 	}
-	double end = omp_get_wtime();
-	std::cout << "Initialization time = " << 1000 * (end - start) << std::endl;
+
 	rNorm2Factor = sqrt(rNorm2Factor);
 
 	// Do the normalization for gwave	
@@ -289,9 +288,9 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 			m_gwavePadded[id][0] /= rNorm2Factor;
 		}
 	}	
-	
-	/*std::cout<<m_gwavePadded[9][0]<<", "<< m_gwavePadded[9][1]<<std::endl;
-	std::cout<<m_gwavePadded[60*m_iPaddedWidth+60][0]<<std::endl;*/
+	//
+	//std::cout<<m_gwavePadded[9][0]<<", "<< m_gwavePadded[9][1]<<std::endl;
+	//std::cout<<m_gwavePadded[60*m_iPaddedWidth+60][0]<<std::endl;
 	
 
 	return 0;
@@ -299,7 +298,7 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 
 void WFT2_cpu::WFT2_feed_fPadded(fftw3Complex *f)
 {
-	double start = omp_get_wtime();	
+	/*double start = omp_get_wtime();	*/
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
 		#pragma omp for
@@ -315,14 +314,14 @@ void WFT2_cpu::WFT2_feed_fPadded(fftw3Complex *f)
 			}
 		}
 	}
-	double end = omp_get_wtime();
-	std::cout << "Padding time = " << 1000 * (end - start) << std::endl;
+	/*double end = omp_get_wtime();
+	std::cout << "Padding time = " << 1000 * (end - start) << std::endl;*/
 }
 
 void WFT2_cpu::WFF2_SetThreashold(fftw3Complex *f)
 {
 	
-	double start = omp_get_wtime();	
+	//double start = omp_get_wtime();	
 	/* If m_rThr < 0, use the default values for the Threashold in WFF2 algorithm 
 		m_rThr = 6 * sqrt( mean2( abs(f).^2 ) / 3)				
 	   As well as feed the f into its padded m_fPadded							  */
@@ -372,31 +371,35 @@ void WFT2_cpu::WFF2_SetThreashold(fftw3Complex *f)
 		/* Feed the input f into its padded m_fPadded */
 		WFT2_feed_fPadded(f);
 	}
-
-	double end = omp_get_wtime();
-	std::cout << "Set Thr time = " << 1000 * (end - start) << std::endl;
-
-	start = omp_get_wtime();
-	/* Pre-compute the FFT of m_fPadded */
-#ifdef WFT_FPA_DOUBLE
-	fftw_execute(m_planForwardf);
-#else
-	fftwf_execute(m_planForwardf);
-#endif // WFT_FPA_DOUBLE
-
-	end = omp_get_wtime();
-	std::cout << "FFT time = " << 1000 * (end - start) << std::endl;
+	//double end = omp_get_wtime();
+	//std::cout << "Set Thr time = " << 1000 * (end - start) << std::endl;
 }
 
 void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z)
 {
 	WFF2_SetThreashold(f);
+	//start = omp_get_wtime();
+	/* Pre-compute the FFT of m_fPadded */
+	#ifdef WFT_FPA_DOUBLE
+		fftw_execute(m_planForwardf);
+	#else
+		fftwf_execute(m_planForwardf);
+	#endif // WFT_FPA_DOUBLE
+
+	/*end = omp_get_wtime();
+	std::cout << "FFT time = " << 1000 * (end - start) << std::endl;*/
 }
 
 
 void WFT2_cpu::WFR2(fftw3Complex *f, WFT2_HostResults &z)
 {
 	WFT2_feed_fPadded(f);
+	/* Pre-compute the FFT of m_fPadded */
+	#ifdef WFT_FPA_DOUBLE
+		fftw_execute(m_planForwardf);
+	#else
+		fftwf_execute(m_planForwardf);
+	#endif // WFT_FPA_DOUBLE
 }
 
 }	// namespace WFT_FPA

@@ -9,7 +9,7 @@ TEST(WFT2_CPU_Init, WFT2_CPU)
 {
 	fftwf_complex *f = nullptr;
 
-	std::ifstream in("ff.fp");
+	std::ifstream in("f.fp");
 	int rows, cols;
 
 	if(!WFT_FPA::fftwComplexMatRead2D(in, f, rows, cols))
@@ -28,12 +28,13 @@ TEST(WFT2_CPU_Init, WFT2_CPU)
 
 	WFT_FPA::WFT::WFT2_HostResults z2;
 
-	WFT_FPA::WFT::WFT2_cpu wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z2,6);
+	WFT_FPA::WFT::WFT2_cpu wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z2,4);
 	start = omp_get_wtime();
 	wft(f,z2);
 	end = omp_get_wtime();
 	std::cout<<"Multi-core time = "<<1000 * (end - start)<<std::endl;
 
+	fftwf_free(f);
 
 	ASSERT_TRUE(wft1.m_gwavePadded[9][0] - wft.m_gwavePadded[9][0]<1e-6);
 }

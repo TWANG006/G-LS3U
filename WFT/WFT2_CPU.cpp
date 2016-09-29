@@ -236,6 +236,7 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 		
 		int id;
 		int x, y;
+		real_t rtemp;
 
 		/* Get thread params */
 		int tid = omp_get_thread_num();
@@ -257,7 +258,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 					m_gwavePadded[id][0] = exp(-real_t(x*x) / 2 / m_rSigmaX / m_rSigmaX
 						- real_t(y*y) / 2 / m_rSigmaY / m_rSigmaY);
 
-					rNorm2FactorLocal += m_gwavePadded[id][0] * m_gwavePadded[id][0];
+					rtemp = m_gwavePadded[id][0] * m_gwavePadded[id][0];
+					rNorm2FactorLocal += rtemp;
 				}
 				else
 				{
@@ -297,7 +299,7 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 
 void WFT2_cpu::WFT2_feed_fPadded(fftw3Complex *f)
 {
-	
+	double start = omp_get_wtime();	
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
 		#pragma omp for
@@ -313,11 +315,14 @@ void WFT2_cpu::WFT2_feed_fPadded(fftw3Complex *f)
 			}
 		}
 	}
-	
+	double end = omp_get_wtime();
+	std::cout << "Padding time = " << 1000 * (end - start) << std::endl;
 }
 
 void WFT2_cpu::WFF2_SetThreashold(fftw3Complex *f)
 {
+	
+	double start = omp_get_wtime();	
 	/* If m_rThr < 0, use the default values for the Threashold in WFF2 algorithm 
 		m_rThr = 6 * sqrt( mean2( abs(f).^2 ) / 3)				
 	   As well as feed the f into its padded m_fPadded							  */
@@ -368,12 +373,19 @@ void WFT2_cpu::WFF2_SetThreashold(fftw3Complex *f)
 		WFT2_feed_fPadded(f);
 	}
 
+	double end = omp_get_wtime();
+	std::cout << "Set Thr time = " << 1000 * (end - start) << std::endl;
+
+	start = omp_get_wtime();
 	/* Pre-compute the FFT of m_fPadded */
 #ifdef WFT_FPA_DOUBLE
 	fftw_execute(m_planForwardf);
 #else
 	fftwf_execute(m_planForwardf);
 #endif // WFT_FPA_DOUBLE
+
+	end = omp_get_wtime();
+	std::cout << "FFT time = " << 1000 * (end - start) << std::endl;
 }
 
 void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z)

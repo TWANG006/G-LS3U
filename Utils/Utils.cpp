@@ -8,8 +8,11 @@ namespace WFT_FPA
 {
 void fftwComplexMul(fftwf_complex& out, const fftwf_complex& in1, const fftwf_complex& in2)
 {
+
 	out[0] = in1[0] * in2[0] - in1[1] * in2[1];
 	out[1] = in1[0] * in2[1] + in1[1] * in2[0];
+	std::cout <<in1[0] <<", "<< in1[1]<<", "<<  in2[0]<<"," <<in2[1]<<std::endl;
+	std::cout <<in1[0] * in2[1]<<", "<<  in1[1] * in2[0]<<", "<<out[0] << ", "<< out[1] << std::endl;
 }
 void fftwComplexMul(fftw_complex& out, const fftw_complex& in1, const fftw_complex& in2)
 {

@@ -38,7 +38,8 @@ public:
 	// Make this class a callable object (functor)
 	void operator() (
 		fftw3Complex *f, 
-		WFT2_HostResults &z);
+		WFT2_HostResults &z,
+		double &time);
 
 private:
 	/* Initilaize the WFT2 algorithm 
@@ -53,8 +54,8 @@ private:
 	/* Sequential & Multi-threaded Implementations of the WFF2&WFR2
 	   algorithm												    */
 	void WFF2_SetThreashold(fftw3Complex *f);	
-	void WFF2(fftw3Complex *f, WFT2_HostResults &z);
-	void WFR2(fftw3Complex *f, WFT2_HostResults &z);
+	void WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time);
+	void WFR2(fftw3Complex *f, WFT2_HostResults &z, double &time);
 	
 
 public:
@@ -81,6 +82,8 @@ public:
 	WFT_TYPE		m_type;				// 'WFF' or 'WFR'
 	int				m_iSx;				// half Windows size along x
 	int				m_iSy;				// half Windows size along y
+	int				m_iWinWidth;		// Gaussian Window width
+	int				m_iWinHeight;		// Gaussian Window height
 	real_t			m_rSigmaX;			// sigma of the window in x-axis
 	real_t			m_rWxl;				// lower bound of frequency in x-axis
 	real_t			m_rWxi;				// step size of frequency in x-axis
@@ -97,6 +100,8 @@ public:
 
 	/* Parameters for Thread control */
 	int m_iNumberThreads;
+
+	/* Low-level members for multi-threading implementation */
 };
 
 }	// namespace WFT_FPA

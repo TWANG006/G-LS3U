@@ -1,7 +1,7 @@
 #include "gtest\gtest.h"
 #include <vector>
 #include <iostream>
-#include <fftw\fftw3.h>
+#include <fftw3.h>
 #include <omp.h>
 
 #include "Utils.h"
@@ -18,9 +18,9 @@ TEST(FFTW3_C2C_In_place, FFTW3_C2C)
 	//	0.1270f, 0.2785f, 0.1576f, 0.8003f,
 	//	0.9134f, 0.5469f, 0.9706f, 0.1419f};
 
-	//fftw_complex *A = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * 16);
-	//fftw_complex *m_freqDom1 = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * 16);
-	//fftw_complex *m_freqDom2 = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * 4 * (4 / 2 + 1));
+	//fftwf_complex *A = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * 16);
+	//fftwf_complex *m_freqDom1 = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * 16);
+	//fftwf_complex *m_freqDom2 = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * 4 * (4 / 2 + 1));
 
 	//A[0][0] = 0.8147; A[0][1] = 0;
 	//A[1][0] = 0.6324; A[1][1] = 0;
@@ -39,12 +39,12 @@ TEST(FFTW3_C2C_In_place, FFTW3_C2C)
 	//A[14][0] = 0.9706; A[14][1] = 0;
 	//A[15][0] = 0.1419; A[15][1] = 0;
 
-	//fftw_plan plan1 = fftw_plan_dft_2d(4, 4, A, m_freqDom1, FFTW_FORWARD, FFTW_ESTIMATE);
-	//fftw_plan plan2 = fftw_plan_dft_r2c_2d(4, 4, B.data(), m_freqDom2, FFTW_ESTIMATE);
-	//fftw_plan plan3 = fftw_plan_dft_2d(4,4, m_freqDom1, A, FFTW_BACKWARD, FFTW_ESTIMATE);
+	//fftwf_plan plan1 = fftwf_plan_dft_2d(4, 4, A, m_freqDom1, FFTW_FORWARD, FFTW_ESTIMATE);
+	//fftwf_plan plan2 = fftwf_plan_dft_r2c_2d(4, 4, B.data(), m_freqDom2, FFTW_ESTIMATE);
+	//fftwf_plan plan3 = fftwf_plan_dft_2d(4,4, m_freqDom1, A, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-	//fftw_execute(plan1);
-	//fftw_execute(plan2);
+	//fftwf_execute(plan1);
+	//fftwf_execute(plan2);
 
 	//ASSERT_TRUE(m_freqDom1[0][0] - m_freqDom2[0][0] <= 1e-6 && 
 	//			m_freqDom1[0][1] - m_freqDom2[0][1] <= 1e-6);
@@ -55,25 +55,25 @@ TEST(FFTW3_C2C_In_place, FFTW3_C2C)
 	//	for (int j = 0; j < 4; j++)
 	//	{
 	//		
-	//		WFT_FPA::fftwComplexPrint(m_freqDom1[i*4+j]);
-	//		WFT_FPA::fftwComplexScale(m_freqDom1[i * 4 + j], 1 / 16.0f);
+	//		WFT_FPA::fftwfComplexPrint(m_freqDom1[i*4+j]);
+	//		WFT_FPA::fftwfComplexScale(m_freqDom1[i * 4 + j], 1 / 16.0f);
 	//		std::cout<<", ";
 	//	}
 	//	std::cout<<endl;
 	//}
-	//fftw_execute(plan3);
+	//fftwf_execute(plan3);
 
 
 	//ASSERT_TRUE(B[0] - A[0][0] <= 1E-6);
 
 
-	//fftw_destroy_plan(plan1);
-	//fftw_destroy_plan(plan2);
-	//fftw_destroy_plan(plan3);
+	//fftwf_destroy_plan(plan1);
+	//fftwf_destroy_plan(plan2);
+	//fftwf_destroy_plan(plan3);
 
-	//fftw_free(A);
-	//fftw_free(m_freqDom1);
-	//fftw_free(m_freqDom2);
+	//fftwf_free(A);
+	//fftwf_free(m_freqDom1);
+	//fftwf_free(m_freqDom2);
 
 
 }
@@ -81,7 +81,7 @@ TEST(FFTW3_C2C_In_place, FFTW3_C2C)
 TEST(FFTW3_Matlab, FFTW3)
 {
 	/* Load the FP image f */
-	fftw_complex *m_gwavePadded = nullptr;
+	fftwf_complex *m_gwavePadded = nullptr;
 	std::ifstream in("ftw.fp");
 	int rows, cols;
 
@@ -91,9 +91,10 @@ TEST(FFTW3_Matlab, FFTW3)
 
 	in.close();
 
-    fftw_complex *m_gwavePaddedFq = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*rows*cols);
+    fftwf_complex *m_gwavePaddedFq = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*rows*cols);
 
-    fftw_plan m_planForwardgwave = fftw_plan_dft_2d(cols, rows, m_gwavePadded, m_gwavePaddedFq, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftwf_plan m_planForwardgwave = fftwf_plan_dft_2d(cols, rows, m_gwavePadded, m_gwavePaddedFq, FFTW_FORWARD, FFTW_ESTIMATE);
+	fftwf_plan m_planBackwardgwave = fftwf_plan_dft_2d(cols, rows, m_gwavePaddedFq, m_gwavePadded, FFTW_BACKWARD, FFTW_ESTIMATE);
 
     using real_t = double;
     int m_iPaddedHeight = rows;
@@ -154,7 +155,7 @@ TEST(FFTW3_Matlab, FFTW3)
 
     real_t wyt = -2.3;
     real_t wxt = -2.3;
-    fftw_complex temp;
+    fftwf_complex temp;
 
     for (int i = 0; i < 61; i++)
     {
@@ -177,9 +178,24 @@ TEST(FFTW3_Matlab, FFTW3)
        }
     }
 
-    fftw_execute(m_planForwardgwave);
+    fftwf_execute(m_planForwardgwave);
 
-    std::ofstream out("gwave.csv", std::ios::out | std::ios::trunc);
+	std::ofstream out("gwavefq.csv", std::ios::out | std::ios::trunc);
+    for(int i=0; i<rows; i++)
+    {
+       for(int j=0; j<cols; j++)
+       {
+           out<<m_gwavePaddedFq[i*cols+j][0]<<"+"<<"i"<<m_gwavePaddedFq[i*cols+j][1]<<", ";
+		   m_gwavePaddedFq[i*cols + j][0] /= cols * rows;
+		   m_gwavePaddedFq[i*cols + j][1] /= cols * rows;
+       }
+       out<<"\n";
+    }
+    out.close();
+
+	fftwf_execute(m_planBackwardgwave);
+
+	out.open("gwave.csv", std::ios::out | std::ios::trunc);
     for(int i=0; i<rows; i++)
     {
        for(int j=0; j<cols; j++)
@@ -190,22 +206,13 @@ TEST(FFTW3_Matlab, FFTW3)
     }
     out.close();
 
-	out.open("gwavefq.csv", std::ios::out | std::ios::trunc);
-    for(int i=0; i<rows; i++)
-    {
-       for(int j=0; j<cols; j++)
-       {
-           out<<m_gwavePaddedFq[i*cols+j][0]<<"+"<<"i"<<m_gwavePaddedFq[i*cols+j][1]<<", ";
-       }
-       out<<"\n";
-    }
-    out.close();
-
 
     std::cout<<m_gwavePadded[1][0]<<", "<<m_gwavePadded[1][1]<<endl;
-	std::cout<<m_gwavePadded[61][0]<<", "<<m_gwavePadded[61][1]<<endl;
+	std::cout<<m_gwavePadded[124][0]<<", "<<m_gwavePadded[124][1]<<endl;
 
-    fftw_free(m_gwavePadded);
-    fftw_free(m_gwavePaddedFq);
 
+	fftwf_destroy_plan(m_planForwardgwave);
+	fftwf_destroy_plan(m_planBackwardgwave);
+    fftwf_free(m_gwavePadded);
+    fftwf_free(m_gwavePaddedFq);
 }

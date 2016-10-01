@@ -45,21 +45,21 @@
 
 namespace WFT_FPA
 {
-#ifdef WFT_FPA_DOUBLE
-	using real_t = double;
-	using fftw3Plan = fftw_plan;
-	using fftw3Complex = fftw_complex;
-	using cudaComplex = cufftDoubleComplex;
-#else
-	using real_t = float;
-	using fftw3Plan = fftwf_plan;
-	using fftw3Complex = fftwf_complex;
-	using cudaComplex = cufftComplex;
-#endif // WFT_FPA_DOUBLE
-
-	using int_t = int;
-	using uint_t = unsigned int;
-	using uint8 = unsigned char;
+//#ifdef WFT_FPA_DOUBLE
+//	using float = double;
+//	using fftw3Plan = fftw_plan;
+//	using fftwf_complex = fftw_complex;
+//	using cudaComplex = cufftDoubleComplex;
+//#else
+//	using float = float;
+//	using fftw3Plan = fftwf_plan;
+//	using fftwf_complex = fftwf_complex;
+//	using cudaComplex = cufftComplex;
+//#endif // WFT_FPA_DOUBLE
+//
+//	using int_t = int;
+//	using uint_t = unsigned int;
+//	using uint8 = unsigned char;
 
 	enum class PARALLEL_COMPUTING_TYPE
 	{

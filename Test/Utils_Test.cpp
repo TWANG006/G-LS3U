@@ -1,28 +1,33 @@
-//#include "gtest\gtest.h"
-//#include "Utils.h"
-//
-//
-//TEST(Utils_ComplexOperation, Utils_Test)
-//{
-//	fftwf_complex in1, in2, out;
-//	in1[0] = in2[1] = 1;	// 1 + 2i
-//	in1[1] = in2[0] = 2;	// 2 + i
-//
-//	WFT_FPA::fftwComplexMul(out, in1, in2);	
-//	EXPECT_EQ(0, out[0]);
-//	EXPECT_EQ(5, out[1]);
-//
-//	float temp1 = WFT_FPA::fftwComplexAbs(out);
-//	EXPECT_EQ(5, temp1);
-//
-//	WFT_FPA::fftwComplexScale(out,2);
-//	EXPECT_EQ(0, out[0]);
-//	EXPECT_EQ(10, out[1]);
-//
-//	float temp2 = WFT_FPA::fftwComplexAbs(out);
-//	EXPECT_EQ(10, temp2);
-//}
-//
+#include "gtest\gtest.h"
+#include "Utils.h"
+
+
+TEST(Utils_ComplexOperation, Utils_Test)
+{
+	fftw_complex in1, in2, out;
+	in1[0] = in2[1] = 2;	// 1 + 2i
+	in2[0] = in1[1] = 1;	// 2 + 1i
+
+	WFT_FPA::fftwComplexPrint(in1);
+	WFT_FPA::fftwComplexPrint(in2);
+
+	std::cout<<std::endl;
+
+	WFT_FPA::fftwComplexMul(out, in1, in2);	
+	EXPECT_EQ(0, out[0]);
+	EXPECT_EQ(5, out[1]);
+
+	double temp1 = WFT_FPA::fftwComplexAbs(out);
+	EXPECT_EQ(5, temp1);
+
+	WFT_FPA::fftwComplexScale(out,2);
+	EXPECT_EQ(0, out[0]);
+	EXPECT_EQ(10, out[1]);
+
+	double temp2 = WFT_FPA::fftwComplexAbs(out);
+	EXPECT_EQ(10, temp2);
+}
+
 //TEST(Utils_fftwComplexIO, Utils_Test)
 //{
 //	// single-precision test
@@ -68,4 +73,4 @@
 //
 //	fftw_free(ff);
 //}
-//
+

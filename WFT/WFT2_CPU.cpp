@@ -21,27 +21,27 @@ WFT2_cpu::WFT2_cpu(
 	/* Type specific parameter initializations*/
 	if(WFT_TYPE::WFF == m_type)
 	{
-		m_rSigmaX = real_t(10.0); 
-		m_rWxl = -2 - real_t(3.0) / m_rSigmaX;
-		m_rWxi = real_t(1.0) / m_rSigmaX;
-		m_rWxh = 2 + real_t(3.0) / m_rSigmaX;
+		m_rSigmaX = float(10.0); 
+		m_rWxl = -2 - float(3.0) / m_rSigmaX;
+		m_rWxi = float(1.0) / m_rSigmaX;
+		m_rWxh = 2 + float(3.0) / m_rSigmaX;
 
-		m_rSigmaY = real_t(10.0);
-		m_rWyl = -2 - real_t(3.0) / m_rSigmaY;
-		m_rWyi = real_t(1.0) / m_rSigmaY;
-		m_rWyh = 2 + real_t(3.0) / m_rSigmaY;
+		m_rSigmaY = float(10.0);
+		m_rWyl = -2 - float(3.0) / m_rSigmaY;
+		m_rWyi = float(1.0) / m_rSigmaY;
+		m_rWyh = 2 + float(3.0) / m_rSigmaY;
 	}
 	else if(WFT_TYPE::WFR == m_type)
 	{
-		m_rSigmaX = real_t(10.0); 
-		m_rWxl = real_t(-2);
-		m_rWxi = real_t(0.025);
-		m_rWxh = real_t(2);
+		m_rSigmaX = float(10.0); 
+		m_rWxl = float(-2);
+		m_rWxi = float(0.025);
+		m_rWxh = float(2);
 
-		m_rSigmaY = real_t(10.0);
-		m_rWyl = real_t(-2.0);
-		m_rWyi = real_t(0.025);
-		m_rWyh = real_t(2.0);
+		m_rSigmaY = float(10.0);
+		m_rWyl = float(-2.0);
+		m_rWyi = float(0.025);
+		m_rWyh = float(2.0);
 	}
 
 	std::cout<<m_rWxl<<", "<<m_rWxi<<", "<<m_rWxh<<std::endl;
@@ -61,9 +61,9 @@ WFT2_cpu::WFT2_cpu(
 WFT2_cpu::WFT2_cpu(
 	int iWidth, int iHeight,
 	WFT_TYPE type,
-	real_t rSigmaX,	real_t rWxl, real_t rWxh, real_t rWxi,
-	real_t rSigmaY, real_t rWyl, real_t rWyh, real_t rWyi,
-	real_t rThr,
+	float rSigmaX,	float rWxl, float rWxh, float rWxi,
+	float rSigmaY, float rWyl, float rWyh, float rWyi,
+	float rThr,
 	WFT2_HostResults &z,
 	int iNumberThreads)
 	: m_iWidth(iWidth)
@@ -114,7 +114,7 @@ WFT2_cpu::~WFT2_cpu()
 }
 
 void WFT2_cpu::operator() (
-	fftw3Complex *f, 
+	fftwf_complex *f, 
 	WFT2_HostResults &z,
 	double &time)
 {
@@ -159,11 +159,11 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	/* Memory Allocation (Already padded) */
 	/* Allocate memory for padded arrays */
 	#ifdef WFT_FPA_DOUBLE	
-		m_fPadded = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_gwavePadded = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_fPaddedFq = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_gwavePaddedFq = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_Sf = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_fPadded = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_gwavePadded = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_fPaddedFq = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_gwavePaddedFq = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_Sf = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
 	
 		/* Make the FFTW plans */
 		m_planForwardf = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, m_fPadded, m_fPaddedFq, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -171,11 +171,11 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 		m_planInverseSf = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, m_Sf, m_Sf, FFTW_BACKWARD, FFTW_ESTIMATE);
 	#else
 		/* Allocate memory for padded arrays */
-		m_fPadded = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_gwavePadded = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_fPaddedFq = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_gwavePaddedFq = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
-		m_Sf = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_fPadded = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_gwavePadded = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_fPaddedFq = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_gwavePaddedFq = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
+		m_Sf = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*m_iPaddedHeight*m_iPaddedWidth);
 
 		/* Make the FFTW plans */
 		m_planForwardf = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, m_fPadded, m_fPaddedFq, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -187,9 +187,9 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	if(WFT_TYPE::WFF == m_type)
 	{
 		#ifdef WFT_FPA_DOUBLE
-			z.m_filtered = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iWidth*m_iHeight);
+			z.m_filtered = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*m_iWidth*m_iHeight);
 		#else
-			z.m_filtered = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iWidth*m_iHeight);
+			z.m_filtered = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*m_iWidth*m_iHeight);
 		#endif		
 		for (int i = 0; i < m_iWidth*m_iHeight; i++)
 		{
@@ -199,14 +199,14 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	}
 	else if(WFT_TYPE::WFR == m_type)
 	{
-		z.m_wx = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
-		z.m_wy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
-		z.m_phase = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
-		z.m_phase_comp = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
-		z.m_b = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
-		z.m_r = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
-		z.m_cx =(real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
-		z.m_cy = (real_t*)malloc(sizeof(real_t)*m_iWidth*m_iHeight);
+		z.m_wx = (float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
+		z.m_wy = (float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
+		z.m_phase = (float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
+		z.m_phase_comp = (float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
+		z.m_b = (float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
+		z.m_r = (float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
+		z.m_cx =(float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
+		z.m_cy = (float*)malloc(sizeof(float)*m_iWidth*m_iHeight);
 	
 		for (int i = 0; i < m_iWidth*m_iHeight; i++)
 		{
@@ -226,11 +226,11 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	 * g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)	     * 
 	 * And set padded region of both m_fPadded and m_gwavePadded to  *
 	 * zeros.						                                 */
-	real_t rNorm2Factor = 0;			// Factor used for normalization
+	float rNorm2Factor = 0;			// Factor used for normalization
 	
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
-		real_t rNorm2FactorLocal = 0;
+		float rNorm2FactorLocal = 0;
 
 		/* Get thread params */
 		int tid = omp_get_thread_num();
@@ -261,8 +261,8 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 					y = i - (m_iWinHeight - 1) / 2;
 					x = j - (m_iWinWidth - 1) / 2;
 
-					m_gwavePadded[id][0] = exp(-real_t(x*x) / 2 / m_rSigmaX / m_rSigmaX
-						- real_t(y*y) / 2 / m_rSigmaY / m_rSigmaY);
+					m_gwavePadded[id][0] = exp(-float(x*x) / 2 / m_rSigmaX / m_rSigmaX
+						- float(y*y) / 2 / m_rSigmaY / m_rSigmaY);
 
 					rNorm2FactorLocal += m_gwavePadded[id][0] * m_gwavePadded[id][0];
 				}				
@@ -291,7 +291,7 @@ int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
 	return 0;
 }
 
-void WFT2_cpu::WFT2_feed_fPadded(fftw3Complex *f)
+void WFT2_cpu::WFT2_feed_fPadded(fftwf_complex *f)
 {
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
@@ -310,24 +310,24 @@ void WFT2_cpu::WFT2_feed_fPadded(fftw3Complex *f)
 	}
 }
 
-void WFT2_cpu::WFF2_SetThreashold(fftw3Complex *f)
+void WFT2_cpu::WFF2_SetThreashold(fftwf_complex *f)
 {
 	/* If m_rThr < 0, use the default values for the Threashold in WFF2 algorithm 
 		m_rThr = 6 * sqrt( mean2( abs(f).^2 ) / 3)				
 	   As well as feed the f into its padded m_fPadded							  */
 	if(m_rThr < 0)
 	{
-		real_t rTemp = 0;
+		float rTemp = 0;
 
 		#pragma omp parallel num_threads(m_iNumberThreads)
 		{
-			real_t rTempLocal = 0;
+			float rTempLocal = 0;
 
 			/* Get thread params */
 			int tid = omp_get_thread_num();
 			int inthread = omp_get_num_threads();
 			int idf, idfPadded;
-			real_t abs;
+			float abs;
 
 			for (int i = tid; i < m_iHeight; i += inthread)
 			{
@@ -359,7 +359,7 @@ void WFT2_cpu::WFF2_SetThreashold(fftw3Complex *f)
 	}
 }
 
-void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
+void WFT2_cpu::WFF2(fftwf_complex *f, WFT2_HostResults &z, double &time)
 {
 	/* Set the threshold m_rThr if it's not specified by the client */
 	WFF2_SetThreashold(f);
@@ -381,7 +381,7 @@ void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
 	std::cout<<m_iPaddedHeight<<", "<<m_iPaddedWidth<<std::endl;
 
 	/* The core WFF algorithm */
-	static fftw3Complex *filteredLocal = nullptr;	// shared across threads
+	static fftwf_complex *filteredLocal = nullptr;	// shared across threads
 	#pragma omp threadprivate(filteredLocal)
 
 	/* Allocate per-thread local memory holding the partial results of the 
@@ -389,9 +389,9 @@ void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{		
 		#ifdef WFT_FPA_DOUBLE
-			fftw3Complex *filteredLocal = (fftw3Complex*)fftw_malloc(sizeof(fftw3Complex)*m_iHeight*m_iWidth);
+			fftwf_complex *filteredLocal = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*m_iHeight*m_iWidth);
 		#else
-			fftw3Complex *filteredLocal = (fftw3Complex*)fftwf_malloc(sizeof(fftw3Complex)*m_iHeight*m_iWidth);
+			fftwf_complex *filteredLocal = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*m_iHeight*m_iWidth);
 		#endif // WFT_FPA_DOUBLE
 	}
 
@@ -410,9 +410,9 @@ void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
 			for (int x = 0; x < 1; x++)
 			{
 				// Recover the wyt and wxt from integer indices for computation
-				real_t wyt = m_rWyl + real_t(y) * m_rWyi;
-				real_t wxt = m_rWxl + real_t(x) * m_rWxi;
-				fftw3Complex temp;
+				float wyt = m_rWyl + float(y) * m_rWyi;
+				float wxt = m_rWxl + float(x) * m_rWxi;
+				fftwf_complex temp;
 		
 				// Construct the gwave: gwave=g.*exp(j*wxt*x+j*wyt*y);
 				// Euler's Eq: expj(ux+vy) = cos(ux+vy)+jsin(ux+vy)
@@ -422,8 +422,8 @@ void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
 					{
 						int idPadedgwave = i * m_iPaddedWidth + j;	// index of padded gwave
 
-						real_t yy = i - (m_iWinHeight - 1) / 2;
-						real_t xx = j - (m_iWinWidth - 1) / 2;
+						float yy = i - (m_iWinHeight - 1) / 2;
+						float xx = j - (m_iWinWidth - 1) / 2;
 						
 						temp[0] = cos(wxt*xx + wyt*yy);
 						temp[1] = sin(wxt*xx + wyt*yy);
@@ -434,8 +434,8 @@ void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
 							std::cout<< m_gwavePadded[idPadedgwave][1] <<std::endl;
 						}
 
-						real_t real = m_gwavePadded[idPadedgwave][0] * temp[0];
-						real_t imag = m_gwavePadded[idPadedgwave][0] * temp[1];
+						float real = m_gwavePadded[idPadedgwave][0] * temp[0];
+						float imag = m_gwavePadded[idPadedgwave][0] * temp[1];
 
 						m_gwavePadded[idPadedgwave][0] = real;
 						m_gwavePadded[idPadedgwave][1] = imag;
@@ -456,7 +456,7 @@ void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
 				//	{
 				//		int idSf = i * m_iPaddedWidth + j;
 				//		fftwComplexMul(m_Sf[idSf], m_fPaddedFq[idSf], m_gwavePaddedFq[idSf]);
-				//		fftwComplexScale(m_Sf[idSf], 1/real_t(m_iPaddedHeight*m_iPaddedWidth));
+				//		fftwComplexScale(m_Sf[idSf], 1/float(m_iPaddedHeight*m_iPaddedWidth));
 				//	}
 				//}
 				//// sf = ifft2(sf)
@@ -487,7 +487,7 @@ void WFT2_cpu::WFF2(fftw3Complex *f, WFT2_HostResults &z, double &time)
 }
 
 
-void WFT2_cpu::WFR2(fftw3Complex *f, WFT2_HostResults &z, double &time)
+void WFT2_cpu::WFR2(fftwf_complex *f, WFT2_HostResults &z, double &time)
 {
 	WFT2_feed_fPadded(f);
 	/* Pre-compute the FFT of m_fPadded */

@@ -47,17 +47,17 @@ struct WFT_FPA_DLL_EXPORTS WFT2_HostResults
 	// 2D filtered signal
 	// phase = angle(m_h_filtered) for fI and fIII
 	// intensity = real(m_h_filtered) for fIII and fIV
-	fftw3Complex *m_filtered;	 
+	fftwf_complex *m_filtered;	 
 
 	/* For WFR */
-	real_t *m_wx;			// local frequency in x
-	real_t *m_wy;			// local frequency in y
-	real_t *m_phase;		// phase
-	real_t *m_phase_comp;	// compensated by estimation of c
-	real_t *m_b;			// amplitude
-	real_t *m_r;			// ridge value
-	real_t *m_cx;			// estimation of c in x
-	real_t *m_cy;			// estimation of c in y
+	float *m_wx;			// local frequency in x
+	float *m_wy;			// local frequency in y
+	float *m_phase;		// phase
+	float *m_phase_comp;	// compensated by estimation of c
+	float *m_b;			// amplitude
+	float *m_r;			// ridge value
+	float *m_cx;			// estimation of c in x
+	float *m_cy;			// estimation of c in y
 
 	WFT2_HostResults();
 	~WFT2_HostResults();

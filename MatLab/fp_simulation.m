@@ -63,7 +63,7 @@ fileID = fopen(filename,'wt');
 fprintf(fileID, '%d,%d\n', rows,cols);
 for i=1:height
     for j=1:width
-        fprintf(fileID, '%s,%s\n', real(f(i,j)),imag(f(i,j)));
+        fprintf(fileID, '%e,%e\n', real(f(i,j)),imag(f(i,j)));
     end
 end
 fclose(fileID);

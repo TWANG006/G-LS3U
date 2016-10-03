@@ -27,9 +27,9 @@ public:
 	WFT2_cpu(
 		int iWidth, int iHeight,
 		WFT_TYPE type,
-		float rSigmaX, float rWxl, float rWxh, float rWxi,
-		float rSigmaY, float rWyl, float rWyh, float rWyi,
-		float rThr,
+		double rSigmaX, double rWxl, double rWxh, double rWxi,
+		double rSigmaY, double rWyl, double rWyh, double rWyi,
+		double rThr,
 		WFT2_HostResults &z,
 		int iNumberThreads = 1);
 
@@ -37,7 +37,7 @@ public:
 
 	// Make this class a callable object (functor)
 	void operator() (
-		fftwf_complex *f, 
+		fftw_complex *f, 
 		WFT2_HostResults &z,
 		double &time);
 
@@ -49,27 +49,35 @@ private:
 	int WFT2_Initialize(WFT2_HostResults &z);
 
 	/* feed the f into its padded m_fPadded */
-	void WFT2_feed_fPadded(fftwf_complex *f);
+	void WFT2_feed_fPadded(fftw_complex *f);
 
 	/* Sequential & Multi-threaded Implementations of the WFF2&WFR2
 	   algorithm												    */
-	void WFF2_SetThreashold(fftwf_complex *f);	
-	void WFF2(fftwf_complex *f, WFT2_HostResults &z, double &time);
-	void WFR2(fftwf_complex *f, WFT2_HostResults &z, double &time);
+	void WFF2_SetThreashold(fftw_complex *f);	
+	void WFF2(fftw_complex *f, WFT2_HostResults &z, double &time);
+	void WFR2(fftw_complex *f, WFT2_HostResults &z, double &time);
 	
 
 public:
 	/* Internal arrays */
-	fftwf_complex	*m_fPadded;			// Padded f 
-	fftwf_complex	*m_gwavePadded;		// Padded gwave
-	fftwf_complex	*m_fPaddedFq;		// FFT of padded f
-	fftwf_complex	*m_gwavePaddedFq;	// FFT of padded gwave
-	fftwf_complex	*m_Sf;				// Sf after wft 
+	fftw_complex	*m_fPadded;			// Padded f 
+	fftw_complex	*m_FfPadded;		// FFT of padded f
+	
+	fftw_plan		m_planForwardf;		// FFTW fwd plan of f
+	fftw_plan		*m_planForwardgwave;	// FFTW fwd plan of gwave
+	fftw_plan		*m_planInverseSf;		// FFTW inv plan of Sf
+	
+	// threadprivate intermediate results for WFF & WFR
+	fftw_complex	*im_Fgwave;
+	fftw_complex	*im_Sf;					// Sf after wft 
 
-	/* FFTW plans: all the plans can be made once and used across the algorithm */
-	fftwf_plan		m_planForwardf;		// FFTW fwd plan of f
-	fftwf_plan		m_planForwardgwave; // FFTW fwd plan of gwave
-	fftwf_plan		m_planInverseSf;	// FFTW inv plan of Sf
+	fftw_complex	*im_filtered;			// partial filtered image
+	double			*im_r;
+	double			*im_p;
+	double			*im_wx;
+	double			*im_wy;
+
+	
 
 	/* Internal Parameters */
 	int				m_iWidth;			// width of the fringe pattern
@@ -84,19 +92,19 @@ public:
 	int				m_iSy;				// half Windows size along y
 	int				m_iWinWidth;		// Gaussian Window width
 	int				m_iWinHeight;		// Gaussian Window height
-	float			m_rSigmaX;			// sigma of the window in x-axis
-	float			m_rWxl;				// lower bound of frequency in x-axis
-	float			m_rWxi;				// step size of frequency in x-axis
-	float			m_rWxh;				// upper bound of frequency in x-axis
-	float			m_rSigmaY;			// sigma of the window in x-axis
-	float			m_rWyl;				// lower bound of frequency in y-axis
-	float			m_rWyh;				// upper bound of frequency in y-axis
-	float			m_rWyi;				// step size of frequency in y-axis	
+	double			m_rSigmaX;			// sigma of the window in x-axis
+	double			m_rWxl;				// lower bound of frequency in x-axis
+	double			m_rWxi;				// step size of frequency in x-axis
+	double			m_rWxh;				// upper bound of frequency in x-axis
+	double			m_rSigmaY;			// sigma of the window in x-axis
+	double			m_rWyl;				// lower bound of frequency in y-axis
+	double			m_rWyh;				// upper bound of frequency in y-axis
+	double			m_rWyi;				// step size of frequency in y-axis	
 
 	/* threshold for 'wff', no needed for 'wfr' *
 	 * NOTE: if m_rThr < 0, it is calculated as *
 	 * m_rThr = 6 * sqrt(mean2(abs(f).^2)/3)    */
-	float			m_rThr;		
+	double			m_rThr;		
 
 	/* Parameters for Thread control */
 	int m_iNumberThreads;

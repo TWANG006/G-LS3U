@@ -40,7 +40,7 @@ const std::vector<int> OPT_FFT_SIZE = {
 WFT_FPA_DLL_EXPORTS	int getFirstGreater(int x);
 
 
-/* Data structures for WFT Results */
+/* Double precision Data structures for WFT Results */
 struct WFT_FPA_DLL_EXPORTS WFT2_HostResults
 {
 	/* For WFF */
@@ -61,6 +61,29 @@ struct WFT_FPA_DLL_EXPORTS WFT2_HostResults
 
 	WFT2_HostResults();
 	~WFT2_HostResults();
+};
+
+/* Single precision Data structures for WFT Results */
+struct WFT_FPA_DLL_EXPORTS WFT2_HostResultsF
+{
+	/* For WFF */
+	// 2D filtered signal
+	// phase = angle(m_h_filtered) for fI and fIII
+	// intensity = real(m_h_filtered) for fIII and fIV
+	fftwf_complex *m_filtered;	 
+
+	/* For WFR */
+	float *m_wx;			// local frequency in x
+	float *m_wy;			// local frequency in y
+	float *m_phase;		// phase
+	float *m_phase_comp;	// compensated by estimation of c
+	float *m_b;			// amplitude
+	float *m_r;			// ridge value
+	float *m_cx;			// estimation of c in x
+	float *m_cy;			// estimation of c in y
+
+	WFT2_HostResultsF();
+	~WFT2_HostResultsF();
 };
 
 }	// namespace WFT

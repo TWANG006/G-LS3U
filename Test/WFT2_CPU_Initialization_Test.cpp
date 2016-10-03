@@ -4,7 +4,7 @@
 #include <fstream>
 #include <omp.h>
 
-TEST(WFT2_CPU_Init, WFT2_CPU)
+TEST(WFT2_CPU_Init_Double, WFT2_CPU)
 {
 	/* Need to be revised*/
 
@@ -23,18 +23,11 @@ TEST(WFT2_CPU_Init, WFT2_CPU)
 
 	/* Multi-core initialization */
 	WFT_FPA::WFT::WFT2_HostResults z2;
-	WFT_FPA::WFT::WFT2_cpu wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z2,6);
-	wft(f, z2, time);
-
-	std::cout<<"Multicore-time:  "<<time<<std::endl;
+	WFT_FPA::WFT::WFT2_cpu wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z2,4);
 
 	/* Single-core initialization */
 	WFT_FPA::WFT::WFT2_HostResults z1;	
-	WFT_FPA::WFT::WFT2_cpu wft1(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z1,1);
-	wft1(f, z1, time);
-	std::cout<<"Singlecore-time:  "<<time<<std::endl;
-	
-	
+	WFT_FPA::WFT::WFT2_cpu wft1(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z1,1);	
 
 	/* Assert the results */
 	std::cout << wft1.m_FfPadded[0][0] << ", " << wft1.m_FfPadded[0][1] << std::endl;
@@ -42,94 +35,4 @@ TEST(WFT2_CPU_Init, WFT2_CPU)
 	//ASSERT_TRUE(wft1.im_Fgwave[cols*rows + 9][0] - wft.im_Fgwave[cols*rows + 9][0]<1e-6);
 
 	fftw_free(f);
-
-
-	/*std::ofstream out("gwavePre.csv", std::ios::out | std::ios::trunc);
-   
-	for(int k = 0; k<wft.m_iNumberThreads; k++)
-	{
-		for (int i = 0; i < wft.m_iPaddedHeight; i++)
-		{
-			for (int j = 0; j < wft.m_iPaddedWidth; j++)
-			{
-				out << wft.im_Fgwave[k*wft.m_iPaddedWidth*wft.m_iPaddedHeight+i*wft.m_iPaddedWidth + j][0] << "+" 
-					<< "i" << wft.im_Fgwave[k*wft.m_iPaddedWidth*wft.m_iPaddedHeight+i*wft.m_iPaddedWidth + j][1] << ", ";
-			}
-			out << "\n";
-		}
-		out << "\n";
-	}
-    out.close();*/
-
-
-	std::ofstream out("MulgwaveAfter.csv", std::ios::out | std::ios::trunc);
-	for(int k = 0; k<wft.m_iNumberThreads; k++)
-	{
-		for (int i = 0; i < wft.m_iPaddedHeight; i++)
-		{
-			for (int j = 0; j < wft.m_iPaddedWidth; j++)
-			{
-				out << wft.im_Fgwave[k*wft.m_iPaddedWidth*wft.m_iPaddedHeight+i*wft.m_iPaddedWidth + j][0] << "+" << "i" << wft.im_Fgwave[k*wft.m_iPaddedWidth*wft.m_iPaddedHeight+i*wft.m_iPaddedWidth + j][1] << ", ";
-			}
-			out << "\n";
-		}
-		out<<"\n";
-	}
-    out.close();
-
-	out.open("Mulg.csv", std::ios::out | std::ios::trunc);
-
-	for (int i = 0; i < wft.m_iPaddedHeight; i++)
-	{
-		for (int j = 0; j < wft.m_iPaddedWidth; j++)
-		{
-			out << wft.m_gPadded[i*wft.m_iPaddedWidth + j][0] << "+" << "i" << wft.m_gPadded[i*wft.m_iPaddedWidth + j][1] << ", ";
-		}
-		out << "\n";
-	}
-    out.close();
-
-	
-
-	out.open("gwaveAfter.csv", std::ios::out | std::ios::trunc);
-	for(int k = 0; k<wft1.m_iNumberThreads; k++)
-	{
-		for (int i = 0; i < wft1.m_iPaddedHeight; i++)
-		{
-			for (int j = 0; j < wft1.m_iPaddedWidth; j++)
-			{
-				out << wft1.im_Fgwave[k*wft1.m_iPaddedWidth*wft1.m_iPaddedHeight+i*wft1.m_iPaddedWidth + j][0] << "+" << "i" << wft1.im_Fgwave[k*wft1.m_iPaddedWidth*wft1.m_iPaddedHeight+i*wft1.m_iPaddedWidth + j][1] << ", ";
-			}
-			out << "\n";
-		}
-		out<<"\n";
-	}
-    out.close();
-
-	out.open("g.csv", std::ios::out | std::ios::trunc);
-
-	for (int i = 0; i < wft1.m_iPaddedHeight; i++)
-	{
-		for (int j = 0; j < wft1.m_iPaddedWidth; j++)
-		{
-			out << wft1.m_gPadded[i*wft1.m_iPaddedWidth + j][0] << "+" << "i" << wft1.m_gPadded[i*wft1.m_iPaddedWidth + j][1] << ", ";
-		}
-		out << "\n";
-	}
-    out.close();
-
-	out.open("SF.csv", std::ios::out | std::ios::trunc);
-	for(int k = 0; k<wft1.m_iNumberThreads; k++)
-	{
-		for (int i = 0; i < wft1.m_iPaddedHeight; i++)
-		{
-			for (int j = 0; j < wft1.m_iPaddedWidth; j++)
-			{
-				out << wft1.im_Sf[k*wft1.m_iPaddedWidth*wft1.m_iPaddedHeight+i*wft1.m_iPaddedWidth + j][0] << "+" << "i" << wft1.im_Sf[k*wft1.m_iPaddedWidth*wft1.m_iPaddedHeight+i*wft1.m_iPaddedWidth + j][1] << ", ";
-			}
-			out << "\n";
-		}
-		out<<"\n";
-	}
-    out.close();
 }

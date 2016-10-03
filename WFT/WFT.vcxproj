@@ -101,10 +101,12 @@
   <ItemGroup>
     <ClCompile Include="WFT.cpp" />
     <ClCompile Include="WFT2_CPU.cpp" />
+    <ClCompile Include="WFT2_CPUf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WFT.h" />
     <ClInclude Include="WFT2_CPU.h" />
+    <ClInclude Include="WFT2_CPUf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

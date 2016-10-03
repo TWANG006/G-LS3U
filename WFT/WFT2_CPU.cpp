@@ -1,5 +1,6 @@
 #include "WFT2_CPU.h"
 #include <iostream>
+#include <iomanip>
 #include <omp.h>
 #include "Utils.h"
 
@@ -19,6 +20,8 @@ WFT2_cpu::WFT2_cpu(
 	, m_iNumberThreads(iNumberThreads)
 	, m_fPadded(nullptr)
 	, m_FfPadded(nullptr)
+	, m_gPadded(nullptr)
+	, im_gwave(nullptr)
 	, im_Fgwave(nullptr)
 	, im_Sf(nullptr)
 	, m_planForwardgwave(nullptr)
@@ -88,6 +91,8 @@ WFT2_cpu::WFT2_cpu(
 	, m_iNumberThreads(iNumberThreads)
 	, m_fPadded(nullptr)
 	, m_FfPadded(nullptr)
+	, m_gPadded(nullptr)
+	, im_gwave(nullptr)
 	, im_Fgwave(nullptr)
 	, im_Sf(nullptr)
 	, m_planForwardgwave(nullptr)
@@ -111,14 +116,16 @@ WFT2_cpu::~WFT2_cpu()
 	{
 		fftw_destroy_plan(m_planForwardgwave[i]);
 		fftw_destroy_plan(m_planInverseSf[i]);
+		fftw_destroy_plan(m_planForwardSf[i]);
 	}
+	fftw_destroy_plan(m_planForwardf);
 
 	delete [] m_planForwardgwave;	m_planForwardgwave = nullptr;
 	delete [] m_planInverseSf;		m_planInverseSf = nullptr;
-
-	fftw_destroy_plan(m_planForwardf);
+	delete [] m_planForwardSf;		m_planForwardSf = nullptr;
 
 	fftw_free(m_fPadded);		m_fPadded = nullptr;
+	fftw_free(m_gPadded);		m_gPadded = nullptr;
 	fftw_free(im_Fgwave);		im_Fgwave = nullptr;
 	fftw_free(m_FfPadded);		m_FfPadded = nullptr;
 	fftw_free(im_Fgwave);		im_Fgwave = nullptr;
@@ -152,258 +159,6 @@ void WFT2_cpu::operator() (
 
 
 /* Private functions */
-int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
-{
-	/* General parameters intitialization */
-	// Half the Gaussian window size
-	m_iSx = int(round(3 * m_rSigmaX));
-	m_iSy = int(round(3 * m_rSigmaY));
-
-	// Gaussian Window size
-	m_iWinWidth = 2 * m_iSx +1;
-	m_iWinHeight = 2 * m_iSy + 1;
-
-	// Calculate the initial padding in order to perform the cyclic convolution using FFT
-	// The padding size is size(A) + size(B) - 1;
-	m_iPaddedHeight = m_iHeight + m_iWinHeight - 1;
-	m_iPaddedWidth = m_iWidth + 2 * m_iSx;
-	
-	// Calculate the second padding in order to fit the optimized size for FFT
-	int iH = getFirstGreater(m_iPaddedHeight);
-	int iW = getFirstGreater(m_iPaddedWidth);
-	if(-1 == iH || -1 == iW)
-	{
-		// Out of range
-		return -1;
-	}
-	else
-	{
-		m_iPaddedHeight = OPT_FFT_SIZE[iH];
-		m_iPaddedWidth	= OPT_FFT_SIZE[iW];
-	}
-
-	/* Memory Allocation (Already padded) based on m_iNumberThreads*/
-	// Allocate memory for input padded f which is pre-copmuted and remain unchanged among threads
-	m_fPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iPaddedHeight*m_iPaddedWidth);
-	m_FfPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iPaddedHeight*m_iPaddedWidth);
-	
-	// Allocate thread-private intermediate memory
-	im_Fgwave = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iNumberThreads*m_iPaddedHeight*m_iPaddedWidth);
-	im_Sf = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iNumberThreads*m_iPaddedHeight*m_iPaddedWidth);
-	
-	// Allocate FFTW plans for each thread
-	m_planForwardgwave = new fftw_plan[m_iNumberThreads];
-	m_planInverseSf = new fftw_plan[m_iNumberThreads];
-
-	/* Make the FFTW plan for the precomputation of Ff = fft2(f) */
-	m_planForwardf = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, m_fPadded, m_FfPadded, FFTW_FORWARD, FFTW_ESTIMATE);
-
-	// Allocate memory for the output z and WFF&WFR specific intermediate arrays
-	if(WFT_TYPE::WFF == m_type)
-	{	
-		z.m_filtered = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iWidth*m_iHeight);
-		im_filtered = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iNumberThreads*m_iWidth*m_iHeight);
-
-		for (int i = 0; i < m_iNumberThreads; i++)
-		{
-			// make FFTW plans for each thread
-			m_planForwardgwave[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_Fgwave[i*m_iPaddedHeight*m_iPaddedWidth], &im_Fgwave[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_FORWARD, FFTW_ESTIMATE);
-			m_planInverseSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_BACKWARD, FFTW_ESTIMATE);
-		
-			for (int j = 0; j < m_iWidth*m_iHeight; j++)
-			{
-				int id = i*m_iWidth*m_iHeight + j;
-				if (0 == i)
-				{
-					z.m_filtered[j][0] = 0;
-					z.m_filtered[j][1] = 0;
-				}
-				im_filtered[id][0] = 0;
-				im_filtered[id][1] = 0;
-			}
-		}
-	}
-	else if (WFT_TYPE::WFR == m_type)
-	{
-		z.m_wx = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		z.m_wy = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		z.m_phase = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		z.m_phase_comp = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		z.m_b = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		z.m_r = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		z.m_cx = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		z.m_cy = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
-		im_r = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
-		im_p = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
-		im_wx = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
-		im_wy = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
-
-		for (int i = 0; i < m_iNumberThreads; i++)
-		{
-			// make FFTW plans for each thread
-			m_planForwardgwave[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_Fgwave[i*m_iPaddedHeight*m_iPaddedWidth], &im_Fgwave[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_FORWARD, FFTW_ESTIMATE);
-			m_planInverseSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_BACKWARD, FFTW_ESTIMATE);
-
-			for (int j = 0; j < m_iWidth*m_iHeight; j++)
-			{
-				int id = i*m_iWidth*m_iHeight + j;
-
-				if (0 == i)
-				{
-					z.m_wx[j] = 0;
-					z.m_wy[j] = 0;
-					z.m_phase[j] = 0;
-					z.m_phase_comp[j] = 0;
-					z.m_b[j] = 0;
-					z.m_r[j] = 0;
-					z.m_cx[j] = 0;
-					z.m_cy[j] = 0;
-				}
-				im_r[id] = 0; im_p[id] = 0; im_wx[id] = 0; im_wy[id] = 0;
-			}
-		}
-	}
-
-	/* Generate the windows g (g is the same across the calculation) *
-	 * g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)	     * 
-	 * And set padded region of both m_fPadded and m_gwavePadded to  *
-	 * zeros.						                                 *
-	 * Compute onece for thread 0 then do the memcpy				 */
-	double rNorm2Factor = 0;			// Factor used for normalization
-
-	#pragma omp parallel num_threads(m_iNumberThreads)
-	{
-		double rNorm2FactorLocal = 0;
-
-		/* Get thread params */
-		int tid = omp_get_thread_num();
-		int nthread = omp_get_num_threads();
-
-		for (int i = tid; i < m_iPaddedHeight; i += nthread)
-		{
-			for (int j = 0; j < m_iPaddedWidth; j++)
-			{
-				int id = i * m_iPaddedWidth + j;	// 1D index of 2D array elems		
-
-				// Set m_gwavePadded to 0's
-				im_Fgwave[id][0] = 0;
-				im_Fgwave[id][1] = 0;
-
-				// Set m_fPadded to zeros, because it will be filled later when execute
-				// the functor. Both real & imag are set to 0
-				m_fPadded[id][0] = 0;
-				m_fPadded[id][1] = 0;
-
-				// Construct m_gwavePadded matrix
-				// Except the first 2*sx+1 by 2*sy+1 elements, all are 0's. Also, all imags are 0's
-				if (i < m_iWinHeight && j < m_iWinWidth)
-				{
-					double y = i - (m_iWinHeight - 1) / 2;
-					double x = j - (m_iWinWidth - 1) / 2;
-
-					im_Fgwave[id][0] = exp(-double(x*x) / 2 / m_rSigmaX / m_rSigmaX
-						- double(y*y) / 2 / m_rSigmaY / m_rSigmaY);
-
-					rNorm2FactorLocal += im_Fgwave[id][0] * im_Fgwave[id][0];
-				}				
-			}
-		}
-		// Accumulate the per-thread results one-by-one
-		#pragma omp atomic
-			rNorm2Factor += rNorm2FactorLocal;
-	}
-
-	rNorm2Factor = sqrt(rNorm2Factor);
-
-	// Do the normalization for gwave	
-	for (int i = 0; i < 2 * m_iSy + 1; i++)
-	{
-		for (int j = 0; j < 2 * m_iSx + 1; j++)
-		{
-			int id = i*m_iPaddedWidth + j;
-			im_Fgwave[id][0] /= rNorm2Factor;
-		}
-	}	
-	
-	// Do the memcpy
-	for (int i = 1; i < m_iNumberThreads; i++)
-		std::memcpy(&im_Fgwave[i*m_iPaddedHeight*m_iPaddedWidth], 
-					&im_Fgwave[0],
-					sizeof(fftw_complex)*m_iPaddedHeight*m_iPaddedWidth);
-	
-
-	//std::cout<<m_gwavePadded[9][0]<<", "<< m_gwavePadded[9][1]<<std::endl;
-	//std::cout<<m_gwavePadded[60*m_iPaddedWidth+60][0]<<std::endl;
-	
-	return 0;
-}
-
-void WFT2_cpu::WFT2_feed_fPadded(fftw_complex *f)
-{
-	#pragma omp parallel num_threads(m_iNumberThreads)
-	{
-		#pragma omp for
-		for (int i = 0; i < m_iHeight; i++)
-		{
-			for (int j = 0; j < m_iWidth; j++)
-			{
-				int idf = i*m_iWidth + j;
-				int idfPadded = i*m_iPaddedWidth + j;
-
-				m_fPadded[idfPadded][0] = f[idf][0];
-				m_fPadded[idfPadded][1] = f[idf][1];
-			}
-		}
-	}
-}
-
-void WFT2_cpu::WFF2_SetThreashold(fftw_complex *f)
-{
-	/* If m_rThr < 0, use the default values for the Threashold in WFF2 algorithm 
-		m_rThr = 6 * sqrt( mean2( abs(f).^2 ) / 3)				
-	   As well as feed the f into its padded m_fPadded							  */
-	if(m_rThr < 0)
-	{
-		double rTemp = 0;
-
-		#pragma omp parallel num_threads(m_iNumberThreads)
-		{
-			double rTempLocal = 0;
-
-			/* Get thread params */
-			int tid = omp_get_thread_num();
-			int inthread = omp_get_num_threads();
-			int idf, idfPadded;
-			double abs;
-
-			for (int i = tid; i < m_iHeight; i += inthread)
-			{
-				for (int j = 0; j < m_iWidth; j++)
-				{
-					idf = i*m_iWidth + j;
-					idfPadded = i*m_iPaddedWidth + j;
-
-					abs = fftwComplexAbs(f[idf]);
-					rTempLocal += abs*abs;
-
-					// Feed the array
-					m_fPadded[idfPadded][0] = f[idf][0];
-					m_fPadded[idfPadded][1] = f[idf][1];
-				}
-			}
-			#pragma omp atomic
-				rTemp += rTempLocal;
-		}		
-		rTemp = rTemp / (m_iWidth * m_iHeight) / 3;
-		m_rThr = 6 * sqrt(rTemp);
-	}
-	else
-	{
-		/* Feed the input f into its padded m_fPadded */
-		WFT2_feed_fPadded(f);
-	}
-}
-
 void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 {
 	/* Set the threshold m_rThr if it's not specified by the client */
@@ -413,16 +168,131 @@ void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 	fftw_execute(m_planForwardf);
 
 
-	///* map the wl: wi : wh interval to integers from  0 to 
-	//   size = (wyh - wyl)/wyi + 1 in order to divide the 
-	//   copmutations across threads, since threads indices are 
-	//   more conviniently controlled by integers				  */
-	//int iwx = int(floor((m_rWxh - m_rWxl)/m_rWxi)) + 1;
-	//int iwy = int(floor((m_rWyh - m_rWyl)/m_rWyi)) + 1;
+	/* map the wl: wi : wh interval to integers from  0 to 
+	   size = (wyh - wyl)/wyi + 1 in order to divide the 
+	   copmutations across threads, since threads indices are 
+	   more conviniently controlled by integers				  */
+	int iwx = std::floor((m_rWxh - m_rWxl)*(1/m_rWxi)) + 1;
+	int iwy = std::floor((m_rWyh - m_rWyl)*(1/m_rWyi)) + 1;
 
-	//std::cout<<m_iPaddedHeight<<", "<<m_iPaddedWidth<<std::endl;
+	std::cout << iwx << ", " << iwy << std::endl;
 
-	///* The core WFF algorithm */
+	/* The core WFF algorithm */
+	double start = omp_get_wtime();
+	#pragma omp parallel num_threads(m_iNumberThreads)
+	{
+		// Get thread-spec parameters
+		int tid = omp_get_thread_num();
+		int nthread = omp_get_num_threads();
+		int idItm = tid * m_iPaddedWidth * m_iPaddedHeight;	// Intermidiate id
+
+		for (int y = tid; y < iwy; y += nthread)
+		{
+			for (int x = 0; x < iwx; x++)
+			{
+				// Recover the wyt and wxt from integer indices for computation
+				double wyt = m_rWyl + double(y) * m_rWyi;
+				double wxt = m_rWxl + double(x) * m_rWxi;
+
+				// Construct the gwave: gwave=g.*exp(j*wxt*x+j*wyt*y);
+				// Euler's Eq: expj(ux+vy) = cos(ux+vy)+jsin(ux+vy)
+				fftw_complex temp;
+				for (int i = 0; i < m_iWinHeight; i++)
+				{
+					for (int j = 0; j < m_iWinWidth; j++)
+					{
+						int idPadded = i * m_iPaddedWidth + j;
+
+						double yy = i - (m_iWinHeight - 1) / 2;
+						double xx = j - (m_iWinWidth - 1) / 2;
+
+						// exp(jj*(wxt*xx + wyt*yy))
+						temp[0] = cos(wxt*xx + wyt*yy);	// real
+						temp[1] = sin(wxt*xx + wyt*yy);	// imag
+
+						WFT_FPA::fftwComplexMul(
+							im_gwave[idItm + idPadded],
+							m_gPadded[idPadded],
+							temp);
+					}
+				}
+				// compute Fg = fft2(gwave);
+				fftw_execute(m_planForwardgwave[tid]);
+
+				// compute sf=ifft2(Ff.*Fg)
+				for (int i = 0; i < m_iPaddedHeight; i++)
+				{
+					for (int j = 0; j < m_iPaddedWidth; j++)
+					{
+						int idPadded = i * m_iPaddedWidth + j;
+						WFT_FPA::fftwComplexMul(
+							im_Sf[idItm + idPadded],
+							m_FfPadded[idPadded],
+							im_Fgwave[idItm + idPadded]);
+						WFT_FPA::fftwComplexScale(
+							im_Sf[idItm + idPadded],
+							1.0 / double(m_iPaddedHeight*m_iPaddedWidth));
+					}
+				}
+				fftw_execute(m_planInverseSf[tid]);
+
+				// Compute sf = sf(1+sx: m+sx, 1+sy:n+sy) 
+				//		   sf = sf.*(abs(sf)>=thr);
+				/*for (int k = 0; k < m_iHeight; k++)
+				{
+					for (int l = 0; l < m_iWidth; l++)
+					{
+						int iId = k * m_iPaddedWidth + l;
+						int iTransId = (k + m_iSy)*m_iPaddedWidth + l + m_iSx;
+
+						double abs = WFT_FPA::fftwComplexAbs(im_Sf[idItm + iTransId]);
+
+						if (abs >= m_rThr)
+						{
+							im_Sf[idItm + iId][0] = abs;
+						}
+						else
+						{
+							im_Sf[idItm + iId][0] = 0;
+						}
+					}
+				}*/
+				for (int i = 0; i < m_iPaddedHeight; i++)
+				{
+					for (int j = 0; j < m_iPaddedWidth; j++)
+					{
+						int idPadded = i*m_iPaddedWidth + j;					
+						int iTransId = (i + m_iSy)*m_iPaddedWidth + j + m_iSx;
+
+						if (i < m_iHeight && j < m_iWidth)
+						{
+							double abs = WFT_FPA::fftwComplexAbs(im_Sf[idItm + iTransId]);
+
+							if (abs >= m_rThr)
+							{
+								im_Sf[idItm + idPadded][0] = abs;
+							}
+							else
+							{
+								im_Sf[idItm + idPadded][0] = 0;
+							}
+							im_Sf[idItm + iTransId][0] = 0;
+						}
+						else
+						{
+							im_Sf[idItm + idPadded][0] = 0;
+						}
+						im_Sf[idItm + idPadded][1] = 0;
+					}
+				}
+
+				// Compute z.filtered
+
+			}
+		}
+	}
+	double end = omp_get_wtime();
+	time = end - start;
 	//static fftwf_complex *filteredLocal = nullptr;	// shared across threads
 	//#pragma omp threadprivate(filteredLocal)
 
@@ -527,8 +397,6 @@ void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 	//	#endif // WFT_FPA_DOUBLE
 	//}
 }
-
-
 void WFT2_cpu::WFR2(fftw_complex *f, WFT2_HostResults &z, double &time)
 {
 	WFT2_feed_fPadded(f);
@@ -536,6 +404,262 @@ void WFT2_cpu::WFR2(fftw_complex *f, WFT2_HostResults &z, double &time)
 	/* Pre-compute the FFT of m_fPadded */
 	fftw_execute(m_planForwardf);
 }
+
+
+int WFT2_cpu::WFT2_Initialize(WFT2_HostResults &z)
+{
+	/* General parameters intitialization */
+	// Half the Gaussian window size
+	m_iSx = int(round(3 * m_rSigmaX));
+	m_iSy = int(round(3 * m_rSigmaY));
+
+	// Gaussian Window size
+	m_iWinWidth = 2 * m_iSx +1;
+	m_iWinHeight = 2 * m_iSy + 1;
+
+	// Calculate the initial padding in order to perform the cyclic convolution using FFT
+	// The padding size is size(A) + size(B) - 1;
+	m_iPaddedHeight = m_iHeight + m_iWinHeight - 1;
+	m_iPaddedWidth = m_iWidth + 2 * m_iSx;
+	
+	// Calculate the second padding in order to fit the optimized size for FFT
+	int iH = getFirstGreater(m_iPaddedHeight);
+	int iW = getFirstGreater(m_iPaddedWidth);
+	if(-1 == iH || -1 == iW)
+	{
+		// Out of range
+		return -1;
+	}
+	else
+	{
+		m_iPaddedHeight = OPT_FFT_SIZE[iH];
+		m_iPaddedWidth	= OPT_FFT_SIZE[iW];
+	}
+
+	/* Memory Allocation (Already padded) based on m_iNumberThreads*/
+	// Allocate memory for input padded f which is pre-copmuted and remain unchanged among threads
+	m_fPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iPaddedHeight*m_iPaddedWidth);
+	m_FfPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iPaddedHeight*m_iPaddedWidth);
+	m_gPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iPaddedHeight*m_iPaddedWidth);
+
+	// Allocate thread-private intermediate memory
+	im_gwave = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iNumberThreads*m_iPaddedHeight*m_iPaddedWidth);
+	im_Fgwave = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iNumberThreads*m_iPaddedHeight*m_iPaddedWidth);
+	im_Sf = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iNumberThreads*m_iPaddedHeight*m_iPaddedWidth);
+	
+	// Allocate FFTW plans for each thread
+	m_planForwardgwave = new fftw_plan[m_iNumberThreads];
+	m_planForwardSf = new fftw_plan[m_iNumberThreads];
+	m_planInverseSf = new fftw_plan[m_iNumberThreads];
+
+	/* Make the FFTW plan for the precomputation of Ff = fft2(f) */
+	m_planForwardf = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, m_fPadded, m_FfPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+
+	// Allocate memory for the output z and WFF&WFR specific intermediate arrays
+	if(WFT_TYPE::WFF == m_type)
+	{	
+		z.m_filtered = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iWidth*m_iHeight);
+		im_filtered = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*m_iNumberThreads*m_iWidth*m_iHeight);
+
+		for (int i = 0; i < m_iNumberThreads; i++)
+		{
+			// make FFTW plans for each thread
+			m_planForwardgwave[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_gwave[i*m_iPaddedHeight*m_iPaddedWidth], &im_Fgwave[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_FORWARD, FFTW_ESTIMATE);
+			m_planInverseSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_BACKWARD, FFTW_ESTIMATE);
+			m_planForwardSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_FORWARD, FFTW_ESTIMATE);
+
+			for (int j = 0; j < m_iWidth*m_iHeight; j++)
+			{
+				int id = i*m_iWidth*m_iHeight + j;
+				if (0 == i)
+				{
+					z.m_filtered[j][0] = 0;
+					z.m_filtered[j][1] = 0;
+				}
+				im_filtered[id][0] = 0;
+				im_filtered[id][1] = 0;
+			}
+		}
+	}
+	else if (WFT_TYPE::WFR == m_type)
+	{
+		z.m_wx = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		z.m_wy = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		z.m_phase = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		z.m_phase_comp = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		z.m_b = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		z.m_r = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		z.m_cx = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		z.m_cy = (double*)malloc(sizeof(double)*m_iWidth*m_iHeight);
+		im_r = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
+		im_p = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
+		im_wx = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
+		im_wy = (double*)malloc(sizeof(double)*m_iNumberThreads*m_iWidth*m_iHeight);
+
+		for (int i = 0; i < m_iNumberThreads; i++)
+		{
+			// make FFTW plans for each thread
+			m_planForwardgwave[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_gwave[i*m_iPaddedHeight*m_iPaddedWidth], &im_Fgwave[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_FORWARD, FFTW_ESTIMATE);
+			m_planInverseSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], &im_Sf[i*m_iPaddedHeight*m_iPaddedWidth], FFTW_BACKWARD, FFTW_ESTIMATE);
+
+			for (int j = 0; j < m_iWidth*m_iHeight; j++)
+			{
+				int id = i*m_iWidth*m_iHeight + j;
+
+				if (0 == i)
+				{
+					z.m_wx[j] = 0;
+					z.m_wy[j] = 0;
+					z.m_phase[j] = 0;
+					z.m_phase_comp[j] = 0;
+					z.m_b[j] = 0;
+					z.m_r[j] = 0;
+					z.m_cx[j] = 0;
+					z.m_cy[j] = 0;
+				}
+				im_r[id] = 0; im_p[id] = 0; im_wx[id] = 0; im_wy[id] = 0;
+			}
+		}
+	}
+
+	/* Generate the windows g (g is the same across the calculation) *
+	 * g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)	     * 
+	 * And set padded region of both m_fPadded and m_gwavePadded to  *
+	 * zeros.						                                 *
+	 * Compute onece for thread 0 then do the memcpy				 */
+	double rNorm2Factor = 0;			// Factor used for normalization
+
+	#pragma omp parallel num_threads(m_iNumberThreads)
+	{
+		double rNorm2FactorLocal = 0;
+
+		/* Get thread params */
+		int tid = omp_get_thread_num();
+		int nthread = omp_get_num_threads();
+
+		for (int i = tid; i < m_iPaddedHeight; i += nthread)
+		{
+			for (int j = 0; j < m_iPaddedWidth; j++)
+			{
+				int id = i * m_iPaddedWidth + j;	// 1D index of 2D array elems		
+
+				// Set m_gwavePadded to 0's
+				m_gPadded[id][0] = 0;
+				m_gPadded[id][1] = 0;
+
+				// Set m_fPadded to zeros, because it will be filled later when execute
+				// the functor. Both real & imag are set to 0
+				m_fPadded[id][0] = 0;
+				m_fPadded[id][1] = 0;
+
+				// Construct m_gwavePadded matrix
+				// Except the first 2*sx+1 by 2*sy+1 elements, all are 0's. Also, all imags are 0's
+				if (i < m_iWinHeight && j < m_iWinWidth)
+				{
+					double y = i - (m_iWinHeight - 1) / 2;
+					double x = j - (m_iWinWidth - 1) / 2;
+
+					m_gPadded[id][0] = exp(-double(x*x) / 2 / m_rSigmaX / m_rSigmaX
+						- double(y*y) / 2 / m_rSigmaY / m_rSigmaY);
+
+					rNorm2FactorLocal += m_gPadded[id][0] * m_gPadded[id][0];
+				}				
+			}
+		}
+		// Accumulate the per-thread results one-by-one
+		#pragma omp atomic
+			rNorm2Factor += rNorm2FactorLocal;
+	}
+
+	rNorm2Factor = sqrt(rNorm2Factor);
+
+	// Do the normalization for gwave	
+	for (int i = 0; i < 2 * m_iSy + 1; i++)
+	{
+		for (int j = 0; j < 2 * m_iSx + 1; j++)
+		{
+			int id = i*m_iPaddedWidth + j;
+			m_gPadded[id][0] *= 1/rNorm2Factor;
+		}
+	}	
+	
+	// Do the memcpy
+	for (int i = 0; i < m_iNumberThreads; i++)
+		std::memcpy(&im_gwave[i*m_iPaddedHeight*m_iPaddedWidth], 
+					&m_gPadded[0],
+					sizeof(fftw_complex)*m_iPaddedHeight*m_iPaddedWidth);
+	
+
+	/*std::cout<<m_gPadded[9][0]<<", "<< m_gPadded[9][1]<<std::endl;
+	std::cout<<m_gPadded[60*m_iPaddedWidth+60][0]<<std::endl;*/
+	
+	return 0;
+}
+void WFT2_cpu::WFT2_feed_fPadded(fftw_complex *f)
+{
+	#pragma omp parallel num_threads(m_iNumberThreads)
+	{
+		#pragma omp for
+		for (int i = 0; i < m_iHeight; i++)
+		{
+			for (int j = 0; j < m_iWidth; j++)
+			{
+				int idf = i*m_iWidth + j;
+				int idfPadded = i*m_iPaddedWidth + j;
+
+				m_fPadded[idfPadded][0] = f[idf][0];
+				m_fPadded[idfPadded][1] = f[idf][1];
+			}
+		}
+	}
+}
+void WFT2_cpu::WFF2_SetThreashold(fftw_complex *f)
+{
+	/* If m_rThr < 0, use the default values for the Threashold in WFF2 algorithm 
+		m_rThr = 6 * sqrt( mean2( abs(f).^2 ) / 3)				
+	   As well as feed the f into its padded m_fPadded							  */
+	if(m_rThr < 0)
+	{
+		double rTemp = 0;
+
+		#pragma omp parallel num_threads(m_iNumberThreads)
+		{
+			double rTempLocal = 0;
+
+			/* Get thread params */
+			int tid = omp_get_thread_num();
+			int inthread = omp_get_num_threads();
+			int idf, idfPadded;
+			double abs;
+
+			for (int i = tid; i < m_iHeight; i += inthread)
+			{
+				for (int j = 0; j < m_iWidth; j++)
+				{
+					idf = i*m_iWidth + j;
+					idfPadded = i*m_iPaddedWidth + j;
+
+					abs = fftwComplexAbs(f[idf]);
+					rTempLocal += abs*abs;
+
+					// Feed the array
+					m_fPadded[idfPadded][0] = f[idf][0];
+					m_fPadded[idfPadded][1] = f[idf][1];
+				}
+			}
+			#pragma omp atomic
+				rTemp += rTempLocal;
+		}		
+		rTemp = rTemp / (m_iWidth * m_iHeight) / 3;
+		m_rThr = 6 * sqrt(rTemp);
+	}
+	else
+	{
+		/* Feed the input f into its padded m_fPadded */
+		WFT2_feed_fPadded(f);
+	}
+}
+
 
 }	// namespace WFT_FPA
 }	// namespace WFT

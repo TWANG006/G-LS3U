@@ -62,13 +62,16 @@ public:
 	/* Internal arrays */
 	fftw_complex	*m_fPadded;			// Padded f 
 	fftw_complex	*m_FfPadded;		// FFT of padded f
+	fftw_complex	*m_gPadded;			// padded g
 	
 	fftw_plan		m_planForwardf;		// FFTW fwd plan of f
-	fftw_plan		*m_planForwardgwave;	// FFTW fwd plan of gwave
-	fftw_plan		*m_planInverseSf;		// FFTW inv plan of Sf
+	fftw_plan		*m_planForwardgwave;// FFTW fwd plan of gwave
+	fftw_plan		*m_planForwardSf;	// FFTW fwd plan of Sf
+	fftw_plan		*m_planInverseSf;	// FFTW inv plan of Sf
 	
 	// threadprivate intermediate results for WFF & WFR
 	fftw_complex	*im_Fgwave;
+	fftw_complex	*im_gwave;
 	fftw_complex	*im_Sf;					// Sf after wft 
 
 	fftw_complex	*im_filtered;			// partial filtered image

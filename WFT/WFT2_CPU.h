@@ -51,9 +51,15 @@ private:
 	/* feed the f into its padded m_fPadded */
 	void WFT2_feed_fPadded(fftw_complex *f);
 
+	// Set the threashold of the WFF2 algorithm if the initial value of m_rThr = -1;
+	void WFF2_SetThreashold(fftw_complex *f);	
+
+	// Do the 'replicate' padding on the z.wx and z.wy to compute cxx and cyy for 
+	// phase compensation
+	void WFR2_pCompensation_Padding();
+
 	/* Sequential & Multi-threaded Implementations of the WFF2&WFR2
 	   algorithm												    */
-	void WFF2_SetThreashold(fftw_complex *f);	
 	void WFF2(fftw_complex *f, WFT2_HostResults &z, double &time);
 	void WFR2(fftw_complex *f, WFT2_HostResults &z, double &time);
 	
@@ -74,13 +80,18 @@ public:
 	fftw_complex	*im_gwave;
 	fftw_complex	*im_Sf;					// Sf after wft 
 
+	// WFF partial results
 	fftw_complex	*im_filtered;			// partial filtered image
-	double			*im_r;
-	double			*im_p;
-	double			*im_wx;
-	double			*im_wy;
 
-	
+	// WFR partial results				
+	double			*im_r;					// partial ridges
+	double			*im_p;					// partial phases
+	double			*im_wx;					// partial local frequency in x
+	double			*im_wy;					// partial local frequency in y
+	fftw_complex	*im_wxPadded;			// Padded wx for computation of cxx
+	fftw_complex	*im_wyPadded;			// Padded wy for computation of cyy
+	fftw_complex	*im_xgPadded;			// padded x.*g
+	fftw_complex	*im_ygPadded;			// padded y.*g	
 
 	/* Internal Parameters */
 	int				m_iWidth;			// width of the fringe pattern

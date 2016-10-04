@@ -27,10 +27,10 @@
     <ClCompile Include="Utils_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WFT2_CPU_Initialization_Test.cpp">
+    <ClCompile Include="WFF2_CPU_Initialization_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WFT2_CPU_ComputationTest.cpp">
+    <ClCompile Include="WFF2_CPU_ComputationTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

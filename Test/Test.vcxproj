@@ -100,8 +100,8 @@
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Utils_Test.cpp" />
-    <ClCompile Include="WFT2_CPU_ComputationTest.cpp" />
-    <ClCompile Include="WFT2_CPU_Initialization_Test.cpp" />
+    <ClCompile Include="WFF2_CPU_ComputationTest.cpp" />
+    <ClCompile Include="WFF2_CPU_Initialization_Test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

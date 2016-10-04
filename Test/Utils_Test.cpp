@@ -26,6 +26,12 @@ TEST(Utils_ComplexOperation, Utils_Test)
 
 	double temp2 = WFT_FPA::fftwComplexAbs(out);
 	EXPECT_EQ(10, temp2);
+
+	double angle = WFT_FPA::fftwComplexAngle(out);
+
+	std::cout << "Angle of ";
+	WFT_FPA::fftwComplexPrint(out);
+	std::cout << "is: " << angle << std::endl;
 }
 
 //TEST(Utils_fftwComplexIO, Utils_Test)

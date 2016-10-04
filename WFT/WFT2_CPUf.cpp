@@ -164,6 +164,23 @@ void WFT2_cpuF::WFF2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 	/* Pre-compute the FFT of m_fPadded */
 	fftwf_execute(m_planForwardf);
 
+	/* Clear the results if they already contain last results */
+	for (int i = 0; i < m_iNumberThreads; i++)
+	{
+
+		for (int j = 0; j < m_iWidth*m_iHeight; j++)
+		{
+			int id = i*m_iWidth*m_iHeight + j;
+			if (0 == i)
+			{
+				z.m_filtered[j][0] = 0;
+				z.m_filtered[j][1] = 0;
+			}
+			im_filtered[id][0] = 0;
+			im_filtered[id][1] = 0;
+		}
+	}
+
 	/* map the wl: wi : wh interval to integers from  0 to 
 	   size = (wyh - wyl)/wyi + 1 in order to divide the 
 	   copmutations across threads, since threads indices are 

@@ -49,6 +49,15 @@ double fftwComplexAbs(const fftw_complex& in)
 	return sqrt(in[0]*in[0] + in[1]*in[1]);
 }
 
+float fftwComplexAngle(const fftwf_complex& in)
+{
+	return atan2(in[1], in[0]);
+}
+double fftwComplexAngle(const fftw_complex& in)
+{
+	return atan2(in[1], in[0]);
+}
+
 void fftwComplexPrint(const fftwf_complex& in)
 {
 	std::cout<<in[0]<<"+"<<"("<<in[1]<<"i)";

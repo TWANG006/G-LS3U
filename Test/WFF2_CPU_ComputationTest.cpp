@@ -79,6 +79,10 @@ TEST(WFF_Single, WFT2_CPU)
 
 	std::cout<<"Multicore-time:  "<<time<<std::endl;
 
+	wft(f, z2, time);
+	std::cout<<"Multicore-time:  "<<time<<std::endl;
+
+
 	/* Single-core initialization */
 	/*WFT_FPA::WFT::WFT2_HostResultsF z1;	
 	WFT_FPA::WFT::WFT2_cpuF wft1(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z1,1);

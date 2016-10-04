@@ -16,6 +16,9 @@ WFT_FPA_DLL_EXPORTS void fftwComplexScale(fftwf_complex& out, const float s);
 /* Compute the absolute values abs(z) = sqrt(x^2+y^2) */
 WFT_FPA_DLL_EXPORTS float fftwComplexAbs(const fftwf_complex& in);
 WFT_FPA_DLL_EXPORTS double fftwComplexAbs(const fftw_complex& in);
+/* Compute the phase angle (in radians) of the complex angle(z) */
+WFT_FPA_DLL_EXPORTS float fftwComplexAngle(const fftwf_complex& in);
+WFT_FPA_DLL_EXPORTS double fftwComplexAngle(const fftw_complex& in);
 /* Formatted output of FFTW3 complex numbers */
 WFT_FPA_DLL_EXPORTS void fftwComplexPrint(const fftwf_complex& in);
 WFT_FPA_DLL_EXPORTS void fftwComplexPrint(const fftw_complex& in);

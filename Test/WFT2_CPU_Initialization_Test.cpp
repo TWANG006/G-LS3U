@@ -23,11 +23,13 @@ TEST(WFT2_CPU_Init_Double, WFT2_CPU)
 
 	/* Multi-core initialization */
 	WFT_FPA::WFT::WFT2_HostResults z2;
-	WFT_FPA::WFT::WFT2_cpu wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z2,4);
+	WFT_FPA::WFT::WFT2_cpu wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,
+		10, -2, 2, 0.1, 10, -2, 2, 0.1, 6, z2, 6);
 
 	/* Single-core initialization */
 	WFT_FPA::WFT::WFT2_HostResults z1;	
-	WFT_FPA::WFT::WFT2_cpu wft1(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,z1,1);	
+	WFT_FPA::WFT::WFT2_cpu wft1(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,
+		10, -2, 2, 0.1f, 10, -2, 2, 0.1f, 6, z1, 6);	
 
 	/* Assert the results */
 	std::cout << wft1.m_FfPadded[0][0] << ", " << wft1.m_FfPadded[0][1] << std::endl;

@@ -158,6 +158,8 @@ void WFT2_cpu::operator() (
 /* Private functions */
 void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 {
+	omp_set_num_threads(m_iNumberThreads);
+
 	/* Set the threshold m_rThr if it's not specified by the client */
 	WFF2_SetThreashold(f);
 	
@@ -304,7 +306,7 @@ void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 			}
 		}
 		// Compute z.filtered=z.filtered+filteredt(1+sx:m+sx,1+sy:n+sy); 
-		#pragma omp critical
+		/*#pragma omp critical
 		{
 			for (int i = 0; i < m_iHeight; i++)
 			{
@@ -316,11 +318,29 @@ void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 					z.m_filtered[idfiltered][1] += im_filtered[idItmResult + idfiltered][1];
 				}
 			}
+		}*/
+	}
+
+	for (int k = 0; k < m_iNumberThreads; k++)
+	{
+		int idItmResult = k * m_iHeight*m_iWidth;
+
+		for (int i = 0; i < m_iHeight; i++)
+		{
+			for (int j = 0; j < m_iWidth; j++)
+			{
+				int idfiltered = i*m_iWidth + j;
+
+				z.m_filtered[idfiltered][0] += im_filtered[idItmResult + idfiltered][0];
+				z.m_filtered[idfiltered][1] += im_filtered[idItmResult + idfiltered][1];
+			}
 		}
 	}
 
 	// Compute z.filtered=z.filtered/4/pi/pi*wxi*wyi; 
 	double oneOverPi2 = 1.0 / (M_PI*M_PI);
+
+	#pragma omp parallel for
 	for (int i = 0; i < m_iHeight; i++)
 	{
 		for (int j = 0; j < m_iWidth; j++)

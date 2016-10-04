@@ -25,7 +25,7 @@ TEST(WFF_Double, WFT2_CPU)
 	/* Multi-core initialization */
 	WFT_FPA::WFT::WFT2_HostResults z2;
 	WFT_FPA::WFT::WFT2_cpu wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,
-		10, -2, 2, 0.1, 10, -2, 2, 0.1, 6, z2, 6);
+		10, -2, 2, 0.1, 10, -2, 2, 0.1, 6, z2, 4);
 	wft(f, z2, time);
 
 	std::cout<<"Multicore-time:  "<<time<<std::endl;
@@ -74,7 +74,7 @@ TEST(WFF_Single, WFT2_CPU)
 	/* Multi-core initialization */
 	WFT_FPA::WFT::WFT2_HostResultsF z2;
 	WFT_FPA::WFT::WFT2_cpuF wft(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,
-		10, -2, 2, 0.1f, 10, -2, 2, 0.1f, 6, z2, 6);	
+		10, -2, 2, 0.1f, 10, -2, 2, 0.1f, 6, z2, 4);	
 	wft(f, z2, time);
 
 	std::cout<<"Multicore-time:  "<<time<<std::endl;

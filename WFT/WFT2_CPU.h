@@ -74,6 +74,12 @@ public:
 	fftw_plan		*m_planForwardgwave;// FFTW fwd plan of gwave
 	fftw_plan		*m_planForwardSf;	// FFTW fwd plan of Sf
 	fftw_plan		*m_planInverseSf;	// FFTW inv plan of Sf
+
+	// Plans for calculating curvature cxx&cyy using FFT-based convolution
+	fftw_plan		m_planForwardcxx;
+	fftw_plan		m_planInversecxx;
+	fftw_plan		m_planForwardcyy;
+	fftw_plan		m_planInversecyy;
 	
 	// threadprivate intermediate results for WFF & WFR
 	fftw_complex	*im_Fgwave;
@@ -88,8 +94,8 @@ public:
 	double			*im_p;					// partial phases
 	double			*im_wx;					// partial local frequency in x
 	double			*im_wy;					// partial local frequency in y
-	fftw_complex	*im_wxPadded;			// Padded wx for computation of cxx
-	fftw_complex	*im_wyPadded;			// Padded wy for computation of cyy
+	fftw_complex	*im_cxxPadded;			// Padded wx for computation of cxx
+	fftw_complex	*im_cyyPadded;			// Padded wy for computation of cyy
 	fftw_complex	*im_xgPadded;			// padded x.*g
 	fftw_complex	*im_ygPadded;			// padded y.*g	
 
@@ -101,6 +107,10 @@ public:
 	 * Optimized size for the FFT									 */
 	int				m_iPaddedWidth;		// width after padding for optimized FFT
 	int				m_iPaddedHeight;	// height after padding for optimized FFT
+
+	int				m_iPaddedWidthCurvature;	// width after padding for optimized FFT for curvature computation
+	int				m_iPaddedHeightCurvature;	// height after padding for optimized FFT for curvature computation
+
 	WFT_TYPE		m_type;				// 'WFF' or 'WFR'
 	int				m_iSx;				// half Windows size along x
 	int				m_iSy;				// half Windows size along y

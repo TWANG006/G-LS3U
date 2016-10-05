@@ -23,6 +23,8 @@ WFT_FPA_DLL_EXPORTS double fftwComplexAngle(const fftw_complex& in);
 WFT_FPA_DLL_EXPORTS void fftwComplexPrint(const fftwf_complex& in);
 WFT_FPA_DLL_EXPORTS void fftwComplexPrint(const fftw_complex& in);
 
+
+
 /* FFTW3 2D Matrix I/O : matrix is stored in Row-Major */
 WFT_FPA_DLL_EXPORTS bool fftwComplexMatRead2D(std::istream& in, fftwf_complex *&f, int& rows, int& cols);
 WFT_FPA_DLL_EXPORTS bool fftwComplexMatRead2D(std::istream& in, fftw_complex *&f, int& rows, int& cols);

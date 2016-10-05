@@ -47,6 +47,8 @@ private:
 		2. Allocate&initialize arrays with the padded size
 		3. Make FFTW3 plans								   */
 	int WFT2_Initialize(WFT2_HostResultsF &z);
+	void WFF2_Init(WFT2_HostResultsF &z);
+	int  WFR2_Init(WFT2_HostResultsF &z);
 
 	/* feed the f into its padded m_fPadded */
 	void WFT2_feed_fPadded(fftwf_complex *f);
@@ -69,6 +71,12 @@ public:
 	fftwf_plan		*m_planForwardSf;	// FFTW fwd plan of Sf
 	fftwf_plan		*m_planInverseSf;	// FFTW inv plan of Sf
 	
+	// Plans for calculating curvature cxx&cyy using FFT-based convolution
+	fftwf_plan		m_planForwardcxx;
+	fftwf_plan		m_planInversecxx;
+	fftwf_plan		m_planForwardcyy;
+	fftwf_plan		m_planInversecyy;
+
 	// threadprivate intermediate results for WFF & WFR
 	fftwf_complex	*im_Fgwave;
 	fftwf_complex	*im_gwave;
@@ -79,7 +87,10 @@ public:
 	float			*im_p;
 	float			*im_wx;
 	float			*im_wy;
-
+	fftwf_complex	*im_cxxPadded;			// Padded wx for computation of cxx
+	fftwf_complex	*im_cyyPadded;			// Padded wy for computation of cyy
+	fftwf_complex	*im_xgPadded;			// padded x.*g
+	fftwf_complex	*im_ygPadded;			// padded y.*g	
 	
 
 	/* Internal Parameters */
@@ -90,6 +101,11 @@ public:
 	 * Optimized size for the FFT									 */
 	int				m_iPaddedWidth;		// width after padding for optimized FFT
 	int				m_iPaddedHeight;	// height after padding for optimized FFT
+
+	int				m_iPaddedWidthCurvature;	// width after padding for optimized FFT for curvature computation
+	int				m_iPaddedHeightCurvature;	// height after padding for optimized FFT for curvature computation
+
+
 	WFT_TYPE		m_type;				// 'WFF' or 'WFR'
 	int				m_iSx;				// half Windows size along x
 	int				m_iSy;				// half Windows size along y

@@ -56,8 +56,8 @@ struct WFT_FPA_DLL_EXPORTS WFT2_HostResults
 	double *m_phase_comp;	// compensated by estimation of c
 	double *m_b;			// amplitude
 	double *m_r;			// ridge value
-	double *m_cx;			// estimation of c in x
-	double *m_cy;			// estimation of c in y
+	double *m_cxx;			// estimation of c in x
+	double *m_cyy;			// estimation of c in y
 
 	WFT2_HostResults();
 	~WFT2_HostResults();
@@ -79,8 +79,8 @@ struct WFT_FPA_DLL_EXPORTS WFT2_HostResultsF
 	float *m_phase_comp;	// compensated by estimation of c
 	float *m_b;			// amplitude
 	float *m_r;			// ridge value
-	float *m_cx;			// estimation of c in x
-	float *m_cy;			// estimation of c in y
+	float *m_cxx;			// estimation of c in x
+	float *m_cyy;			// estimation of c in y
 
 	WFT2_HostResultsF();
 	~WFT2_HostResultsF();

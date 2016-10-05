@@ -30,8 +30,8 @@ WFT2_HostResults::WFT2_HostResults()
 	, m_phase_comp(nullptr)
 	, m_b(nullptr)
 	, m_r(nullptr)
-	, m_cx(nullptr)
-	, m_cy(nullptr)
+	, m_cxx(nullptr)
+	, m_cyy(nullptr)
 {}
 
 WFT2_HostResults::~WFT2_HostResults()
@@ -43,8 +43,8 @@ WFT2_HostResults::~WFT2_HostResults()
 	free(m_phase_comp);		m_phase_comp = nullptr;
 	free(m_b);				m_b = nullptr;
 	free(m_r);				m_r = nullptr;
-	free(m_cx);				m_cx = nullptr;
-	free(m_cy);				m_cy = nullptr;
+	free(m_cxx);			m_cxx = nullptr;
+	free(m_cyy);			m_cyy = nullptr;
 }
 
 /* Single precision Data structures for WFT Results */
@@ -56,8 +56,8 @@ WFT2_HostResultsF::WFT2_HostResultsF()
 	, m_phase_comp(nullptr)
 	, m_b(nullptr)
 	, m_r(nullptr)
-	, m_cx(nullptr)
-	, m_cy(nullptr)
+	, m_cxx(nullptr)
+	, m_cyy(nullptr)
 {}
 
 WFT2_HostResultsF::~WFT2_HostResultsF()
@@ -69,8 +69,8 @@ WFT2_HostResultsF::~WFT2_HostResultsF()
 	free(m_phase_comp);		m_phase_comp = nullptr;
 	free(m_b);				m_b = nullptr;
 	free(m_r);				m_r = nullptr;
-	free(m_cx);				m_cx = nullptr;
-	free(m_cy);				m_cy = nullptr;
+	free(m_cxx);			m_cxx = nullptr;
+	free(m_cyy);			m_cyy = nullptr;
 }
 
 }	// namespace WFT

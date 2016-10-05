@@ -47,6 +47,8 @@ private:
 		2. Allocate&initialize arrays with the padded size
 		3. Make FFTW3 plans								   */
 	int WFT2_Initialize(WFT2_HostResults &z);
+	void WFF2_Init(WFT2_HostResults &z);
+	int  WFR2_Init(WFT2_HostResults &z);
 
 	/* feed the f into its padded m_fPadded */
 	void WFT2_feed_fPadded(fftw_complex *f);
@@ -80,6 +82,8 @@ public:
 	fftw_plan		m_planInversecxx;
 	fftw_plan		m_planForwardcyy;
 	fftw_plan		m_planInversecyy;
+	fftw_plan		m_planForwardxg;
+	fftw_plan		m_planForwardyg;
 	
 	// threadprivate intermediate results for WFF & WFR
 	fftw_complex	*im_Fgwave;
@@ -97,7 +101,11 @@ public:
 	fftw_complex	*im_cxxPadded;			// Padded wx for computation of cxx
 	fftw_complex	*im_cyyPadded;			// Padded wy for computation of cyy
 	fftw_complex	*im_xgPadded;			// padded x.*g
+	fftw_complex	*im_FxgPadded;			// FFT of padded x.*g
 	fftw_complex	*im_ygPadded;			// padded y.*g	
+	fftw_complex	*im_FygPadded;			// FFT of padded y.*g
+	double			m_rSumxxg;
+	double			m_rSumyyg;
 
 	/* Internal Parameters */
 	int				m_iWidth;			// width of the fringe pattern

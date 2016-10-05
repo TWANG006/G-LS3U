@@ -101,9 +101,7 @@ public:
 	fftw_complex	*im_cxxPadded;			// Padded wx for computation of cxx
 	fftw_complex	*im_cyyPadded;			// Padded wy for computation of cyy
 	fftw_complex	*im_xgPadded;			// padded x.*g
-	fftw_complex	*im_FxgPadded;			// FFT of padded x.*g
 	fftw_complex	*im_ygPadded;			// padded y.*g	
-	fftw_complex	*im_FygPadded;			// FFT of padded y.*g
 	double			m_rSumxxg;
 	double			m_rSumyyg;
 

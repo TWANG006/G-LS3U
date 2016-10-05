@@ -37,8 +37,6 @@ WFT2_cpu::WFT2_cpu(
 	, im_cyyPadded(nullptr)
 	, im_xgPadded(nullptr)
 	, im_ygPadded(nullptr)
-	, im_FxgPadded(nullptr)
-	, im_FygPadded(nullptr)
 	, m_rSumxxg(0)
 	, m_rSumyyg(0)
 {
@@ -113,8 +111,6 @@ WFT2_cpu::WFT2_cpu(
 	, im_cyyPadded(nullptr)
 	, im_xgPadded(nullptr)
 	, im_ygPadded(nullptr)
-	, im_FxgPadded(nullptr)
-	, im_FygPadded(nullptr)
 	, m_rSumxxg(0)
 	, m_rSumyyg(0)
 {
@@ -166,8 +162,6 @@ WFT2_cpu::~WFT2_cpu()
 		fftw_free(im_cyyPadded);	im_cyyPadded = nullptr;
 		fftw_free(im_xgPadded);		im_xgPadded = nullptr;
 		fftw_free(im_ygPadded);		im_ygPadded = nullptr;
-		fftw_free(im_FxgPadded);	im_FxgPadded = nullptr;
-		fftw_free(im_FygPadded);	im_FygPadded = nullptr;
 
 		free(im_r);		im_r = nullptr;
 		free(im_wx);	im_wx = nullptr;
@@ -560,7 +554,6 @@ void WFT2_cpu::WFR2(fftw_complex *f, WFT2_HostResults &z, double &time)
 
 	/* Do the Least squre fitting to get cx and cy with data padding replicating the 
 	   border pixel																	*/
-
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
 		auto tid = omp_get_thread_num();
@@ -639,6 +632,17 @@ void WFT2_cpu::WFR2(fftw_complex *f, WFT2_HostResults &z, double &time)
 			}
 		}
 	}
+
+	// Do the FFT for cxx&cyy
+	fftw_execute(m_planForwardcxx);
+	fftw_execute(m_planForwardcyy);
+
+	// Do the convolution, i.e. pointwise multiplication
+	#pragma omp parallel num_threads(m_iNumberThreads)
+	{
+		// TODO: 		
+	}
+
 	double end = omp_get_wtime();
 	time = end - start;
 
@@ -823,8 +827,6 @@ int WFT2_cpu::WFR2_Init(WFT2_HostResults &z)
 		im_cxxPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*curvatureSize);
 		im_xgPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*curvatureSize);
 		im_ygPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*curvatureSize);
-		im_FxgPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*curvatureSize);
-		im_FygPadded = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*curvatureSize);
 
 		// Calculate x.*g and y.*g
 		#pragma omp parallel num_threads(m_iNumberThreads)
@@ -892,13 +894,16 @@ int WFT2_cpu::WFR2_Init(WFT2_HostResults &z)
 		}
 		
 		// make the plans for cxx and cyy computation
-		m_planForwardxg = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_xgPadded, im_FxgPadded, FFTW_FORWARD, FFTW_ESTIMATE);
-		m_planForwardyg = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_ygPadded, im_FygPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planForwardxg = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_xgPadded, im_xgPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planForwardyg = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_ygPadded, im_ygPadded, FFTW_FORWARD, FFTW_ESTIMATE);
 		m_planForwardcxx = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cxxPadded, im_cxxPadded, FFTW_FORWARD, FFTW_ESTIMATE);
 		m_planInversecxx = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cxxPadded, im_cxxPadded, FFTW_BACKWARD, FFTW_ESTIMATE);
 		m_planForwardcyy = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cyyPadded, im_cyyPadded, FFTW_FORWARD, FFTW_ESTIMATE);
 		m_planInversecyy = fftw_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cyyPadded, im_cyyPadded, FFTW_BACKWARD, FFTW_ESTIMATE);
 
+		// Do the FFT for xg and yg once and use them 
+		fftw_execute(m_planForwardxg);
+		fftw_execute(m_planForwardyg);
 	}
 
 	return 0;

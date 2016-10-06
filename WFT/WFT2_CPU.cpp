@@ -225,8 +225,6 @@ void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 	int iwx = int((m_rWxh - m_rWxl)*(1/m_rWxi)) + 1;
 	int iwy = int((m_rWyh - m_rWyl)*(1/m_rWyi)) + 1;
 
-	std::cout << iwx << ", " << iwy << std::endl;
-
 	/* The core WFF algorithm */
 	double start = omp_get_wtime();
 	#pragma omp parallel num_threads(m_iNumberThreads)
@@ -375,6 +373,8 @@ void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 			}
 		}
 	}
+	double end = omp_get_wtime();
+	time = end - start;
 
 	// Compute z.filtered=z.filtered/4/pi/pi*wxi*wyi; 
 	double oneOverPi2 = 1.0 / (M_PI*M_PI);
@@ -390,9 +390,6 @@ void WFT2_cpu::WFF2(fftw_complex *f, WFT2_HostResults &z, double &time)
 			z.m_filtered[idfiltered][1] *= 0.25*oneOverPi2*m_rWxi*m_rWyi;
 		}
 	}
-
-	double end = omp_get_wtime();
-	time = end - start;
 }
 void WFT2_cpu::WFR2(fftw_complex *f, WFT2_HostResults &z, double &time)
 {
@@ -551,6 +548,8 @@ void WFT2_cpu::WFR2(fftw_complex *f, WFT2_HostResults &z, double &time)
 			}
 		}
 	}
+	double end = omp_get_wtime();
+	time = end - start;
 
 	/* Do the Least squre fitting to get cx and cy with data padding replicating the 
 	   border pixel																	*/
@@ -633,19 +632,68 @@ void WFT2_cpu::WFR2(fftw_complex *f, WFT2_HostResults &z, double &time)
 		}
 	}
 
-	// Do the FFT for cxx&cyy
+	// compute least squares fitting to get cxx and cyy
 	fftw_execute(m_planForwardcxx);
 	fftw_execute(m_planForwardcyy);
-
 	// Do the convolution, i.e. pointwise multiplication
 	#pragma omp parallel num_threads(m_iNumberThreads)
 	{
 		// TODO: 		
+		int tid = omp_get_thread_num();
+		int nthread = omp_get_num_threads();
+
+		for (int i = tid; i < m_iPaddedHeightCurvature; i += nthread)
+		{
+			for (int j = 0; j < m_iPaddedWidthCurvature; j++)
+			{
+				int idP = i*m_iPaddedWidthCurvature + j;
+				WFT_FPA::fftwComplexMul(
+					im_cxxPadded[idP], 
+					im_cxxPadded[idP],
+					im_xgPadded[idP]);
+				WFT_FPA::fftwComplexScale(
+					im_cxxPadded[idP],
+					1.0 / double(m_iPaddedHeightCurvature*m_iPaddedWidthCurvature));
+				WFT_FPA::fftwComplexMul(
+					im_cyyPadded[idP],
+					im_cyyPadded[idP],
+					im_ygPadded[idP]);
+				WFT_FPA::fftwComplexScale(
+					im_cyyPadded[idP],
+					1.0 / double(m_iPaddedHeightCurvature*m_iPaddedWidthCurvature));
+			}
+		}
 	}
+	fftw_execute(m_planInversecxx);
+	fftw_execute(m_planInversecyy);
 
-	double end = omp_get_wtime();
-	time = end - start;
+	// Get the final results
+	#pragma omp parallel num_threads(m_iNumberThreads)
+	{
+		int tid = omp_get_thread_num();
+		int nthread = omp_get_num_threads();
 
+		for (int i = tid; i < m_iHeight; i += nthread)
+		{
+			for (int j = 0; j < m_iWidth; j++)
+			{
+				int idImg = i*m_iWidth + j;
+				int idc = (i + 2 * m_iSy)*m_iPaddedWidthCurvature + j + 2 * m_iSx;
+
+				z.m_cxx[idImg] = -im_cxxPadded[idc][0] * m_rSumxxg;
+				z.m_cyy[idImg] = -im_cyyPadded[idc][0] * m_rSumyyg;
+
+				z.m_phase_comp[idImg] = z.m_phase[idImg]
+					- 0.5*atan(m_rSigmaX*m_rSigmaX*z.m_cxx[idImg])
+					- 0.5*atan(m_rSigmaY*m_rSigmaY*z.m_cyy[idImg]);
+				z.m_phase_comp[idImg] = atan2(sin(z.m_phase_comp[idImg]), cos(z.m_phase_comp[idImg]));
+
+				z.m_b[idImg] = z.m_r[idImg] 
+					* pow((1 + m_rSigmaX*m_rSigmaX*m_rSigmaX*m_rSigmaX*z.m_cxx[idImg] * z.m_cxx[idImg])*0.25 / M_PI / (m_rSigmaX*m_rSigmaX), 0.25)
+					* pow((1 + m_rSigmaY*m_rSigmaY*m_rSigmaY*m_rSigmaY*z.m_cyy[idImg] * z.m_cyy[idImg])*0.25 / M_PI / (m_rSigmaY*m_rSigmaY), 0.25);
+			}
+		}
+	}
 }
 
 
@@ -867,6 +915,9 @@ int WFT2_cpu::WFR2_Init(WFT2_HostResults &z)
 		}
 		
 		std::cout << m_rSumxxg << ", " << m_rSumyyg << std::endl;
+
+		m_rSumxxg = 1.0 / m_rSumxxg;
+		m_rSumyyg = 1.0 / m_rSumyyg;
 
 		int iImageSize = m_iWidth * m_iHeight;
 

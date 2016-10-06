@@ -13,6 +13,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="CUDA Source">
+      <UniqueIdentifier>{a7e0b4f1-c850-48d9-94ce-6202fabab088}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WFT.h">
@@ -22,6 +25,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WFT2_CPUf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WFT2_CUDA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WFT2_CUDAf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,5 +44,13 @@
     <ClCompile Include="WFT2_CPUf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="WFT2_CUDA.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="WFT2_CUDAf.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

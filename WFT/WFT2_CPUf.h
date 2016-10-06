@@ -53,9 +53,11 @@ private:
 	/* feed the f into its padded m_fPadded */
 	void WFT2_feed_fPadded(fftwf_complex *f);
 
+	// Set the threashold of the WFF2 algorithm if the initial value of m_rThr = -1;
+	void WFF2_SetThreashold(fftwf_complex *f);	
+
 	/* Sequential & Multi-threaded Implementations of the WFF2&WFR2
 	   algorithm												    */
-	void WFF2_SetThreashold(fftwf_complex *f);	
 	void WFF2(fftwf_complex *f, WFT2_HostResultsF &z, double &time);
 	void WFR2(fftwf_complex *f, WFT2_HostResultsF &z, double &time);
 	
@@ -76,13 +78,18 @@ public:
 	fftwf_plan		m_planInversecxx;
 	fftwf_plan		m_planForwardcyy;
 	fftwf_plan		m_planInversecyy;
+	fftwf_plan		m_planForwardxg;
+	fftwf_plan		m_planForwardyg;
 
 	// threadprivate intermediate results for WFF & WFR
 	fftwf_complex	*im_Fgwave;
 	fftwf_complex	*im_gwave;
 	fftwf_complex	*im_Sf;					// Sf after wft 
 
+	// WFF partial results
 	fftwf_complex	*im_filtered;			// partial filtered image
+
+	// WFR partial results
 	float			*im_r;
 	float			*im_p;
 	float			*im_wx;
@@ -91,6 +98,8 @@ public:
 	fftwf_complex	*im_cyyPadded;			// Padded wy for computation of cyy
 	fftwf_complex	*im_xgPadded;			// padded x.*g
 	fftwf_complex	*im_ygPadded;			// padded y.*g	
+	float			m_rSumxxg;				// 1 / x.*x.*g
+	float			m_rSumyyg;				// 1 / y.*y.*g
 	
 
 	/* Internal Parameters */

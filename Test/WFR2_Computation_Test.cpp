@@ -8,7 +8,7 @@ TEST(WFR_Copmute, WFR_Compute)
 {
 	/* Load the FP image f */
 	fftw_complex *f = nullptr;
-	std::ifstream in("132.fp");
+	std::ifstream in("1024.fp");
 	int rows, cols;
 
 	if (!WFT_FPA::fftwComplexMatRead2D(in, f, rows, cols))
@@ -19,15 +19,23 @@ TEST(WFR_Copmute, WFR_Compute)
 
 	// Test constructor
 	WFT_FPA::WFT::WFT2_HostResults z;
-	WFT_FPA::WFT::WFT2_cpu wfr(cols,rows,WFT_FPA::WFT::WFT_TYPE::WFR, z, 6);
+	WFT_FPA::WFT::WFT2_cpu wfr(cols,rows,WFT_FPA::WFT::WFT_TYPE::WFR,
+		10, -2, 2, 0.025,
+		10, -2, 2, 0.025,
+		-1, z, 6);
 
 	double time = 0;
 
 	wfr(f, z, time);
+	
+	std::cout << "WFR Time: " << time << std::endl;
+
 	wfr(f, z, time);
 
+	std::cout << "WFR Time: " << time << std::endl;
+
 	// Test xg, yg
-	std::ofstream out("m_r.csv", std::ios::out | std::ios::trunc);
+	std::ofstream out("r.csv", std::ios::out | std::ios::trunc);
 	for (int i = 0; i < wfr.m_iHeight; i++)
 	{
 		for (int j = 0; j < wfr.m_iWidth; j++)
@@ -75,17 +83,54 @@ TEST(WFR_Copmute, WFR_Compute)
 
 	out.close();
 
-	out.open("cxx.csv", std::ios::out | std::ios::trunc);
-	for (int i = 0; i < wfr.m_iPaddedHeightCurvature; i++)
+	out.open("phase_comp.csv", std::ios::out | std::ios::trunc);
+	for (int i = 0; i < wfr.m_iHeight; i++)
 	{
-		for (int j = 0; j < wfr.m_iPaddedWidthCurvature; j++)
+		for (int j = 0; j < wfr.m_iWidth; j++)
 		{
-			out << wfr.im_cxxPadded[i*wfr.m_iPaddedWidthCurvature + j][0] << ",";
+			out << z.m_phase_comp[i*wfr.m_iWidth + j] << ",";
 		}
 		out << "\n";
 	}
 
 	out.close();
+
+	out.open("cxx.csv", std::ios::out | std::ios::trunc);
+	for (int i = 0; i < wfr.m_iHeight; i++)
+	{
+		for (int j = 0; j < wfr.m_iWidth; j++)
+		{
+			out << z.m_cxx[i*wfr.m_iWidth + j] << ",";
+		}
+		out << "\n";
+	}
+
+	out.close();
+
+	out.open("cyy.csv", std::ios::out | std::ios::trunc);
+	for (int i = 0; i < wfr.m_iHeight; i++)
+	{
+		for (int j = 0; j < wfr.m_iWidth; j++)
+		{
+			out << z.m_cyy[i*wfr.m_iWidth + j] << ",";
+		}
+		out << "\n";
+	}
+
+	out.close();
+
+	out.open("b.csv", std::ios::out | std::ios::trunc);
+	for (int i = 0; i < wfr.m_iHeight; i++)
+	{
+		for (int j = 0; j < wfr.m_iWidth; j++)
+		{
+			out << z.m_b[i*wfr.m_iWidth + j] << ",";
+		}
+		out << "\n";
+	}
+
+	out.close();
+
 
 	fftw_free(f);
 }

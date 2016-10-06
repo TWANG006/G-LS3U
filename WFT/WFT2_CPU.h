@@ -56,10 +56,6 @@ private:
 	// Set the threashold of the WFF2 algorithm if the initial value of m_rThr = -1;
 	void WFF2_SetThreashold(fftw_complex *f);	
 
-	// Do the 'replicate' padding on the z.wx and z.wy to compute cxx and cyy for 
-	// phase compensation
-	void WFR2_pCompensation_Padding();
-
 	/* Sequential & Multi-threaded Implementations of the WFF2&WFR2
 	   algorithm												    */
 	void WFF2(fftw_complex *f, WFT2_HostResults &z, double &time);
@@ -102,8 +98,8 @@ public:
 	fftw_complex	*im_cyyPadded;			// Padded wy for computation of cyy
 	fftw_complex	*im_xgPadded;			// padded x.*g
 	fftw_complex	*im_ygPadded;			// padded y.*g	
-	double			m_rSumxxg;
-	double			m_rSumyyg;
+	double			m_rSumxxg;				// 1 / x.*x.*g
+	double			m_rSumyyg;				// 1 / y.*y.*g
 
 	/* Internal Parameters */
 	int				m_iWidth;			// width of the fringe pattern

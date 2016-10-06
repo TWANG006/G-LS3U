@@ -107,6 +107,12 @@
     <ClInclude Include="WFT.h" />
     <ClInclude Include="WFT2_CPU.h" />
     <ClInclude Include="WFT2_CPUf.h" />
+    <ClInclude Include="WFT2_CUDA.h" />
+    <ClInclude Include="WFT2_CUDAf.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="WFT2_CUDA.cu" />
+    <CudaCompile Include="WFT2_CUDAf.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -86,6 +86,54 @@ struct WFT_FPA_DLL_EXPORTS WFT2_HostResultsF
 	~WFT2_HostResultsF();
 };
 
+/* Double precision Data structure for CUDA WFT Results */
+struct WFT_FPA_DLL_EXPORTS WFT2_DeviceResults
+{
+
+	/* For WFF */
+	// 2D filtered signal
+	// phase = angle(m_h_filtered) for fI and fIII
+	// intensity = real(m_h_filtered) for fIII and fIV
+	cufftDoubleComplex *m_d_filtered;
+
+	/* for WFR */
+	double *m_d_wx;			// local frequency in x
+	double *m_d_wy;			// local frequency in y
+	double *m_d_phase;		// phase
+	double *m_d_phase_comp;	// compensated by estimation of c
+	double *m_d_b;			// amplitude
+	double *m_d_r;			// ridge value
+	double *m_d_cxx;			// estimation of c in x
+	double *m_d_cyy;			// estimation of c in y
+
+	WFT2_DeviceResults();
+	~WFT2_DeviceResults();
+};
+
+/* Sginle precision Data structure for CUDA WFT Results */
+struct WFT_FPA_DLL_EXPORTS WFT2_DeviceResultsF
+{
+
+	/* For WFF */
+	// 2D filtered signal
+	// phase = angle(m_h_filtered) for fI and fIII
+	// intensity = real(m_h_filtered) for fIII and fIV
+	cufftComplex *m_d_filtered;
+
+	/* for WFR */
+	float *m_d_wx;			// local frequency in x
+	float *m_d_wy;			// local frequency in y
+	float *m_d_phase;		// phase
+	float *m_d_phase_comp;	// compensated by estimation of c
+	float *m_d_b;			// amplitude
+	float *m_d_r;			// ridge value
+	float *m_d_cxx;			// estimation of c in x
+	float *m_d_cyy;			// estimation of c in y
+
+	WFT2_DeviceResultsF();
+	~WFT2_DeviceResultsF();
+};
+
 }	// namespace WFT
 }	// namespace WFT_FPA
 

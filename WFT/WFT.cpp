@@ -73,5 +73,59 @@ WFT2_HostResultsF::~WFT2_HostResultsF()
 	free(m_cyy);			m_cyy = nullptr;
 }
 
+
+/* Double precision Data structures for WFT Results */
+WFT2_DeviceResults::WFT2_DeviceResults()
+	: m_d_filtered(nullptr)
+	, m_d_wx(nullptr)
+	, m_d_wy(nullptr)
+	, m_d_phase(nullptr)
+	, m_d_phase_comp(nullptr)
+	, m_d_b(nullptr)
+	, m_d_r(nullptr)
+	, m_d_cxx(nullptr)
+	, m_d_cyy(nullptr)
+{}
+
+WFT2_DeviceResults::~WFT2_DeviceResults()
+{
+	cudaFree(m_d_filtered);			m_d_filtered = nullptr;
+
+	cudaFree(m_d_wx);				m_d_wx = nullptr;
+	cudaFree(m_d_phase);			m_d_phase = nullptr;
+	cudaFree(m_d_phase_comp);		m_d_phase_comp = nullptr;
+	cudaFree(m_d_b);				m_d_b = nullptr;
+	cudaFree(m_d_r);				m_d_r = nullptr;
+	cudaFree(m_d_cxx);				m_d_cxx = nullptr;
+	cudaFree(m_d_cyy);				m_d_cyy = nullptr;
+}
+
+
+/* Single precision Data structures for WFT Results */
+WFT2_DeviceResultsF::WFT2_DeviceResultsF()
+	: m_d_filtered(nullptr)
+	, m_d_wx(nullptr)
+	, m_d_wy(nullptr)
+	, m_d_phase(nullptr)
+	, m_d_phase_comp(nullptr)
+	, m_d_b(nullptr)
+	, m_d_r(nullptr)
+	, m_d_cxx(nullptr)
+	, m_d_cyy(nullptr)
+{}
+
+WFT2_DeviceResultsF::~WFT2_DeviceResultsF()
+{
+	cudaFree(m_d_filtered);			m_d_filtered = nullptr;
+
+	cudaFree(m_d_wx);				m_d_wx = nullptr;
+	cudaFree(m_d_phase);			m_d_phase = nullptr;
+	cudaFree(m_d_phase_comp);		m_d_phase_comp = nullptr;
+	cudaFree(m_d_b);				m_d_b = nullptr;
+	cudaFree(m_d_r);				m_d_r = nullptr;
+	cudaFree(m_d_cxx);				m_d_cxx = nullptr;
+	cudaFree(m_d_cyy);				m_d_cyy = nullptr;
+}
+
 }	// namespace WFT
 }	// namespace WFT_FPA

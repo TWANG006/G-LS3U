@@ -258,7 +258,7 @@ void WFT2_cpuF::WFF2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 						temp[0] = cos(wxt*xx + wyt*yy);	// real
 						temp[1] = sin(wxt*xx + wyt*yy);	// imag
 
-						WFT_FPA::fftwComplexMul(
+						WFT_FPA::Utils::fftwComplexMul(
 							im_gwave[idItm + idPadded],
 							m_gPadded[idPadded],
 							temp);
@@ -273,11 +273,11 @@ void WFT2_cpuF::WFF2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 					for (int j = 0; j < m_iPaddedWidth; j++)
 					{
 						int idPadded = i * m_iPaddedWidth + j;
-						WFT_FPA::fftwComplexMul(
+						WFT_FPA::Utils::fftwComplexMul(
 							im_Sf[idItm + idPadded],
 							m_FfPadded[idPadded],
 							im_Fgwave[idItm + idPadded]);
-						WFT_FPA::fftwComplexScale(
+						WFT_FPA::Utils::fftwComplexScale(
 							im_Sf[idItm + idPadded],
 							1.0f / float(m_iPaddedHeight*m_iPaddedWidth));
 					}
@@ -295,7 +295,7 @@ void WFT2_cpuF::WFF2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 
 						if (i < m_iHeight && j < m_iWidth)
 						{
-							float abs = WFT_FPA::fftwComplexAbs(im_Sf[idItm + iTransId]);
+							float abs = WFT_FPA::Utils::fftwComplexAbs(im_Sf[idItm + iTransId]);
 
 							if (abs >= m_rThr)
 							{
@@ -326,11 +326,11 @@ void WFT2_cpuF::WFF2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 					for (int j = 0; j < m_iPaddedWidth; j++)
 					{
 						int idPadded = i * m_iPaddedWidth + j;
-						WFT_FPA::fftwComplexMul(
+						WFT_FPA::Utils::fftwComplexMul(
 							im_Sf[idItm + idPadded],
 							im_Sf[idItm + idPadded],
 							im_Fgwave[idItm + idPadded]);
-						WFT_FPA::fftwComplexScale(
+						WFT_FPA::Utils::fftwComplexScale(
 							im_Sf[idItm + idPadded],
 							1.0f / float(m_iPaddedHeight*m_iPaddedWidth));
 					}
@@ -463,7 +463,7 @@ void WFT2_cpuF::WFR2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 						temp[0] = cos(wxt*xx + wyt*yy);	// real
 						temp[1] = sin(wxt*xx + wyt*yy);	// imag
 
-						WFT_FPA::fftwComplexMul(
+						WFT_FPA::Utils::fftwComplexMul(
 							im_gwave[idItm + idPadded],
 							m_gPadded[idPadded],
 							temp);
@@ -478,11 +478,11 @@ void WFT2_cpuF::WFR2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 					for (int j = 0; j < m_iPaddedWidth; j++)
 					{
 						int idPadded = i * m_iPaddedWidth + j;
-						WFT_FPA::fftwComplexMul(
+						WFT_FPA::Utils::fftwComplexMul(
 							im_Sf[idItm + idPadded],
 							m_FfPadded[idPadded],
 							im_Fgwave[idItm + idPadded]);
-						WFT_FPA::fftwComplexScale(
+						WFT_FPA::Utils::fftwComplexScale(
 							im_Sf[idItm + idPadded],
 							1.0f / float(m_iPaddedHeight*m_iPaddedWidth));
 					}
@@ -507,14 +507,14 @@ void WFT2_cpuF::WFR2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 						int iTransId = (i + m_iSy)*m_iPaddedWidth + j + m_iSx;
 
 						int idImage = i * m_iWidth + j;
-						float abs = WFT_FPA::fftwComplexAbs(im_Sf[idItm + iTransId]);
+						float abs = WFT_FPA::Utils::fftwComplexAbs(im_Sf[idItm + iTransId]);
 
 						if (abs >= im_r[idItmResult + idImage])
 						{
 							im_r[idItmResult + idImage] = abs;
 							im_wx[idItmResult + idImage] = wxt;
 							im_wy[idItmResult + idImage] = wyt;
-							im_p[idItmResult + idImage] = WFT_FPA::fftwComplexAngle(im_Sf[idItm + iTransId]);
+							im_p[idItmResult + idImage] = WFT_FPA::Utils::fftwComplexAngle(im_Sf[idItm + iTransId]);
 						}
 
 					}
@@ -643,18 +643,18 @@ void WFT2_cpuF::WFR2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 			for (int j = 0; j < m_iPaddedWidthCurvature; j++)
 			{
 				int idP = i*m_iPaddedWidthCurvature + j;
-				WFT_FPA::fftwComplexMul(
+				WFT_FPA::Utils::fftwComplexMul(
 					im_cxxPadded[idP], 
 					im_cxxPadded[idP],
 					im_xgPadded[idP]);
-				WFT_FPA::fftwComplexScale(
+				WFT_FPA::Utils::fftwComplexScale(
 					im_cxxPadded[idP],
 					1.0f / float(m_iPaddedHeightCurvature*m_iPaddedWidthCurvature));
-				WFT_FPA::fftwComplexMul(
+				WFT_FPA::Utils::fftwComplexMul(
 					im_cyyPadded[idP],
 					im_cyyPadded[idP],
 					im_ygPadded[idP]);
-				WFT_FPA::fftwComplexScale(
+				WFT_FPA::Utils::fftwComplexScale(
 					im_cyyPadded[idP],
 					1.0f / float(m_iPaddedHeightCurvature*m_iPaddedWidthCurvature));
 			}
@@ -997,7 +997,7 @@ void WFT2_cpuF::WFF2_SetThreashold(fftwf_complex *f)
 					idf = i*m_iWidth + j;
 					idfPadded = i*m_iPaddedWidth + j;
 
-					abs = fftwComplexAbs(f[idf]);
+					abs = WFT_FPA::Utils::fftwComplexAbs(f[idf]);
 					rTempLocal += abs*abs;
 
 					// Feed the array

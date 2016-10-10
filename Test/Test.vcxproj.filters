@@ -33,10 +33,10 @@
     <ClCompile Include="WFF2_CPU_ComputationTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WFR2_Initialization_Test.cpp">
+    <ClCompile Include="WFR2_CPU_Computation_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WFR2_Computation_Test.cpp">
+    <ClCompile Include="WFR2_CPU_Initialization_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

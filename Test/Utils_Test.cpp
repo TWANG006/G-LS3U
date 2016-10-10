@@ -1,52 +1,56 @@
 #include "gtest\gtest.h"
 #include "Utils.h"
 
-
-TEST(Utils_cufftIO, Utils_Test)
+TEST(Utils_Estimate_Mem_Usage, Utils_Test)
 {
-		// single-precision test
-	std::ifstream in("f.txt");
-	cufftComplex *f = nullptr;
-	int row, col;
-
-	if(in.is_open())
-	{
-		if(WFT_FPA::Utils::cufftComplexMatRead2D(in, f, row, col))
-		{
-			for (int i = 0; i < row*col; i++)
-			{
-				WFT_FPA::Utils::cufftComplexPrint(f[i]);
-				std::cout<<"\n";
-			}		
-		}			
-	}
-	in.close();
-
-	std::ofstream out("fout.txt", std::ios::out | std::ios::trunc);
-	WFT_FPA::Utils::cufftComplexMatWrite2D(out, f, row, col);
-
-	free(f);
-	out.close();
-
-
-	// double-precision test
-	cufftDoubleComplex *ff = nullptr;
-	in.open("fout.txt");
-	if(in.is_open())
-	{
-		if(WFT_FPA::Utils::cufftComplexMatRead2D(in, ff, row, col))
-		{
-			for (int i = 0; i < row*col; i++)
-			{
-				WFT_FPA::Utils::cufftComplexPrint(ff[i]);
-				std::cout<<"\n";
-			}	
-		}		
-	}
-	in.close();
-
-	free(ff);
+	WFT_FPA::Utils::DisplayMemoryUsed(sizeof(cufftDoubleComplex) * 1120 * 1120);
 }
+
+//TEST(Utils_cufftIO, Utils_Test)
+//{
+//		// single-precision test
+//	std::ifstream in("f.txt");
+//	cufftComplex *f = nullptr;
+//	int row, col;
+//
+//	if(in.is_open())
+//	{
+//		if(WFT_FPA::Utils::cufftComplexMatRead2D(in, f, row, col))
+//		{
+//			for (int i = 0; i < row*col; i++)
+//			{
+//				WFT_FPA::Utils::cufftComplexPrint(f[i]);
+//				std::cout<<"\n";
+//			}		
+//		}			
+//	}
+//	in.close();
+//
+//	std::ofstream out("fout.txt", std::ios::out | std::ios::trunc);
+//	WFT_FPA::Utils::cufftComplexMatWrite2D(out, f, row, col);
+//
+//	free(f);
+//	out.close();
+//
+//
+//	// double-precision test
+//	cufftDoubleComplex *ff = nullptr;
+//	in.open("fout.txt");
+//	if(in.is_open())
+//	{
+//		if(WFT_FPA::Utils::cufftComplexMatRead2D(in, ff, row, col))
+//		{
+//			for (int i = 0; i < row*col; i++)
+//			{
+//				WFT_FPA::Utils::cufftComplexPrint(ff[i]);
+//				std::cout<<"\n";
+//			}	
+//		}		
+//	}
+//	in.close();
+//
+//	free(ff);
+//}
 
 //TEST(Utils_ComplexOperation, Utils_Test)
 //{

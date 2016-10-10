@@ -8,6 +8,19 @@ namespace WFT_FPA{
 namespace Utils{
 
 /*---------------------------------------------HOST Methods-------------------------------------------*/
+
+void DisplayMemoryUsed(size_t size)
+{
+	if (size < 1024)
+		std::cout << "Memory required is " << size << " Bytes" << " \n";
+	if (size < 1024 * 1024 && size >= 1024)
+		std::cout << "Memory required is " << size / 1024 << " kBytes" << " \n";
+	if (size < 1024 * 1024 * 1024 && size >= 1024 * 1024)
+		std::cout << "Memory required is " << size / (1024 * 1024) << " MBytes" << " \n";
+	if (size >= 1024 * 1024 * 1024)
+		std::cout << "Memory required is " << size / (1024 * 1024 * 1024) << " GBytes" << " \n";
+}
+	
 void fftwComplexMul(fftwf_complex& out, const fftwf_complex& in1, const fftwf_complex& in2)
 {
 	// Make a copy first to avoid self-assignment
@@ -178,7 +191,6 @@ void fftwComplexMatWrite2D(std::ostream& out, fftw_complex *f, const int rows, c
 		}
 	}
 }
-
 
 
 bool cufftComplexMatRead2D(std::istream& in, cufftComplex *&f, int& rows, int& cols)

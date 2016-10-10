@@ -13,12 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="CUDA Source">
+      <UniqueIdentifier>{f6ea6b4d-ee04-4e7c-b025-b3b2db4aa6cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WFT-FPA.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helper_cuda.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -29,7 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuUtils.cu">
-      <Filter>Header Files</Filter>
+      <Filter>CUDA Source</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

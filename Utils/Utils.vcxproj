@@ -94,6 +94,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="helper_cuda.h" />
     <ClInclude Include="WFT-FPA.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>

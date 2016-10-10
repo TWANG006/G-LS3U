@@ -3,14 +3,18 @@
 
 #include "WFT-FPA.h"
 #include <fftw3.h>
+#include "cuda_runtime.h"
 #include "cufft.h"
-#include "cufftXt.h"
+#include "helper_cuda.h"
 #include <fstream>
 
 namespace WFT_FPA{
 namespace Utils{
 
 /*---------------------------------------------HOST Methods-------------------------------------------*/
+
+WFT_FPA_DLL_EXPORTS void DisplayMemoryUsed(size_t size);
+	
 /* Compute the complex multiplication (x + yi)(u + vi) = (xu - yv) + (xv + yu)i */
 WFT_FPA_DLL_EXPORTS void fftwComplexMul(fftwf_complex& out, const fftwf_complex& in1, const fftwf_complex& in2);
 WFT_FPA_DLL_EXPORTS void fftwComplexMul(fftw_complex& out, const fftw_complex& in1, const fftw_complex& in2);
@@ -42,6 +46,42 @@ WFT_FPA_DLL_EXPORTS void cufftComplexPrint(const cufftComplex& in);
 WFT_FPA_DLL_EXPORTS void cufftComplexPrint(const cufftDoubleComplex& in);
 
 /*-------------------------------------------Device Methods-----------------------------------------------*/
+/* cufft Complex number scaling */
+static	__device__ __host__
+inline cufftComplex ComplexScale(cufftComplex a, float s)
+{
+	cufftComplex c;
+	c.x = s*a.x;
+	c.y = s*a.y;
+	return c;
+}
+static	__device__ __host__
+inline cufftDoubleComplex ComplexScale(cufftDoubleComplex a, float s)
+{
+	cufftDoubleComplex c;
+	c.x = s*a.x;
+	c.y = s*a.y;
+	return c;
+}
+
+/* cufft Complex number multiplication */
+static __device__ __host__
+inline cufftComplex ComplexMul(cufftComplex a, cufftComplex b)
+{
+	cufftComplex c;
+	c.x = a.x * b.x - a.y * b.y;
+	c.y = a.x * b.y + a.y * b.x;
+	return c;
+}
+static __device__ __host__
+inline cufftDoubleComplex ComplexMul(cufftDoubleComplex a, cufftDoubleComplex b)
+{
+	cufftDoubleComplex c;
+	c.x = a.x * b.x - a.y * b.y;
+	c.y = a.x * b.y + a.y * b.x;
+	return c;
+}
+
 template<typename T>
 void cuInitialize(T* devPtr, const T val, const size_t nwords);
 

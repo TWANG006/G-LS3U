@@ -707,7 +707,7 @@ int WFT2_cpuF::WFT2_Initialize(WFT2_HostResultsF &z)
 	// Calculate the initial padding in order to perform the cyclic convolution using FFT
 	// The padding size is size(A) + size(B) - 1;
 	m_iPaddedHeight = m_iHeight + m_iWinHeight - 1;
-	m_iPaddedWidth = m_iWidth + 2 * m_iSx;
+	m_iPaddedWidth = m_iWidth +m_iWinWidth - 1;
 
 	// Calculate the second padding in order to fit the optimized size for FFT
 	int iH = getFirstGreater(m_iPaddedHeight);

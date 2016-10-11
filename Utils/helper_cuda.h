@@ -982,6 +982,7 @@ static const char *_cudaGetErrorEnum(NppStatus error)
 template< typename T >
 void check(T result, char const *const func, const char *const file, int const line)
 {
+#if defined(DEBUG) || defined(_DEBUG)
     if (result)
     {
         fprintf(stderr, "CUDA error at %s:%d code=%d(%s) \"%s\" \n",
@@ -990,6 +991,7 @@ void check(T result, char const *const func, const char *const file, int const l
         // Make sure we call CUDA Device Reset before exiting
         exit(EXIT_FAILURE);
     }
+#endif
 }
 
 #ifdef __DRIVER_TYPES_H__
@@ -1001,6 +1003,7 @@ void check(T result, char const *const func, const char *const file, int const l
 
 inline void __getLastCudaError(const char *errorMessage, const char *file, const int line)
 {
+#if defined(DEBUG) || defined(_DEBUG)
     cudaError_t err = cudaGetLastError();
 
     if (cudaSuccess != err)
@@ -1010,6 +1013,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
         DEVICE_RESET
         exit(EXIT_FAILURE);
     }
+#endif
 }
 #endif
 

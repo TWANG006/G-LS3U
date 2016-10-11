@@ -95,6 +95,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="helper_cuda.h" />
+    <ClInclude Include="mem_manager.h" />
     <ClInclude Include="WFT-FPA.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
@@ -103,6 +104,9 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuUtils.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mem_manager.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

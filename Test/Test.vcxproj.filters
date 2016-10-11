@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="CUDA Source">
+      <UniqueIdentifier>{d662d759-892c-462f-820d-9f878e13e669}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gtest-all.cpp">
@@ -39,5 +42,10 @@
     <ClCompile Include="WFR2_CPU_Initialization_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="xfyf_2D_1D_Test.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

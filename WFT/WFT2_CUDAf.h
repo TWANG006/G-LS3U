@@ -58,13 +58,13 @@ private:
 
 private:
 	/* Internal Arrays */
-	cufftComplex *m_d_fPadded;			// Padded f
-	cufftReal *m_d_xf;					// Explicit Freq in x for Gaussian Window
-	cufftReal *m_d_yf;					// Explicit Freq in y for Gaussian Window
+	cufftComplex	*m_d_fPadded;		// Padded f
+	cufftReal		*m_d_xf;			// Explicit Freq in x for Gaussian Window
+	cufftReal		*m_d_yf;			// Explicit Freq in y for Gaussian Window
 
-	cufftHandle m_planForwardf;			
-	cufftHandle m_planForwardSf;
-	cufftHandle m_planInverseSf;
+	cufftHandle		m_planForwardf;			
+	cufftHandle		m_planForwardSf;
+	cufftHandle		m_planInverseSf;
 
 	/* Internal Parameters */
 	int				m_iWidth;			// width of the fringe pattern
@@ -72,8 +72,8 @@ private:
 
 	/* Initially, size(A) + size(B) - 1, search the lookup table for * 
 	 * Optimized size for the FFT									 */
-	int				m_iPaddedWidth;		// width after padding for optimized FFT
-	int				m_iPaddedHeight;	// height after padding for optimized FFT
+	int				m_iPaddedWidth;				// width after padding for optimized FFT
+	int				m_iPaddedHeight;			// height after padding for optimized FFT
 
 	int				m_iPaddedWidthCurvature;	// width after padding for optimized FFT for curvature computation
 	int				m_iPaddedHeightCurvature;	// height after padding for optimized FFT for curvature computation
@@ -91,6 +91,7 @@ private:
 	float			m_rWyl;				// lower bound of frequency in y-axis
 	float			m_rWyh;				// upper bound of frequency in y-axis
 	float			m_rWyi;				// step size of frequency in y-axis	
+	float			m_rGaussianNorm2;	// L2-norm normalization of Gaussian Window
 
 	/* threshold for 'wff', no needed for 'wfr' *
 	 * NOTE: if m_rThr < 0, it is calculated as *
@@ -99,6 +100,7 @@ private:
 
 	/* Parameters for Thread control */
 	int m_iNumberThreads;
+	int m_iSMs;							// Number of SMs of the device 0
 };
 
 }	// namespace WFT_FPA

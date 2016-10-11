@@ -27,6 +27,9 @@
     <ClInclude Include="helper_cuda.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mem_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Utils.cpp">
@@ -37,5 +40,10 @@
     <CudaCompile Include="cuUtils.cu">
       <Filter>CUDA Source</Filter>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mem_manager.inl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

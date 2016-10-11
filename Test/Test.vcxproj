@@ -105,6 +105,9 @@
     <ClCompile Include="WFF2_CPU_Initialization_Test.cpp" />
     <ClCompile Include="WFR2_CPU_Initialization_Test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="xfyf_2D_1D_Test.cu" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.targets" />

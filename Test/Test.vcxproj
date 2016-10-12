@@ -72,6 +72,9 @@
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opencv_world310d.lib;Utilsd.lib;WFTd.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30</CodeGeneration>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -94,11 +97,16 @@
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opencv_world310.lib;Utils.lib;WFT.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30</CodeGeneration>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FFTW_C2C_Test.cpp" />
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="WFF2_CUDA_ComputationTest.cpp" />
+    <ClCompile Include="WFF2_CUDA_InitializationTest.cpp" />
     <ClCompile Include="WFR2_CPU_Computation_Test.cpp" />
     <ClCompile Include="Utils_Test.cpp" />
     <ClCompile Include="WFF2_CPU_ComputationTest.cpp" />

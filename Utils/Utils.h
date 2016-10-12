@@ -5,6 +5,7 @@
 #include <fftw3.h>
 #include "cuda_runtime.h"
 #include "cufft.h"
+#include "device_launch_parameters.h"
 #include "helper_cuda.h"
 #include <fstream>
 
@@ -12,7 +13,6 @@ namespace WFT_FPA{
 namespace Utils{
 
 /*---------------------------------------------HOST Methods-------------------------------------------*/
-
 WFT_FPA_DLL_EXPORTS void DisplayMemoryUsed(size_t size);
 	
 /* Compute the complex multiplication (x + yi)(u + vi) = (xu - yv) + (xv + yu)i */

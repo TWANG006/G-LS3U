@@ -1,4 +1,5 @@
 #include "WFT.h"
+#include "mem_manager.h"
 //#include <iostream>
 
 namespace WFT_FPA{
@@ -89,15 +90,15 @@ WFT2_DeviceResults::WFT2_DeviceResults()
 
 WFT2_DeviceResults::~WFT2_DeviceResults()
 {
-	cudaFree(m_d_filtered);			m_d_filtered = nullptr;
+	WFT_FPA::Utils::cudaSafeFree(m_d_filtered);			
 
-	cudaFree(m_d_wx);				m_d_wx = nullptr;
-	cudaFree(m_d_phase);			m_d_phase = nullptr;
-	cudaFree(m_d_phase_comp);		m_d_phase_comp = nullptr;
-	cudaFree(m_d_b);				m_d_b = nullptr;
-	cudaFree(m_d_r);				m_d_r = nullptr;
-	cudaFree(m_d_cxx);				m_d_cxx = nullptr;
-	cudaFree(m_d_cyy);				m_d_cyy = nullptr;
+	WFT_FPA::Utils::cudaSafeFree(m_d_wx);				
+	WFT_FPA::Utils::cudaSafeFree(m_d_phase);			
+	WFT_FPA::Utils::cudaSafeFree(m_d_phase_comp);		
+	WFT_FPA::Utils::cudaSafeFree(m_d_b);				
+	WFT_FPA::Utils::cudaSafeFree(m_d_r);			
+	WFT_FPA::Utils::cudaSafeFree(m_d_cxx);				
+	WFT_FPA::Utils::cudaSafeFree(m_d_cyy);			
 }
 
 
@@ -116,15 +117,15 @@ WFT2_DeviceResultsF::WFT2_DeviceResultsF()
 
 WFT2_DeviceResultsF::~WFT2_DeviceResultsF()
 {
-	cudaFree(m_d_filtered);			m_d_filtered = nullptr;
+	WFT_FPA::Utils::cudaSafeFree(m_d_filtered);			
 
-	cudaFree(m_d_wx);				m_d_wx = nullptr;
-	cudaFree(m_d_phase);			m_d_phase = nullptr;
-	cudaFree(m_d_phase_comp);		m_d_phase_comp = nullptr;
-	cudaFree(m_d_b);				m_d_b = nullptr;
-	cudaFree(m_d_r);				m_d_r = nullptr;
-	cudaFree(m_d_cxx);				m_d_cxx = nullptr;
-	cudaFree(m_d_cyy);				m_d_cyy = nullptr;
+	WFT_FPA::Utils::cudaSafeFree(m_d_wx);			
+	WFT_FPA::Utils::cudaSafeFree(m_d_phase);			
+	WFT_FPA::Utils::cudaSafeFree(m_d_phase_comp);	
+	WFT_FPA::Utils::cudaSafeFree(m_d_b);				
+	WFT_FPA::Utils::cudaSafeFree(m_d_r);				
+	WFT_FPA::Utils::cudaSafeFree(m_d_cxx);			
+	WFT_FPA::Utils::cudaSafeFree(m_d_cyy);			
 }
 
 }	// namespace WFT

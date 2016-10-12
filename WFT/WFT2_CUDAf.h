@@ -17,7 +17,7 @@ public:
 		int iWidth, int iHeight,
 		WFT_TYPE type,
 		WFT2_DeviceResultsF& z,
-		int iNumStreams = 6);
+		int iNumStreams = 1);
 
 	// Parameters are set by the input parameters
 	WFT2_CUDAF(
@@ -27,14 +27,14 @@ public:
 		float rSigmaY, float rWyl, float rWyh, float rWyi,
 		float rThr,
 		WFT2_DeviceResultsF &z,
-		int iNumStreams = 6);
+		int iNumStreams = 1);
 
 	~WFT2_CUDAF();
 
 	// Make this class a callable object (functor)
 	void operator() (
-		cufftComplex *f, 
-		WFT2_DeviceResultsF &z,
+		cufftComplex *d_f, 
+		WFT2_DeviceResultsF &d_z,
 		double &time);
 
 private:
@@ -42,33 +42,37 @@ private:
 		1. Calculate the padding size.
 		2. Allocate&initialize arrays with the padded size
 		3. Make cufft plans								   */
-	int cuWFT2_Initialize(WFT2_DeviceResultsF &z);
-	void cuWFF2_Init(WFT2_DeviceResultsF &z);
-	int  cuWFR2_Init(WFT2_DeviceResultsF &z);
+	int cuWFT2_Initialize(WFT2_DeviceResultsF &d_z);
+	void cuWFF2_Init(WFT2_DeviceResultsF &d_z);
+	int  cuWFR2_Init(WFT2_DeviceResultsF &d_z);
 
 	/* Feed the f into its padded m_d_fPadded */
-	void cuWFT2_feed_fPadded(cufftComplex *f);
+	void cuWFT2_feed_fPadded(cufftComplex *d_f);
 
 	// Set the threashold of the WFF2 algorithm if the initial value of m_rThr = -1;
-	void cuWFF2_SetThreashold(cufftComplex *f);
+	void cuWFF2_SetThreashold(cufftComplex *d_f);
 
 	/* CUDA WFF & WFR Algorithms */
-	void cuWFF2(cufftComplex *f, WFT2_DeviceResultsF &z, double &time);
-	void cuWFR2(cufftComplex *f, WFT2_DeviceResultsF &z, double &time);
+	void cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time);
+	void cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time);
 
-private:
+public:
 	/* Internal Arrays */
-	cufftComplex	*m_d_fPadded;		// Padded f
-	cufftReal		*m_d_xf;			// Explicit Freq in x for Gaussian Window
-	cufftReal		*m_d_yf;			// Explicit Freq in y for Gaussian Window
+	cufftComplex	*m_d_fPadded;			// Padded f
+	cufftReal		*m_d_xf;				// Explicit Freq in x for Gaussian Window
+	cufftReal		*m_d_yf;				// Explicit Freq in y for Gaussian Window
 
-	cufftHandle		m_planForwardf;			
-	cufftHandle		m_planForwardSf;
-	cufftHandle		m_planInverseSf;
+	cufftHandle		m_planForwardPadded;			
+
+	cufftHandle		*m_planForwardStreams;
+	cufftHandle		*m_planInverseStreams;
+	
+	/* WFF Intermediate Results for each CUDA Stream */
+	cufftComplex	*im_d_filtered;
 
 	/* Internal Parameters */
-	int				m_iWidth;			// width of the fringe pattern
-	int				m_iHeight;			// height of the fringe pattern	
+	int				m_iWidth;				// width of the fringe pattern
+	int				m_iHeight;				// height of the fringe pattern	
 
 	/* Initially, size(A) + size(B) - 1, search the lookup table for * 
 	 * Optimized size for the FFT									 */
@@ -97,9 +101,11 @@ private:
 	 * NOTE: if m_rThr < 0, it is calculated as *
 	 * m_rThr = 6 * sqrt(mean2(abs(f).^2)/3)    */
 	float			m_rThr;		
+	float			*m_d_rThr;
 
 	/* Parameters for Thread control */
-	int m_iNumberThreads;
+	int m_iNumStreams;
+	cudaStream_t *m_cudaStreams;
 	int m_iSMs;							// Number of SMs of the device 0
 };
 

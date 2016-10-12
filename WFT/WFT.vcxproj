@@ -62,7 +62,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS_MODE;_DEBUG;_WINDOWS;_USRDLL;WFT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS_MODE;_DEBUG;_WINDOWS;_USRDLL;WFT_EXPORTS;CUDA_API_PER_THREAD_DEFAULT_STREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(SolutionDir)\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
@@ -86,7 +86,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS_MODE;NDEBUG;_WINDOWS;_USRDLL;WFT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS_MODE;NDEBUG;_WINDOWS;_USRDLL;WFT_EXPORTS;CUDA_API_PER_THREAD_DEFAULT_STREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(SolutionDir)\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>

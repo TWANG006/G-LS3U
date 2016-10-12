@@ -68,7 +68,7 @@ public:
 	cufftHandle		*m_planInverseStreams;
 	
 	/* WFF Intermediate Results for each CUDA Stream */
-	cufftComplex	*im_d_filtered;
+	cufftComplex	**im_d_filtered;
 
 	/* Internal Parameters */
 	int				m_iWidth;				// width of the fringe pattern

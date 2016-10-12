@@ -214,6 +214,44 @@ void complex_pointwise_multiplication_kernel(cufftComplex *d_in_a, cufftComplex 
 	}
 }
 
+/*
+ PURPOSE:
+	Explicitly Compute the FFT of the Gaussian Window
+		Fg=exp(-(xf*2*pi/mm-wxt).^2/2*sigmax*sigmax - (yf*2*pi/nn-wyt).^2/2*sigmay*sigmay)*sn2;
+ INPUTS:
+	d_in_xf, d_in_yf: meshgrid in frequency domain
+	iPaddedWidth, iPaddedHeight: Padded Gaussian Window size
+	wxt, wyt: frequencies in integer intervals
+	wxi, wyi: steps
+	wxl, wyl: lower bound of the frequencies
+	sigmax, sigmay: sigma's in x&y directions
+	sn2: normalization params (norm2 = 1);
+ OUTPUTS:
+	d_out_Fg: Fg
+*/
+__global__
+void compute_Fg_kernel(cufftReal *d_in_xf, cufftReal *d_in_yf, int iPaddedWidth, int iPaddedHeight, 
+					   int wxt, int wyt, float wxi, float wyi, float wxl, float wyl,
+					   float sigmax, float sigmay, float sn2, cufftComplex *d_out_Fg)
+{
+	cufftReal rwxt = wxl + cufftReal(wxt) * wxi;
+	cufftReal rwyt = wyl + cufftReal(wyt) * wyi;
+
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
+		 i < iPaddedHeight*iPaddedWidth;
+		 i += blockDim.x * gridDim.x)
+	{
+		cufftReal tempx = d_in_xf[i] * 2 * cufftReal(M_PI) * (1.0f / iPaddedWidth) - rwxt;
+		cufftReal tempy = d_in_yf[i] * 2 * cufftReal(M_PI) * (1.0f / iPaddedHeight) - rwyt;
+		tempx = -tempx * tempx * 0.5f * sigmax * sigmax;
+		tempy = -tempy * tempy * 0.5f * sigmay * sigmay;
+		
+		d_out_Fg[i].x = exp(tempx + tempy) * sn2;
+		d_out_Fg[i].y = 0;
+	}
+}
+
+
 /*-------------------------------------------WFT2 Implementations-------------------------------------------*/
 WFT2_CUDAF::WFT2_CUDAF(
 	int iWidth, int iHeight,
@@ -230,6 +268,7 @@ WFT2_CUDAF::WFT2_CUDAF(
 	, m_d_fPadded(nullptr)
 	, m_d_xf(nullptr)
 	, m_d_yf(nullptr)
+	, im_d_Fg(nullptr)
 	, im_d_filtered(nullptr)
 	, m_planForwardStreams(nullptr)
 	, m_planInverseStreams(nullptr)
@@ -308,6 +347,7 @@ WFT2_CUDAF::WFT2_CUDAF(
 	, m_d_fPadded(nullptr)
 	, m_d_xf(nullptr)
 	, m_d_yf(nullptr)
+	, im_d_Fg(nullptr)
 	, im_d_filtered(nullptr)
 	, m_planForwardStreams(nullptr)
 	, m_planInverseStreams(nullptr)
@@ -350,11 +390,15 @@ WFT2_CUDAF::~WFT2_CUDAF()
 			cufftDestroy(m_planForwardStreams[i]);
 			cufftDestroy(m_planInverseStreams[i]);
 			WFT_FPA::Utils::cudaSafeFree(im_d_filtered[i]);
+			WFT_FPA::Utils::cudaSafeFree(im_d_Fg[i]);
+			WFT_FPA::Utils::cudaSafeFree(im_d_Sf[i]);
 		}
 		free(m_cudaStreams);			m_cudaStreams = nullptr;
 		free(m_planForwardStreams);		m_planForwardStreams = nullptr;
 		free(m_planInverseStreams);		m_planInverseStreams = nullptr;
 		free(im_d_filtered);			im_d_filtered = nullptr;
+		free(im_d_Fg);					im_d_Fg = nullptr;
+		free(im_d_Sf);					im_d_Sf = nullptr;
 
 		WFT_FPA::Utils::cudaSafeFree(m_d_rThr);
 	}
@@ -379,13 +423,13 @@ void WFT2_CUDAF::operator()(
 
 /* Private functions */
 
-void WFT2_CUDAF:: cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time)
+void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time)
 {
 	/* CUDA blocks & threads scheduling */
 	dim3 threads(BLOCK_SIZE_16, BLOCK_SIZE_16);
 	dim3 blocksPadded((m_iPaddedWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iPaddedHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16);
 	dim3 blocksImg((m_iWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16);
-	
+	int blocks1D = std::min((m_iPaddedWidth*m_iPaddedHeight + BLOCK_SIZE_256 - 1) / BLOCK_SIZE_256, 2048);
 
 	/* Set the threshold m_rThr if it's not specified by the client */
 	cuWFF2_SetThreashold(d_f);
@@ -419,10 +463,20 @@ void WFT2_CUDAF:: cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &ti
 		// Now we have equal number of kernels executed in each stream
 		for (int x = iNumResidue; x < iwx; x += m_iNumStreams)
 		{
-			for (int i = 0; i < m_iNumStreams; i++)
+			// Construct Fg
+		/*	for (int i = 0; i < m_iNumStreams; i++)
 			{
-
-			}
+				compute_Fg_kernel<<<blocks1D, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
+					m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight,
+					x+i, y, m_rWxi, m_rWyi, m_rWxl, m_rWyl, 
+					m_rSigmaX, m_rSigmaY, m_rGaussianNorm2, im_d_Fg[i]);
+			}*/
+			// Compute sf=ifft2(Ff.*Fg)
+			/*for (int i = 0; i < m_iNumStreams; i++)
+			{
+				complex_pointwise_multiplication_kernel<<<blocks1D, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
+					m_d_fPadded, im_d_Fg[i], m_iPaddedHeight*m_iPaddedWidth, im_d_Sf[i]);
+			}*/
 		}
 		// Deal with the residues
 		for (int x = 0; x < iNumResidue; x++)
@@ -517,7 +571,9 @@ void WFT2_CUDAF::cuWFF2_Init(WFT2_DeviceResultsF &d_z)
 	// 1. Allocate memory for intermediate results per-stream
 	// 2. Create CUDA streams 
 	// 3. Make the CUFFT plans for each stream
+	im_d_Fg = (cufftComplex**)malloc(m_iNumStreams * sizeof(cufftComplex*));
 	im_d_filtered = (cufftComplex**)malloc(m_iNumStreams * sizeof(cufftComplex*));
+	im_d_Sf = (cufftComplex**)malloc(m_iNumStreams * sizeof(cufftComplex*));
 	
 	m_cudaStreams = (cudaStream_t*)malloc(m_iNumStreams*sizeof(cudaStream_t));
 	m_planForwardStreams = (cufftHandle*)malloc(sizeof(cufftHandle)*m_iNumStreams);
@@ -527,7 +583,9 @@ void WFT2_CUDAF::cuWFF2_Init(WFT2_DeviceResultsF &d_z)
 	{
 		checkCudaErrors(cudaStreamCreate(&(m_cudaStreams[i])));
 
+		checkCudaErrors(cudaMalloc((void**)&im_d_Fg[i], sizeof(cufftComplex)*iPaddedSize));
 		checkCudaErrors(cudaMalloc((void**)&im_d_filtered[i], sizeof(cufftComplex)*iPaddedSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_Sf[i], sizeof(cufftComplex)*iPaddedSize));
 
 		checkCudaErrors(cufftPlan2d(&m_planForwardStreams[i], m_iPaddedWidth, m_iPaddedHeight, CUFFT_C2C));
 		checkCudaErrors(cufftSetStream(m_planForwardStreams[i], m_cudaStreams[i]));

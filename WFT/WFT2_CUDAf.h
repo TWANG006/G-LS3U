@@ -67,6 +67,10 @@ public:
 	cufftHandle		*m_planForwardStreams;
 	cufftHandle		*m_planInverseStreams;
 	
+	/* Intermediate Results */
+	cufftComplex	**im_d_Fg;				// Explicitly computed Fg in Fourier Domain
+	cufftComplex	**im_d_Sf;
+
 	/* WFF Intermediate Results for each CUDA Stream */
 	cufftComplex	**im_d_filtered;
 

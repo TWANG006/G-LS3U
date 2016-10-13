@@ -34,10 +34,10 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 	std::cout << "Time is: " << time << std::endl;
 
 	cufftComplex *h_fPadded = (cufftComplex*)malloc(sizeof(cufftComplex) * cuwft.m_iPaddedWidth * cuwft.m_iPaddedHeight);
-	cufftComplex *h_im_filtered =  (cufftComplex*)malloc(sizeof(cufftComplex) * cuwft.m_iPaddedWidth * cuwft.m_iPaddedHeight);
+	cufftComplex *h_zfiltered =  (cufftComplex*)malloc(sizeof(cufftComplex) * cols * rows);
 
 	checkCudaErrors(cudaMemcpy(h_fPadded, cuwft.m_d_fPadded, sizeof(cufftComplex) * cuwft.m_iPaddedWidth * cuwft.m_iPaddedHeight, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(h_im_filtered, cuwft.im_d_filtered[0], sizeof(cufftComplex) * cuwft.m_iPaddedWidth * cuwft.m_iPaddedHeight, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(h_zfiltered, z.m_d_filtered, sizeof(cufftComplex) *cols * rows, cudaMemcpyDeviceToHost));
 
 	std::ofstream out("device_Padded_f.csv", std::ios::out | std::ios::trunc);
 
@@ -51,13 +51,13 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 	}
 	out.close();
 
-	out.open("im_filtered.csv", std::ios::out | std::ios::trunc);
+	out.open("z_filtered.csv", std::ios::out | std::ios::trunc);
 
-	for(int i=0; i<cuwft.m_iPaddedHeight; i++)
+	for(int i=0; i<rows; i++)
 	{
-		for(int j=0; j<cuwft.m_iPaddedWidth; j++)
+		for(int j=0; j<cols; j++)
 		{
-			out << h_im_filtered[i * cuwft.m_iPaddedWidth + j].x << "+" << h_im_filtered[i * cuwft.m_iPaddedWidth + j].y << "i" << ",";
+			out << h_zfiltered[i * cols + j].x << "+" << h_zfiltered[i * cols + j].y << "i" << ",";
 		}
 		out<<"\n";
 	}
@@ -65,6 +65,6 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 
 	free(f);
 	free(h_fPadded);
-	free(h_im_filtered);
+	free(h_zfiltered);
 	cudaFree(df);
 }

@@ -290,6 +290,16 @@ void threshold_sf_kernel(cufftComplex *d_out_sf, int iWidth, int iHeight, int iP
 	}
 }
 
+/*
+ PURPOSE:
+	Update the partial results im_d_filtered of each stream
+ INPUTS:
+	iWidth, iHeight: image size
+	iPaddedWidth, iPaddedHeight: Padded size
+	d_in_im_sf: spectrum of each stream
+ OUTPUTS:
+	d_out_im_filtered: filtered image after of each stream
+*/
 __global__
 void update_WFF_partial_filtered_kernel(cufftComplex *d_in_im_sf, int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight, cufftComplex *d_out_im_filtered)
 {
@@ -306,6 +316,31 @@ void update_WFF_partial_filtered_kernel(cufftComplex *d_in_im_sf, int iWidth, in
 	}
 }
 
+__global__
+void update_WFF_final_filtered_kernel(cufftComplex *d_in_im_filtered, int imgSize, cufftComplex *d_out_filtered)
+{
+	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
+		 i < imgSize;
+		 i += blockDim.x * gridDim.x)
+	{
+		d_out_filtered[i].x += d_in_im_filtered[i].x;
+		d_out_filtered[i].y += d_in_im_filtered[i].y;
+	}
+}
+
+__global__
+void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, int imgSize, float wxi, float wyi)
+{
+	float factor = 0.25f * (1.0f / float(M_PI*M_PI)) * wxi * wyi;
+
+	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
+		 i < imgSize;
+		 i += blockDim.x * gridDim.x)
+	{
+		d_out_filtered[i].x *= factor;
+		d_out_filtered[i].y *= factor;
+	}
+}
 
 /*-------------------------------------------WFT2 Implementations-------------------------------------------*/
 WFT2_CUDAF::WFT2_CUDAF(
@@ -532,7 +567,7 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 				// Construct Fg
 				compute_Fg_kernel<<<blocks1D, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
 					m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight,
-					x+i, y, m_rWxi, m_rWyi, m_rWxl, m_rWyl, 
+					x + i, y, m_rWxi, m_rWyi, m_rWxl, m_rWyl,
 					m_rSigmaX, m_rSigmaY, m_rGaussianNorm2, im_d_Fg[i]);
 				getLastCudaError("compute_Fg_kernel Launch Failed!");
 				
@@ -543,7 +578,7 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 				checkCudaErrors(cufftExecC2C(m_planStreams[i], im_d_Sf[i], im_d_Sf[i], CUFFT_INVERSE));
 
 				// Threshold the sf: sf=sf.*(abs(sf)>=thr); 
-				threshold_sf_kernel<<<blocksPadded, threads>>>(im_d_Sf[i], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, m_rThr);
+				threshold_sf_kernel<<<blocksPadded, threads, 0, m_cudaStreams[i]>>>(im_d_Sf[i], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, m_rThr);
 				getLastCudaError("threshold_sf_kernel Launch Failed!");
 
 				// implement of IWFT: conv2(sf,w);
@@ -554,7 +589,7 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 				checkCudaErrors(cufftExecC2C(m_planStreams[i], im_d_Sf[i], im_d_Sf[i], CUFFT_INVERSE));
 
 				// Update partial results im_d_filtered
-				update_WFF_partial_filtered_kernel<<<blocksImg, threads>>>(im_d_Sf[i], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, im_d_filtered[i]);
+				update_WFF_partial_filtered_kernel<<<blocksImg, threads, 0, m_cudaStreams[i]>>>(im_d_Sf[i], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, im_d_filtered[i]);
 				getLastCudaError("update_WFF_partial_filtered_kernel Launch Failed!");
 			}
 		}
@@ -562,7 +597,7 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 		for (int x = 0; x < iNumResidue; x++)
 		{
 			// Construct Fg
-			compute_Fg_kernel <<<blocks1D, BLOCK_SIZE_256, 0, m_cudaStreams[x] >>>(
+			compute_Fg_kernel<<<blocks1D, BLOCK_SIZE_256, 0, m_cudaStreams[x] >>>(
 				m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight,
 				x, y, m_rWxi, m_rWyi, m_rWxl, m_rWyl,
 				m_rSigmaX, m_rSigmaY, m_rGaussianNorm2, im_d_Fg[x]);
@@ -575,7 +610,7 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 			checkCudaErrors(cufftExecC2C(m_planStreams[x], im_d_Sf[x], im_d_Sf[x], CUFFT_INVERSE));
 
 			// Threshold the sf: sf=sf.*(abs(sf)>=thr); 
-			threshold_sf_kernel<<<blocksPadded, threads >>>(im_d_Sf[x], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, m_rThr);
+			threshold_sf_kernel<<<blocksPadded, threads, 0, m_cudaStreams[x]>>>(im_d_Sf[x], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, m_rThr);
 			getLastCudaError("threshold_sf_kernel Launch Failed!");
 
 			// implement of IWFT: conv2(sf,w);
@@ -586,10 +621,12 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 			checkCudaErrors(cufftExecC2C(m_planStreams[x], im_d_Sf[x], im_d_Sf[x], CUFFT_INVERSE));
 
 			// Update partial results im_d_filtered
-			update_WFF_partial_filtered_kernel<<<blocksImg, threads>>>(im_d_Sf[x], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, im_d_filtered[x]);
+			update_WFF_partial_filtered_kernel<<<blocksImg, threads, 0, m_cudaStreams[x]>>>(im_d_Sf[x], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, im_d_filtered[x]);
 				getLastCudaError("update_WFF_partial_filtered_kernel Launch Failed!");
 		}
 	}
+	cudaDeviceSynchronize();
+
 	cudaEventRecord(end);
 	cudaEventSynchronize(end);
 
@@ -598,9 +635,11 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	cudaEventElapsedTime(&t, start, end);
 	time = double(t);
 
-	cudaDeviceSynchronize();
-	
-
+	for (int i = 0; i < m_iNumStreams; i++)
+	{
+		update_WFF_final_filtered_kernel<<<blocks1D, BLOCK_SIZE_256>>>(im_d_filtered[i], m_iWidth*m_iHeight, d_z.m_d_filtered);
+	}
+	scale_WFF_final_filtered_kernel<<<blocks1D, BLOCK_SIZE_256>>>(d_z.m_d_filtered, m_iWidth*m_iHeight, m_rWxi, m_rWyi);
 }
 void WFT2_CUDAF::cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time)
 {

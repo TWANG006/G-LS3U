@@ -29,6 +29,7 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 	double time = 0;
 
 	cuwft(df,z,time);
+	cuwft(df,z,time);
 
 	std::cout << "Thres is : " << cuwft.m_rThr << std::endl;
 	std::cout << "Time is: " << time << std::endl;

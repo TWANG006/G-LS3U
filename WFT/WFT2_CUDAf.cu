@@ -146,58 +146,6 @@ void feed_fPadded_kernel(cufftComplex *d_in_f, cufftComplex *d_out_fPadded, int 
 
 /*
  PURPOSE:
-	Calculate the threshold value for the WFF if it's not specified using Parallel Reduction Algorithm
-	thr = 6*sqrt(mean2(abs(f).^2)/3);
- INPUTS:
-	d_in:	 type of cufftComplex input array
-	size: size(width*height) of the in
- OUTPUS:
-	d_out: 1-element device array
-*/
-__global__ 
-void compute_WFF_threshold_kernel(cufftComplex *d_in, float *d_out, int size)
-{
-	float sum = float(0);
-
-	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
-		 i < size;
-		 i += blockDim.x*gridDim.x)
-	{
-		float abs = cuCabsf(d_in[i]);
-		sum += abs*abs;
-	}
-
-	sum=warpReduceSum(sum);
-
-	if (threadIdx.x % warpSize == 0)
-		atomicAdd(d_out, sum);
-}
-
-/*
- PURPOSE:
-	Initialize all WFF related matrices to 0's
- INPUTS:
-	iWidth, iHeight: size of the final results
- OUTPUTS:
-	d_out_filtered:
-*/
-__global__ 
-void init_WFF_matrices_kernel(cufftComplex *d_out_filtered, int iWidth, int iHeight)
-{
-	int y = threadIdx.y + blockIdx.y * blockDim.y;
-	int x = threadIdx.x + blockIdx.x * blockDim.x;
-
-	int idImg = y * iWidth + x;
-
-	if (y < iHeight && x < iWidth)
-	{
-		d_out_filtered[idImg].x = 0;
-		d_out_filtered[idImg].y = 0;
-	}
-}
-
-/*
- PURPOSE:
 	Point-wise multiplication of two matrices of complex numbers
  INPUT:
 	d_in_a, d_in_b: Two matrices to be multiplied
@@ -254,6 +202,57 @@ void compute_Fg_kernel(cufftReal *d_in_xf, cufftReal *d_in_yf, int iPaddedWidth,
 	}
 }
 
+/*-------------------------------------------WFF Specific Utility Kernels-------------------------------------------*/
+/*
+ PURPOSE:
+	Calculate the threshold value for the WFF if it's not specified using Parallel Reduction Algorithm
+	thr = 6*sqrt(mean2(abs(f).^2)/3);
+ INPUTS:
+	d_in:	 type of cufftComplex input array
+	size: size(width*height) of the in
+ OUTPUS:
+	d_out: 1-element device array
+*/
+__global__ 
+void compute_WFF_threshold_kernel(cufftComplex *d_in, float *d_out, int size)
+{
+	float sum = float(0);
+
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
+		 i < size;
+		 i += blockDim.x*gridDim.x)
+	{
+		float abs = cuCabsf(d_in[i]);
+		sum += abs*abs;
+	}
+
+	sum=warpReduceSum(sum);
+
+	if (threadIdx.x % warpSize == 0)
+		atomicAdd(d_out, sum);
+}
+/*
+ PURPOSE:
+	Initialize all WFF related matrices to 0's
+ INPUTS:
+	iWidth, iHeight: size of the final results
+ OUTPUTS:
+	d_out_filtered:
+*/
+__global__ 
+void init_WFF_matrices_kernel(cufftComplex *d_out_filtered, int iWidth, int iHeight)
+{
+	int y = threadIdx.y + blockIdx.y * blockDim.y;
+	int x = threadIdx.x + blockIdx.x * blockDim.x;
+
+	int idImg = y * iWidth + x;
+
+	if (y < iHeight && x < iWidth)
+	{
+		d_out_filtered[idImg].x = 0;
+		d_out_filtered[idImg].y = 0;
+	}
+}
 /*
  PURPOSE:
 	Threshold the spectrum sf
@@ -289,7 +288,6 @@ void threshold_sf_kernel(cufftComplex *d_out_sf, int iWidth, int iHeight, int iP
 		}
 	}
 }
-
 /*
  PURPOSE:
 	Update the partial results im_d_filtered of each stream
@@ -315,7 +313,15 @@ void update_WFF_partial_filtered_kernel(cufftComplex *d_in_im_sf, int iWidth, in
 		d_out_im_filtered[idImg].y += d_in_im_sf[idPadded].y;
 	}
 }
-
+/*
+ PURPOSE:
+	Update the final z.filtered 
+ INPUTS:
+	d_in_im_filtered: the partial filtered results in each stream
+	imgSize: size of the fringe pattern
+ OUTPTS:
+	d_out_filtered: the final results
+*/
 __global__
 void update_WFF_final_filtered_kernel(cufftComplex *d_in_im_filtered, int imgSize, cufftComplex *d_out_filtered)
 {
@@ -327,7 +333,16 @@ void update_WFF_final_filtered_kernel(cufftComplex *d_in_im_filtered, int imgSiz
 		d_out_filtered[i].y += d_in_im_filtered[i].y;
 	}
 }
-
+/*
+ PURPOSE:
+	Scale the final results 
+ INPUTS:
+	d_out_filtered: the unscaled final results
+	imagSize: size of the fringe pattern
+	wxi,wyi: step size of the frequencies
+ OUTPUT:
+	d_out_filtered: scaled final results
+*/
 __global__
 void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, int imgSize, float wxi, float wyi)
 {
@@ -341,8 +356,19 @@ void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, int imgSize, 
 		d_out_filtered[i].y *= factor;
 	}
 }
+/*----------------------------------------/End WFF Specific Utility Kernels------------------------------------------*/
 
-/*-------------------------------------------WFT2 Implementations-------------------------------------------*/
+/*-------------------------------------------WFR Specific Utility Kernels------------------------------------------*/
+
+/*----------------------------------------/End WFR Specific Utility Kernels------------------------------------------*/
+
+
+/*------------------------------------------------/End CUDA Kernels--------------------------------------------------*/
+
+
+
+
+/*--------------------------------------------------WFT2 Implementations-----------------------------------------------*/
 WFT2_CUDAF::WFT2_CUDAF(
 	int iWidth, int iHeight,
 	WFT_TYPE type,
@@ -780,6 +806,7 @@ void WFT2_CUDAF::cuWFF2_SetThreashold(cufftComplex *d_f)
 	}
 }
 
+/*-----------------------------------------/End WFT2 Implementations-------------------------------------------*/
 
 }	// namespace WFT_FPA
 }	// namespace WFT

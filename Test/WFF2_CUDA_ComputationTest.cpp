@@ -24,7 +24,7 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 		cols, rows,
 		WFT_FPA::WFT::WFT_TYPE::WFF,
 		10, -1, 1, 0.1f, 10, -1, 1, 0.1f, 6,
-		z, 12);
+		z,1);
 
 	double time = 0;
 

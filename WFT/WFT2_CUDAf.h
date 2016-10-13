@@ -44,7 +44,7 @@ private:
 		3. Make cufft plans								   */
 	int cuWFT2_Initialize(WFT2_DeviceResultsF &d_z);
 	void cuWFF2_Init(WFT2_DeviceResultsF &d_z);
-	int  cuWFR2_Init(WFT2_DeviceResultsF &d_z);
+	void cuWFR2_Init(WFT2_DeviceResultsF &d_z);
 
 	/* Feed the f into its padded m_d_fPadded */
 	void cuWFT2_feed_fPadded(cufftComplex *d_f);
@@ -58,24 +58,34 @@ private:
 
 public:
 	/* Internal Arrays */
-	cufftComplex	*m_d_fPadded;			// Padded f
-	cufftReal		*m_d_xf;				// Explicit Freq in x for Gaussian Window
-	cufftReal		*m_d_yf;				// Explicit Freq in y for Gaussian Window
+	cufftComplex	*m_d_fPadded;				// Padded f
+	cufftReal		*m_d_xf;					// Explicit Freq in x for Gaussian Window
+	cufftReal		*m_d_yf;					// Explicit Freq in y for Gaussian Window
 
 	cufftHandle		m_planForwardPadded;			
 
 	cufftHandle		*m_planStreams;
 	
 	/* Intermediate Results */
-	cufftComplex	**im_d_Fg;				// Explicitly computed Fg in Fourier Domain
+	cufftComplex	**im_d_Fg;					// Explicitly computed Fg in Fourier Domain
 	cufftComplex	**im_d_Sf;
 
 	/* WFF Intermediate Results for each CUDA Stream */
 	cufftComplex	**im_d_filtered;
 
+	/* WFR Intermediate Results for each CUDA stream */
+	cufftReal		**im_d_wx;
+	cufftReal		**im_d_wy;
+	cufftReal		**im_d_p;
+	cufftReal		**im_d_r;
+	cufftComplex	*im_d_cxxPadded;			// Padded wx for computation of cxx
+	cufftComplex	*im_d_cyyPadded;			// Padded wy for computation of cyy
+	cufftComplex	*im_d_xgPadded;				// padded x.*g
+	cufftComplex	*im_d_ygPadded;				// padded y.*g	
+
 	/* Internal Parameters */
-	int				m_iWidth;				// width of the fringe pattern
-	int				m_iHeight;				// height of the fringe pattern	
+	int				m_iWidth;					// width of the fringe pattern
+	int				m_iHeight;					// height of the fringe pattern	
 
 	/* Initially, size(A) + size(B) - 1, search the lookup table for * 
 	 * Optimized size for the FFT									 */
@@ -85,20 +95,22 @@ public:
 	int				m_iPaddedWidthCurvature;	// width after padding for optimized FFT for curvature computation
 	int				m_iPaddedHeightCurvature;	// height after padding for optimized FFT for curvature computation
 
-	WFT_TYPE		m_type;				// 'WFF' or 'WFR'
-	int				m_iSx;				// half Windows size along x
-	int				m_iSy;				// half Windows size along y
-	int				m_iWinWidth;		// Gaussian Window width
-	int				m_iWinHeight;		// Gaussian Window height
-	float			m_rSigmaX;			// sigma of the window in x-axis
-	float			m_rWxl;				// lower bound of frequency in x-axis
-	float			m_rWxi;				// step size of frequency in x-axis
-	float			m_rWxh;				// upper bound of frequency in x-axis
-	float			m_rSigmaY;			// sigma of the window in x-axis
-	float			m_rWyl;				// lower bound of frequency in y-axis
-	float			m_rWyh;				// upper bound of frequency in y-axis
-	float			m_rWyi;				// step size of frequency in y-axis	
-	float			m_rGaussianNorm2;	// L2-norm normalization of Gaussian Window
+	WFT_TYPE		m_type;						// 'WFF' or 'WFR'
+	int				m_iSx;						// half Windows size along x
+	int				m_iSy;						// half Windows size along y
+	int				m_iWinWidth;				// Gaussian Window width
+	int				m_iWinHeight;				// Gaussian Window height
+	float			m_rSigmaX;					// sigma of the window in x-axis
+	float			m_rWxl;						// lower bound of frequency in x-axis
+	float			m_rWxi;						// step size of frequency in x-axis
+	float			m_rWxh;						// upper bound of frequency in x-axis
+	float			m_rSigmaY;					// sigma of the window in x-axis
+	float			m_rWyl;						// lower bound of frequency in y-axis
+	float			m_rWyh;						// upper bound of frequency in y-axis
+	float			m_rWyi;						// step size of frequency in y-axis	
+	float			m_rGaussianNorm2;			// L2-norm normalization of Gaussian Window
+	float			m_rSumxxg;					// 1 / x.*x.*g
+	float			m_rSumyyg;					// 1 / y.*y.*g
 
 	/* threshold for 'wff', no needed for 'wfr' *
 	 * NOTE: if m_rThr < 0, it is calculated as *

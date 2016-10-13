@@ -648,10 +648,21 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 
 			// Update partial results im_d_filtered
 			update_WFF_partial_filtered_kernel<<<blocksImg, threads, 0, m_cudaStreams[x]>>>(im_d_Sf[x], m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, im_d_filtered[x]);
-				getLastCudaError("update_WFF_partial_filtered_kernel Launch Failed!");
+			getLastCudaError("update_WFF_partial_filtered_kernel Launch Failed!");
 		}
 	}
-	cudaDeviceSynchronize();
+	for (int i = 0; i < m_iNumStreams; i++)
+	{
+		cudaStreamSynchronize(m_cudaStreams[i]);
+	}
+
+	for (int i = 0; i < m_iNumStreams; i++)
+	{
+		update_WFF_final_filtered_kernel<<<blocks1D, BLOCK_SIZE_256>>>(im_d_filtered[i], m_iWidth*m_iHeight, d_z.m_d_filtered);
+		getLastCudaError("update_WFF_final_filtered_kernel Launch Failed!");
+	}
+	scale_WFF_final_filtered_kernel<<<blocks1D, BLOCK_SIZE_256>>>(d_z.m_d_filtered, m_iWidth*m_iHeight, m_rWxi, m_rWyi);
+	getLastCudaError("scale_WFF_final_filtered_kernel Launch Failed!");
 
 	cudaEventRecord(end);
 	cudaEventSynchronize(end);
@@ -660,12 +671,6 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	float t = 0;
 	cudaEventElapsedTime(&t, start, end);
 	time = double(t);
-
-	for (int i = 0; i < m_iNumStreams; i++)
-	{
-		update_WFF_final_filtered_kernel<<<blocks1D, BLOCK_SIZE_256>>>(im_d_filtered[i], m_iWidth*m_iHeight, d_z.m_d_filtered);
-	}
-	scale_WFF_final_filtered_kernel<<<blocks1D, BLOCK_SIZE_256>>>(d_z.m_d_filtered, m_iWidth*m_iHeight, m_rWxi, m_rWyi);
 }
 void WFT2_CUDAF::cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time)
 {
@@ -733,8 +738,7 @@ int WFT2_CUDAF::cuWFT2_Initialize(WFT2_DeviceResultsF &d_z)
 		}
 		else if (WFT_TYPE::WFR == m_type)
 		{
-			if(-1 == cuWFR2_Init(d_z))
-				return -1;
+			cuWFR2_Init(d_z);
 		}
 	}
 
@@ -775,9 +779,57 @@ void WFT2_CUDAF::cuWFF2_Init(WFT2_DeviceResultsF &d_z)
 		checkCudaErrors(cudaMalloc((void**)&m_d_rThr, sizeof(float)));
 	}
 }
-int WFT2_CUDAF::cuWFR2_Init(WFT2_DeviceResultsF &d_z)
+void WFT2_CUDAF::cuWFR2_Init(WFT2_DeviceResultsF &d_z)
 {
-	return 0;
+	int iPaddedSize = m_iPaddedHeight * m_iPaddedWidth;
+	int iImgSize = m_iWidth * m_iHeight;
+
+	// Allocate memory for the final results
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_wx, sizeof(cufftReal)*iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_wy, sizeof(cufftReal)*iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_r, sizeof(cufftReal)*iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_phase, sizeof(cufftReal)*iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_cxx, sizeof(cufftReal)*iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_cyy, sizeof(cufftReal)*iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_phase_comp, sizeof(cufftReal)*iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&d_z.m_d_b, sizeof(cufftReal)*iImgSize));
+
+	// 1. Allocate memory for intermediate results per-stream
+	// 2. Create CUDA streams 
+	// 3. Make the CUFFT plans for each stream
+	im_d_wx = (cufftReal**)malloc(m_iNumStreams*sizeof(cufftReal*));
+	im_d_wy = (cufftReal**)malloc(m_iNumStreams*sizeof(cufftReal*));
+	im_d_p = (cufftReal**)malloc(m_iNumStreams*sizeof(cufftReal*));
+	im_d_r = (cufftReal**)malloc(m_iNumStreams*sizeof(cufftReal*));
+	im_d_Fg = (cufftComplex**)malloc(m_iNumStreams * sizeof(cufftComplex*));
+	im_d_Sf = (cufftComplex**)malloc(m_iNumStreams * sizeof(cufftComplex*));
+
+	m_cudaStreams = (cudaStream_t*)malloc(m_iNumStreams*sizeof(cudaStream_t));
+	m_planStreams = (cufftHandle*)malloc(sizeof(cufftHandle)*m_iNumStreams);
+
+	for (int i = 0; i < m_iNumStreams; i++)
+	{
+		checkCudaErrors(cudaStreamCreate(&(m_cudaStreams[i])));
+
+		// Allocate memory for the intermediate arrays
+		checkCudaErrors(cudaMalloc((void**)&im_d_wx[i], sizeof(cufftReal)*iPaddedSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_wy[i], sizeof(cufftReal)*iPaddedSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_p[i], sizeof(cufftReal)*iPaddedSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_r[i], sizeof(cufftReal)*iPaddedSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_Fg[i], sizeof(cufftComplex)*iPaddedSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_Sf[i], sizeof(cufftComplex)*iPaddedSize));
+
+		checkCudaErrors(cufftPlan2d(&m_planStreams[i], m_iPaddedWidth, m_iPaddedHeight, CUFFT_C2C));
+		checkCudaErrors(cufftSetStream(m_planStreams[i], m_cudaStreams[i]));
+	}
+	// Allocate the memory for corresponding arrays
+	checkCudaErrors(cudaMalloc((void**)&im_d_cyyPadded, sizeof(cufftComplex)*iPaddedSize));
+	checkCudaErrors(cudaMalloc((void**)&im_d_cxxPadded, sizeof(cufftComplex)*iPaddedSize));
+	checkCudaErrors(cudaMalloc((void**)&im_d_xgPadded, sizeof(cufftComplex)*iPaddedSize));
+	checkCudaErrors(cudaMalloc((void**)&im_d_ygPadded, sizeof(cufftComplex)*iPaddedSize));
+
+	// Pre-compute g, x.*g, y.*g
+
 }
 
 void WFT2_CUDAF::cuWFT2_feed_fPadded(cufftComplex *d_f)

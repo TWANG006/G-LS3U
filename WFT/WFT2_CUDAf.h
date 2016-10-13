@@ -64,8 +64,7 @@ public:
 
 	cufftHandle		m_planForwardPadded;			
 
-	cufftHandle		*m_planForwardStreams;
-	cufftHandle		*m_planInverseStreams;
+	cufftHandle		*m_planStreams;
 	
 	/* Intermediate Results */
 	cufftComplex	**im_d_Fg;				// Explicitly computed Fg in Fourier Domain

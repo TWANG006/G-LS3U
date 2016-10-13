@@ -7,7 +7,7 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 
 	/* Load the Fringe Pattern */
 	cufftComplex *f = nullptr;
-	std::ifstream in("132.fp");
+	std::ifstream in("256.fp");
 	int rows, cols;
 	if (!WFT_FPA::Utils::cufftComplexMatRead2D(in, f, rows, cols))
 		std::cout << "load error" << std::endl;
@@ -23,8 +23,8 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 	WFT_FPA::WFT::WFT2_CUDAF cuwft(
 		cols, rows,
 		WFT_FPA::WFT::WFT_TYPE::WFF,
-		z,
-		6);
+		10, -1, 1, 0.1f, 10, -1, 1, 0.1f, 6,
+		z, 12);
 
 	double time = 0;
 

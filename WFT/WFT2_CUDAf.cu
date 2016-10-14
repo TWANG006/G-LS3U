@@ -359,7 +359,114 @@ void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, int imgSize, 
 /*----------------------------------------/End WFF Specific Utility Kernels------------------------------------------*/
 
 /*-------------------------------------------WFR Specific Utility Kernels------------------------------------------*/
+/*
+ PURPOSE:
+	Preompute the g used to compute the x.*g, y.*g, cxx&cyy using LS
+ INPUTS:
+	iWinWidth, iWinHeight: Gaussian Window Size
+	iPaddedWidth, iPaddedHeight: Padded size of xg, yg
+	sigmax, sigmay: sigma's
+ OUTPUTS:
+	d_out_g
+*/
+__global__
+void precompute_g_kernel(cufftReal *d_out_g, int iWinWidth, int iWinHeight, int sigmax, int sigmay)
+{
+	int x = threadIdx.x + blockIdx.x * blockDim.x;
+	int y = threadIdx.y + blockIdx.y * blockDim.y;
 
+	int iHW = (iWinWidth - 1) / 2;
+	int iHH = (iWinHeight - 1) / 2;
+
+	int idWin = y * iWinWidth + x;
+
+	if (y < iWinHeight && x < iWinWidth)
+	{
+		float xx = float(x - iHW);
+		float yy = float(y - iHH);
+
+		d_out_g[idWin] = exp(-xx*xx*0.5f*(1.0f / (sigmax*sigmax)) - yy*yy*0.5f*(1.0f / (sigmay*sigmay)));
+	}
+}
+/*
+ PURPOSE:
+	Compute the (sum(sum(g.*g)))
+ INPUTS:
+	iWinSize: size of the gaussian window
+	d_in_g: g
+ OUTPUS:
+	d_out_norm2g
+*/
+__global__
+void precompute_norm2g_kernel(cufftReal *d_in_g, int iWinSize, float *d_out_norm2g)
+{
+	float sum = float(0);
+
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
+		 i < iWinSize;
+		 i += blockDim.x *gridDim.x)
+	{
+		float tempSqr = d_in_g[i] * d_in_g[i];
+		sum += tempSqr;
+	}
+
+	sum = warpReduceSum(sum);
+
+	if (threadIdx.x % warpSize == 0)
+		atomicAdd(d_out, sum);
+}
+/*
+ PURPOSE:
+	Precompute xg & yg
+ INPUTS:
+	iWinWidth, iWinHeight: size of the Gaussian Window
+	iPaddedWidth, iPaddedHeight: padded size
+	d_in_g: the Gaussian Window
+ OUTPUS:
+	d_out_xg, d_out_yg: the constructed xg&yg
+*/
+__global__
+void precompute_xg_yg_kernel(cufftReal *d_in_g, int iWinWidth, int iWinHeight, int iPaddedWidth, int iPaddedHeight, cufftComplex *d_out_xg, cufftComplex *d_out_yg)
+{
+	int x = threadIdx.x + blockDim.x * blockIdx.x;
+	int y = threadIdx.y + blockDim.y * blockIdx.y;
+
+	int idPadded = y * iPaddedWidth + x;
+	int idWin = y * iWinWidth + x;
+
+	int iHW = (iWinWidth - 1) / 2;
+	int iHH = (iWinHeight - 1) / 2;
+
+	if (y < iPaddedHeight && x < iPaddedWidth)
+	{
+		if (y < iWinHeight && x < iWinWidth)
+		{
+			float xx = float(x - iHW);
+			float yy = float(y - iHH);
+
+			d_out_xg[idPadded].x = xx * d_in_g[idWin];
+			d_out_yg[idPadded].x = yy * d_in_g[idWin];
+		}
+		else
+		{
+			d_out_xg[idPadded].x = 0;
+			d_out_yg[idPadded].x = 0;
+		}
+		d_out_xg[idPadded].y = 0;
+		d_out_yg[idPadded].y = 0;
+	}
+}
+/*
+ PURPOSE:
+	Precompute the sum(x.*x.*g) or sum(y.*y.*g)
+ INPUTS:
+	
+*/
+__global__
+void precompute_sum_xxg_yyg_kernel()
+{
+
+}
 /*----------------------------------------/End WFR Specific Utility Kernels------------------------------------------*/
 
 

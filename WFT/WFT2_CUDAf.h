@@ -71,6 +71,7 @@ public:
 	cufftComplex	**im_d_Sf;
 
 	/* WFF Intermediate Results for each CUDA Stream */
+
 	cufftComplex	**im_d_filtered;
 
 	/* WFR Intermediate Results for each CUDA stream */
@@ -117,6 +118,15 @@ public:
 	 * m_rThr = 6 * sqrt(mean2(abs(f).^2)/3)    */
 	float			m_rThr;		
 	float			*m_d_rThr;
+
+	float			m_rg_norm2;
+	float			*m_d_rg_norm2;
+
+	float			m_rxxg_norm2;
+	float			*m_d_rxxg_norm2;
+
+	float			m_ryyg_norm2;
+	float			*m_d_ryyg_norm2;
 
 	/* Parameters for Thread control */
 	int m_iNumStreams;

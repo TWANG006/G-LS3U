@@ -79,6 +79,7 @@ public:
 	cufftReal		**im_d_wy;
 	cufftReal		**im_d_p;
 	cufftReal		**im_d_r;
+	cufftReal		*im_d_g;						// g
 	cufftComplex	*im_d_cxxPadded;			// Padded wx for computation of cxx
 	cufftComplex	*im_d_cyyPadded;			// Padded wy for computation of cyy
 	cufftComplex	*im_d_xgPadded;				// padded x.*g
@@ -119,6 +120,7 @@ public:
 	float			m_rThr;		
 	float			*m_d_rThr;
 
+	/* WFR Intermediate normalization params */
 	float			m_rg_norm2;
 	float			*m_d_rg_norm2;
 

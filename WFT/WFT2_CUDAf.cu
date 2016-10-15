@@ -413,7 +413,7 @@ void precompute_norm2g_kernel(cufftReal *d_in_g, int iWinSize, float *d_out_norm
 	sum = warpReduceSum(sum);
 
 	if (threadIdx.x % warpSize == 0)
-		atomicAdd(d_out, sum);
+		atomicAdd(d_out_norm2g, sum);
 }
 /*
  PURPOSE:
@@ -463,9 +463,25 @@ void precompute_xg_yg_kernel(cufftReal *d_in_g, int iWinWidth, int iWinHeight, i
 	
 */
 __global__
-void precompute_sum_xxg_yyg_kernel()
+void precompute_sum_xxg_yyg_kernel(cufftComplex *d_in_xyg, int iWinWidth, int iWinHeight, int iPaddedWidth, int iPaddedHeight, float *d_out_sum)
 {
+	float sum = float(0);
 
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
+		 i < iWinHeight * iWinWidth;
+		 i += gridDim.x * blockDim.x)
+	{
+		int x = i % iWinWidth;
+		int y = i / iWinWidth;
+		
+		/*float temp = d_in_xyg[y*iPaddedWidth + x].x * ;
+		sum += temp;*/
+	}
+
+	sum = warpReduceSum(sum);
+
+	if (threadIdx.x % warpSize == 0)
+		atomicAdd(d_out_sum, sum);
 }
 /*----------------------------------------/End WFR Specific Utility Kernels------------------------------------------*/
 
@@ -624,7 +640,23 @@ WFT2_CUDAF::~WFT2_CUDAF()
 
 	if (WFT_FPA::WFT::WFT_TYPE::WFR == m_type)
 	{
-
+		for (int i = 0; i < m_iNumStreams; i ++)
+		{
+			cudaStreamDestroy(m_cudaStreams[i]);
+			cufftDestroy(m_planStreams[i]);
+			WFT_FPA::Utils::cudaSafeFree(im_d_wx[i]);
+			WFT_FPA::Utils::cudaSafeFree(im_d_wy[i]);
+			WFT_FPA::Utils::cudaSafeFree(im_d_p[i]);
+			WFT_FPA::Utils::cudaSafeFree(im_d_r[i]);
+		}
+		WFT_FPA::Utils::cudaSafeFree(im_d_g);
+		WFT_FPA::Utils::cudaSafeFree(im_d_cxxPadded);
+		WFT_FPA::Utils::cudaSafeFree(im_d_cyyPadded);
+		WFT_FPA::Utils::cudaSafeFree(im_d_xgPadded);
+		WFT_FPA::Utils::cudaSafeFree(im_d_ygPadded);
+		WFT_FPA::Utils::cudaSafeFree(m_d_rg_norm2);
+		WFT_FPA::Utils::cudaSafeFree(m_d_rxxg_norm2);
+		WFT_FPA::Utils::cudaSafeFree(m_d_ryyg_norm2);
 	}
 }
 
@@ -930,11 +962,14 @@ void WFT2_CUDAF::cuWFR2_Init(WFT2_DeviceResultsF &d_z)
 		checkCudaErrors(cufftSetStream(m_planStreams[i], m_cudaStreams[i]));
 	}
 	// Allocate the memory for corresponding arrays
+	checkCudaErrors(cudaMalloc((void**)&im_d_g, sizeof(cufftReal)*m_iWinWidth*m_iWinHeight));
 	checkCudaErrors(cudaMalloc((void**)&im_d_cyyPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_cxxPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_xgPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_ygPadded, sizeof(cufftComplex)*iPaddedSize));
-
+	checkCudaErrors(cudaMalloc((void**)&m_d_rg_norm2, sizeof(float)));
+	checkCudaErrors(cudaMalloc((void**)&m_d_rxxg_norm2, sizeof(float)));
+	checkCudaErrors(cudaMalloc((void**)&m_d_ryyg_norm2, sizeof(float)));
 	// Pre-compute g, x.*g, y.*g
 
 }

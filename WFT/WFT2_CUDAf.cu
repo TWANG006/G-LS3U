@@ -6,9 +6,6 @@
 #include <algorithm>
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include <omp.h>
-#include <thread>
-#include <vector>
 
 namespace WFT_FPA{
 namespace WFT{

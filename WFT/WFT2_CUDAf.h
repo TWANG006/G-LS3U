@@ -1,5 +1,5 @@
-#ifndef WFT2_CUDA_H
-#define WFT2_CUDA_H
+#ifndef WFT2_CUDAF_H
+#define WFT2_CUDAF_H
 
 #include "WFT.h"
 #include "Utils.h"
@@ -137,4 +137,4 @@ public:
 }	// namespace WFT_FPA
 }	// namespace WFT
 
-#endif // !WFT2_CUDA_H
+#endif // !WFT2_CUDAF_H

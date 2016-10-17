@@ -424,8 +424,8 @@ void WFT2_cpuF::WFR2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 	   size = (wyh - wyl)/wyi + 1 in order to divide the 
 	   copmutations across threads, since threads indices are 
 	   more conviniently controlled by integers				  */
-	int iwx = int((m_rWxh - m_rWxl)*(1/m_rWxi)) + 1;
-	int iwy = int((m_rWyh - m_rWyl)*(1/m_rWyi)) + 1;
+	int iwx = int((m_rWxh - m_rWxl)*(1 / m_rWxi)) + 1;
+	int iwy = int((m_rWyh - m_rWyl)*(1 / m_rWyi)) + 1;
 
 	/* The core WFR algorithm */
 	double start = omp_get_wtime();

@@ -62,7 +62,7 @@ public:
 	cufftReal		*m_d_xf;					// Explicit Freq in x for Gaussian Window
 	cufftReal		*m_d_yf;					// Explicit Freq in y for Gaussian Window
 
-	cufftHandle		m_planForwardPadded;			
+	cufftHandle		m_planPadded;			
 
 	cufftHandle		*m_planStreams;
 	
@@ -121,9 +121,7 @@ public:
 	float			*m_d_rThr;
 
 	/* WFR Intermediate normalization params */
-	float			m_rg_norm2;
 	float			*m_d_rg_norm2;
-
 	float			m_rxxg_norm2;
 	float			*m_d_rxxg_norm2;
 

@@ -370,7 +370,7 @@ void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, int imgSize, 
 	d_out_g
 */
 __global__
-void precompute_g_kernel(cufftReal *d_out_g, int iWinWidth, int iWinHeight, int sigmax, int sigmay)
+void precompute_g_kernel(cufftReal *d_out_g, int iWinWidth, int iWinHeight, float sigmax, float sigmay)
 {
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -378,12 +378,14 @@ void precompute_g_kernel(cufftReal *d_out_g, int iWinWidth, int iWinHeight, int 
 	int iHW = (iWinWidth - 1) / 2;
 	int iHH = (iWinHeight - 1) / 2;
 
+	float xx, yy;
+
 	int idWin = y * iWinWidth + x;
 
 	if (y < iWinHeight && x < iWinWidth)
 	{
-		float xx = float(x - iHW);
-		float yy = float(y - iHH);
+		xx = float(x - iHW);
+		yy = float(y - iHH);
 
 		d_out_g[idWin] = exp(-xx*xx*0.5f*(1.0f / (sigmax*sigmax)) - yy*yy*0.5f*(1.0f / (sigmay*sigmay)));
 	}
@@ -415,6 +417,18 @@ void precompute_norm2g_kernel(cufftReal *d_in_g, int iWinSize, float *d_out_norm
 	if (threadIdx.x % warpSize == 0)
 		atomicAdd(d_out_norm2g, sum);
 }
+
+__global__
+void precompute_normalized_g_kernel(float *d_in_norm2g, int iWinSize, cufftReal *d_out_g)
+{
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
+		 i < iWinSize;
+		 i += blockDim.x * gridDim.x)
+	{
+		d_out_g[i] = d_out_g[i] * (1.0f / sqrt(d_in_norm2g[0]));
+	}
+}
+
 /*
  PURPOSE:
 	Precompute xg & yg
@@ -460,12 +474,17 @@ void precompute_xg_yg_kernel(cufftReal *d_in_g, int iWinWidth, int iWinHeight, i
  PURPOSE:
 	Precompute the sum(x.*x.*g) or sum(y.*y.*g)
  INPUTS:
-	
+	d_in_xg, d_y_yg: the calculated x.*g, y.*g
+	iWinWidth, iWinHeight: Width & Height of the Gaussian Window
+	iPaddedWidth, iPaddedHeight: Padded size
+ OUTPUS:
+	d_out_sumxxg, d_out_sumyyg: sum of x.*x.*g & y.*y.*g	
 */
 __global__
-void precompute_sum_xxg_yyg_kernel(cufftComplex *d_in_xyg, int iWinWidth, int iWinHeight, int iPaddedWidth, int iPaddedHeight, float *d_out_sum)
+void precompute_sum_xxg_yyg_kernel(cufftComplex *d_in_xg, cufftComplex *d_in_yg, int iWinWidth, int iWinHeight, int iPaddedWidth, int iPaddedHeight, float *d_out_sumxxg, float *d_out_sumyyg)
 {
-	float sum = float(0);
+	float sumxxg = float(0);
+	float sumyyg = float(0);
 
 	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
 		 i < iWinHeight * iWinWidth;
@@ -473,16 +492,118 @@ void precompute_sum_xxg_yyg_kernel(cufftComplex *d_in_xyg, int iWinWidth, int iW
 	{
 		int x = i % iWinWidth;
 		int y = i / iWinWidth;
+
+		float xx = float(x - iWinWidth);
+		float yy = float(y - iWinHeight);
 		
-		/*float temp = d_in_xyg[y*iPaddedWidth + x].x * ;
-		sum += temp;*/
+		float tempxg = d_in_xg[y*iPaddedWidth + x].x * xx;
+		float tempyg = d_in_yg[y*iPaddedWidth + x].x * yy;
+
+		sumxxg += tempxg;
+		sumyyg += tempyg;
 	}
 
-	sum = warpReduceSum(sum);
+	sumxxg = warpReduceSum(sumxxg);
+	sumyyg = warpReduceSum(sumyyg);
 
 	if (threadIdx.x % warpSize == 0)
-		atomicAdd(d_out_sum, sum);
+	{
+		atomicAdd(d_out_sumxxg, sumxxg);
+		atomicAdd(d_out_sumyyg, sumyyg);
+	}	
 }
+/*
+ PURPOSE: 
+	Initialize the final results of WFR to zero's
+ INPUTS:
+	imgSize: the image sizes
+ OUTPUTS:
+	d_out_wx, d_out_wy, d_out_phase, d_out_phase_comp, d_out_r, d_out_b, d_out_cxx, d_out_cyy: to be initialized 
+*/
+__global__
+void initialize_WFR_final_results_kernel(
+	int iImgSize,
+	cufftReal* d_out_wx, cufftReal* d_out_wy, cufftReal* d_out_phase, cufftReal* d_out_phase_comp, cufftReal* d_out_r, cufftReal* d_out_b, cufftReal* d_out_cxx, cufftReal* d_out_cyy)
+{
+	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
+		 i < iImgSize;
+		 i += gridDim.x * blockDim.x)
+	{
+		d_out_wx[i] = 0;
+		d_out_wy[i] = 0;
+		d_out_phase[i] = 0;
+		d_out_phase_comp[i] = 0;
+		d_out_cxx[i] = 0;
+		d_out_cyy[i] = 0;
+		d_out_b[i] = 0;
+		d_out_r[i] = 0;
+	}
+}
+/*
+ PURPOSE:
+	Initialize per-stream intermediate results
+ INPUTS:
+	iPaddedSize: padded size 
+ OUTPUS:
+	d_out_im_wx, d_out_im_wy, d_out_im_p, d_out_im_r: to be initialized
+*/
+__global__
+void initialize_WFR_im_results_kernel(
+	int iPaddedSize,
+	cufftReal* d_out_im_wx, cufftReal* d_out_im_wy, cufftReal* d_out_im_p, cufftReal* d_out_im_r)
+{
+	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
+		 i < iPaddedSize;
+		 i += gridDim.x * blockDim.x)
+	{
+		d_out_im_wx[i] = 0;
+		d_out_im_wy[i] = 0;
+		d_out_im_p[i] = 0;
+		d_out_im_r[i] = 0;
+	}
+}
+/*
+ PURPOSE:
+	Update the r, wx, wy and p of each iteration
+ INPUTS:
+	d_in_sf: the computed sf
+	wxl, wyl: lower-bound of the frequencies
+	wxt, wyt: current frequency
+	wxi, wyi: step size of the frequencies
+	iPaddedSize: padded size
+ OUTPUTS:
+	d_out_r, d_out_wx, d_out_wy, d_out_p: updated
+*/
+__global__
+void update_r_wx_wy_p_kernel(
+	cufftComplex *d_in_sf,
+	int wxt, float wxl, float wxi, int wyt, float wyl, float wyi, 
+	int iPaddedWidth, int iPaddedHeight, int iImgWidth, int iImgHeight,
+	cufftReal* d_out_r, cufftReal* d_out_wx, cufftReal* d_out_wy, cufftReal* d_out_p)
+{
+	cufftReal rwxt = wxl + cufftReal(wxt) * wxi;
+	cufftReal rwyt = wyl + cufftReal(wyt) * wyi;
+
+	int x = threadIdx.x + blockDim.x * blockIdx.x;
+	int y = threadIdx.y + blockDim.y * blockIdx.y;
+
+	int idImg = y * iImgWidth + x;
+	int idPadded = y * iPaddedWidth + x;
+
+	if (y < iImgHeight && x < iImgWidth)
+	{
+		float abs_sf = cuCabsf(d_in_sf[idPadded]);
+		
+		if (abs_sf >d_out_r[idImg])
+		{
+			d_out_r[idImg] = abs_sf;
+			d_out_wx[idImg] = rwxt;
+			d_out_wy[idImg] = rwyt;
+			d_out_p[idImg] = atan2f(d_in_sf[idPadded].y, d_in_sf[idPadded].x);
+		}
+	}
+}
+
 /*----------------------------------------/End WFR Specific Utility Kernels------------------------------------------*/
 
 
@@ -509,6 +630,14 @@ WFT2_CUDAF::WFT2_CUDAF(
 	, m_d_yf(nullptr)
 	, im_d_Fg(nullptr)
 	, im_d_filtered(nullptr)
+	, im_d_r(nullptr)
+	, im_d_p(nullptr)
+	, im_d_wx(nullptr)
+	, im_d_wy(nullptr)
+	, im_d_cxxPadded(nullptr)
+	, im_d_cyyPadded(nullptr)
+	, im_d_xgPadded(nullptr)
+	, im_d_ygPadded(nullptr)
 	, m_planStreams(nullptr)
 {
 	// Check the input image size
@@ -587,6 +716,14 @@ WFT2_CUDAF::WFT2_CUDAF(
 	, m_d_yf(nullptr)
 	, im_d_Fg(nullptr)
 	, im_d_filtered(nullptr)
+	, im_d_r(nullptr)
+	, im_d_p(nullptr)
+	, im_d_wx(nullptr)
+	, im_d_wy(nullptr)
+	, im_d_cxxPadded(nullptr)
+	, im_d_cyyPadded(nullptr)
+	, im_d_xgPadded(nullptr)
+	, im_d_ygPadded(nullptr)
 	, m_planStreams(nullptr)
 {
 	// Check the input image size
@@ -616,7 +753,7 @@ WFT2_CUDAF::~WFT2_CUDAF()
 	WFT_FPA::Utils::cudaSafeFree(m_d_xf);
 	WFT_FPA::Utils::cudaSafeFree(m_d_yf);
 
-	cufftDestroy(m_planForwardPadded);
+	cufftDestroy(m_planPadded);
 
 	if (WFT_FPA::WFT::WFT_TYPE::WFF == m_type)
 	{
@@ -649,7 +786,7 @@ WFT2_CUDAF::~WFT2_CUDAF()
 			WFT_FPA::Utils::cudaSafeFree(im_d_p[i]);
 			WFT_FPA::Utils::cudaSafeFree(im_d_r[i]);
 		}
-		WFT_FPA::Utils::cudaSafeFree(im_d_g);
+
 		WFT_FPA::Utils::cudaSafeFree(im_d_cxxPadded);
 		WFT_FPA::Utils::cudaSafeFree(im_d_cyyPadded);
 		WFT_FPA::Utils::cudaSafeFree(im_d_xgPadded);
@@ -689,7 +826,7 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	cuWFT2_feed_fPadded(d_f);
 	
 	/* Pre-compute the FFT of m_d_fPadded */
-	checkCudaErrors(cufftExecC2C(m_planForwardPadded, m_d_fPadded, m_d_fPadded, CUFFT_FORWARD));
+	checkCudaErrors(cufftExecC2C(m_planPadded, m_d_fPadded, m_d_fPadded, CUFFT_FORWARD));
 
 	/* Clear the results if they already contain last results */	
 	init_WFF_matrices_kernel<<<blocksImg, threads>>>(d_z.m_d_filtered, m_iWidth, m_iHeight);
@@ -704,6 +841,7 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	for (int i = 0; i < m_iNumStreams; i++)
 	{
 		init_WFF_matrices_kernel<<<blocksPadded, threads, 0, m_cudaStreams[i]>>>(im_d_filtered[i], m_iPaddedWidth, m_iPaddedHeight);
+		getLastCudaError("init_WFF_matrices_kernel Launch Failed!");
 	}
 
 	/*std::vector<std::thread> td(m_iNumStreams);
@@ -813,11 +951,88 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 }
 void WFT2_CUDAF::cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time)
 {
+	/* Various Sizes */
+	int iPaddedSize = m_iPaddedHeight * m_iPaddedWidth;
+	int iWinSize = m_iWinHeight * m_iWinWidth;
+	int iImgSize = m_iWidth * m_iHeight;
+
+	/* CUDA blocks & threads scheduling */
+	dim3 threads(BLOCK_SIZE_16, BLOCK_SIZE_16);
+	dim3 blocksPadded((m_iPaddedWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iPaddedHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16);
+	dim3 blocksImg((m_iWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16);
+	int blocks1D_pad = std::min((iPaddedSize+ BLOCK_SIZE_256 - 1) / BLOCK_SIZE_256, 2048);
+	int blocks1D_img = std::min((iImgSize + BLOCK_SIZE_256 - 1) / BLOCK_SIZE_256, 2048);
+
 	/* Pad the f to be prefered size of the FFT */
 	cuWFT2_feed_fPadded(d_f);
 
 	/* Pre-compute the FFT of m_d_fPadded */
-	cufftExecC2C(m_planForwardPadded, m_d_fPadded, m_d_fPadded, CUFFT_FORWARD);
+	cufftExecC2C(m_planPadded, m_d_fPadded, m_d_fPadded, CUFFT_FORWARD);
+
+	/* Clear the results if they already contain last results */	
+	initialize_WFR_final_results_kernel<<<blocks1D_img, BLOCK_SIZE_256>>>(
+		iImgSize, 
+		d_z.m_d_wx, d_z.m_d_wy, d_z.m_d_phase, d_z.m_d_phase_comp, d_z.m_d_r, d_z.m_d_b, d_z.m_d_cxx, d_z.m_d_cyy);
+	getLastCudaError("initialize_WFR_final_results_kernel Launch Failed!");
+
+	/* Insert this part inbetween to realize kind of CPU&GPU concurrent execution.
+	   map the wl: wi : wh interval to integers from  0 to size = (wyh - wyl)/wyi + 1 in order to divide the 
+	   copmutations across threads, since threads indices are more conviniently controlled by integers 	    */
+	int iwx = int((m_rWxh - m_rWxl)*(1 / m_rWxi)) + 1;
+	int iwy = int((m_rWyh - m_rWyl)*(1 / m_rWyi)) + 1;
+
+	for (int i = 0; i < m_iNumStreams; i++)
+	{
+		initialize_WFR_im_results_kernel<<<blocks1D_pad, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
+			iPaddedSize,
+			im_d_wx[i], im_d_wy[i], im_d_p[i], im_d_r[i]);
+		getLastCudaError("initialize_WFR_im_results_kernel Launch Failed!");
+	}
+
+	/* Start the Real WFF iterations */
+	cudaEvent_t start, end;
+	cudaEventCreate(&start);
+	cudaEventCreate(&end);
+
+	int iNumResidue = iwx % m_iNumStreams;
+	cudaEventRecord(start);
+	for (int y = 0; y < iwy; y++)
+	{
+		// Now we have equal number of kernels executed in each stream
+		for (int x = iNumResidue; x < iwx; x += m_iNumStreams)
+		{
+			for (int i = 0; i < m_iNumStreams; i++)
+			{
+				// Construct Fg
+				compute_Fg_kernel<<<blocks1D_pad, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
+					m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight,
+					x + i, y, m_rWxi, m_rWyi, m_rWxl, m_rWyl,
+					m_rSigmaX, m_rSigmaY, m_rGaussianNorm2, im_d_Fg[i]);
+				getLastCudaError("compute_Fg_kernel Launch Failed!");
+				
+				// Compute sf=ifft2(Ff.*Fg)
+				complex_pointwise_multiplication_kernel<<<blocks1D_pad, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
+					m_d_fPadded, im_d_Fg[i], iPaddedSize, im_d_Sf[i]);
+				getLastCudaError("complex_pointwise_multiplication_kernel Launch Failed!");
+				checkCudaErrors(cufftExecC2C(m_planStreams[i], im_d_Sf[i], im_d_Sf[i], CUFFT_INVERSE));
+
+				// Update r, wx, wy and phase
+
+			}
+		}
+
+		for (int x = 0; x < iNumResidue; x++)
+		{
+
+		}
+	}
+	cudaEventRecord(end);
+	cudaEventSynchronize(end);
+
+	// Calculate the running time
+	float t = 0;
+	cudaEventElapsedTime(&t, start, end);
+	time = double(t);
 }
 
 int WFT2_CUDAF::cuWFT2_Initialize(WFT2_DeviceResultsF &d_z)
@@ -857,8 +1072,8 @@ int WFT2_CUDAF::cuWFT2_Initialize(WFT2_DeviceResultsF &d_z)
 		checkCudaErrors(cudaMalloc((void**)&m_d_yf, sizeof(cufftReal)*iPaddedSize));
 
 		/* Make the CUFFT plans */
-		checkCudaErrors(cufftPlan2d(&m_planForwardPadded, m_iPaddedWidth, m_iPaddedHeight, CUFFT_C2C));
-		checkCudaErrors(cufftSetStream(m_planForwardPadded, 0));
+		checkCudaErrors(cufftPlan2d(&m_planPadded, m_iPaddedWidth, m_iPaddedHeight, CUFFT_C2C));
+		checkCudaErrors(cufftSetStream(m_planPadded, 0));
 
 		/* Construct the xf & yf */
 		dim3 threads(BLOCK_SIZE_16, BLOCK_SIZE_16);
@@ -921,6 +1136,7 @@ void WFT2_CUDAF::cuWFF2_Init(WFT2_DeviceResultsF &d_z)
 void WFT2_CUDAF::cuWFR2_Init(WFT2_DeviceResultsF &d_z)
 {
 	int iPaddedSize = m_iPaddedHeight * m_iPaddedWidth;
+	int iWinSize = m_iWinHeight * m_iWinWidth;
 	int iImgSize = m_iWidth * m_iHeight;
 
 	// Allocate memory for the final results
@@ -951,27 +1167,50 @@ void WFT2_CUDAF::cuWFR2_Init(WFT2_DeviceResultsF &d_z)
 		checkCudaErrors(cudaStreamCreate(&(m_cudaStreams[i])));
 
 		// Allocate memory for the intermediate arrays
-		checkCudaErrors(cudaMalloc((void**)&im_d_wx[i], sizeof(cufftReal)*iPaddedSize));
-		checkCudaErrors(cudaMalloc((void**)&im_d_wy[i], sizeof(cufftReal)*iPaddedSize));
-		checkCudaErrors(cudaMalloc((void**)&im_d_p[i], sizeof(cufftReal)*iPaddedSize));
-		checkCudaErrors(cudaMalloc((void**)&im_d_r[i], sizeof(cufftReal)*iPaddedSize));
 		checkCudaErrors(cudaMalloc((void**)&im_d_Fg[i], sizeof(cufftComplex)*iPaddedSize));
 		checkCudaErrors(cudaMalloc((void**)&im_d_Sf[i], sizeof(cufftComplex)*iPaddedSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_wx[i], sizeof(cufftReal)*iImgSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_wy[i], sizeof(cufftReal)*iImgSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_p[i], sizeof(cufftReal)*iImgSize));
+		checkCudaErrors(cudaMalloc((void**)&im_d_r[i], sizeof(cufftReal)*iImgSize));		
 
 		checkCudaErrors(cufftPlan2d(&m_planStreams[i], m_iPaddedWidth, m_iPaddedHeight, CUFFT_C2C));
 		checkCudaErrors(cufftSetStream(m_planStreams[i], m_cudaStreams[i]));
 	}
 	// Allocate the memory for corresponding arrays
-	checkCudaErrors(cudaMalloc((void**)&im_d_g, sizeof(cufftReal)*m_iWinWidth*m_iWinHeight));
+	checkCudaErrors(cudaMalloc((void**)&im_d_g, sizeof(cufftReal)*iWinSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_cyyPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_cxxPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_xgPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_ygPadded, sizeof(cufftComplex)*iPaddedSize));
-	checkCudaErrors(cudaMalloc((void**)&m_d_rg_norm2, sizeof(float)));
 	checkCudaErrors(cudaMalloc((void**)&m_d_rxxg_norm2, sizeof(float)));
 	checkCudaErrors(cudaMalloc((void**)&m_d_ryyg_norm2, sizeof(float)));
-	// Pre-compute g, x.*g, y.*g
 
+	// Pre-compute g, x.*g, y.*g
+	dim3 blocks_g((m_iWinWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iWinHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16);
+	dim3 threads(BLOCK_SIZE_16, BLOCK_SIZE_16);
+	precompute_g_kernel<<<blocks_g, threads>>>(im_d_g, m_iWinWidth, m_iWinHeight, m_rSigmaX, m_rSigmaY);
+	getLastCudaError("precompute_g_kernel Launch Failed!");
+
+	int blocks_g1D = std::min((iWinSize + BLOCK_SIZE_256 - 1) / BLOCK_SIZE_256, 2048);
+	precompute_norm2g_kernel<<<blocks_g1D, BLOCK_SIZE_256>>>(im_d_g, iWinSize, m_d_rg_norm2);
+	getLastCudaError("precompute_norm2g_kernel Launch Failed!");
+
+	precompute_normalized_g_kernel<<<blocks_g1D, BLOCK_SIZE_256>>>(m_d_rg_norm2, iWinSize, im_d_g);
+	getLastCudaError("precompute_normalized_g_kernel Launch Failed!");
+
+	dim3 blocks_xyg((m_iPaddedWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iPaddedHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16);
+	precompute_xg_yg_kernel<<<blocks_xyg, threads>>>(im_d_g, m_iWinWidth, m_iWinHeight, m_iPaddedWidth, m_iPaddedHeight, im_d_xgPadded, im_d_ygPadded);
+	getLastCudaError("precompute_xg_yg_kernel Launch Failed!");
+
+	precompute_sum_xxg_yyg_kernel<<<blocks_g1D, BLOCK_SIZE_256>>>(im_d_xgPadded, im_d_ygPadded, m_iWinWidth, m_iWinHeight, m_iPaddedWidth, m_iPaddedHeight, m_d_rxxg_norm2, m_d_ryyg_norm2);
+	getLastCudaError("precompute_sum_xxg_yyg_kernel Launch Failed!");
+
+	checkCudaErrors(cudaMemcpy(&m_rxxg_norm2, m_d_rxxg_norm2, sizeof(float), cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(&m_ryyg_norm2, m_d_ryyg_norm2, sizeof(float), cudaMemcpyDeviceToHost));
+
+	// Free the im_d_g since it's no need furthermore
+	checkCudaErrors(cudaFree(im_d_g));	im_d_g = nullptr;
 }
 
 void WFT2_CUDAF::cuWFT2_feed_fPadded(cufftComplex *d_f)

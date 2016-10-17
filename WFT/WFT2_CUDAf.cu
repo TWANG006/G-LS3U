@@ -106,7 +106,6 @@ void fftshift_xf_yf_kernel(cufftReal *d_out_xf, cufftReal *d_out_yf, int iWidth,
 		}
 	}
 }
-
 /*
  PURPOSE:
 	Feed the input f into the Padded matrix m_d_fPadded 
@@ -140,7 +139,6 @@ void feed_fPadded_kernel(cufftComplex *d_in_f, cufftComplex *d_out_fPadded, int 
 		}
 	}
 }
-
 /*
  PURPOSE:
 	Point-wise multiplication of two matrices of complex numbers
@@ -161,7 +159,6 @@ void complex_pointwise_multiplication_kernel(cufftComplex *d_in_a, cufftComplex 
 			WFT_FPA::Utils::ComplexScale(WFT_FPA::Utils::ComplexMul(d_in_a[i], d_in_b[i]), 1.0f / iSize);
 	}
 }
-
 /*
  PURPOSE:
 	Explicitly Compute the FFT of the Gaussian Window
@@ -414,7 +411,15 @@ void precompute_norm2g_kernel(cufftReal *d_in_g, int iWinSize, float *d_out_norm
 	if (threadIdx.x % warpSize == 0)
 		atomicAdd(d_out_norm2g, sum);
 }
-
+/*
+ PURPOSE: 
+	compute nomalized g
+ INPUTS:
+	d_in_norm2g: normalization factor
+	iWinszie: Gaussian windows size
+ OUTPUTS:
+	d_out_g: normalized g
+ */
 __global__
 void precompute_normalized_g_kernel(float *d_in_norm2g, int iWinSize, cufftReal *d_out_g)
 {
@@ -425,7 +430,6 @@ void precompute_normalized_g_kernel(float *d_in_norm2g, int iWinSize, cufftReal 
 		d_out_g[i] = d_out_g[i] * (1.0f / sqrt(d_in_norm2g[0]));
 	}
 }
-
 /*
  PURPOSE:
 	Precompute xg & yg
@@ -628,7 +632,6 @@ void update_final_r_wx_wy_p_kernel(
 		}
 	}
 }
-
 /*
  PURPOSE:
 	Feed the wx&wy into padded cxx&cyy
@@ -691,7 +694,6 @@ void complex_pointwise_multiplication_2d_kernel(
 			WFT_FPA::Utils::ComplexScale(WFT_FPA::Utils::ComplexMul(d_in_a2[i], d_in_b2[i]), 1.0f / iSize);
 	}
 }
-
 /*
  PURPOSE: 
 	Update the results after compensation
@@ -725,7 +727,7 @@ void update_final_cxx_cyy_phaseComp_b_kernel(
 		d_out_cyy[idImg] = tempCyy;
 		
 		// phase compensation
-		cufftReal tempPhaseComp =  d_in_p[idImg] - 0.5 * atanf(sigmax*sigmax*tempCxx) - 0.5 * atanf(sigmay*sigmay*tempCyy);
+		cufftReal tempPhaseComp =  d_in_p[idImg] - 0.5f * atanf(sigmax*sigmax*tempCxx) - 0.5f * atanf(sigmay*sigmay*tempCyy);
 		d_out_phase_comp[idImg] = atan2f(sin(tempPhaseComp), cos(tempPhaseComp));
 
 		//scale amplitude
@@ -917,6 +919,13 @@ WFT2_CUDAF::~WFT2_CUDAF()
 			WFT_FPA::Utils::cudaSafeFree(im_d_p[i]);
 			WFT_FPA::Utils::cudaSafeFree(im_d_r[i]);
 		}
+
+		free(m_cudaStreams);	m_cudaStreams = nullptr;
+		free(m_planStreams);	m_planStreams = nullptr;
+		free(im_d_wx);	im_d_wx = nullptr;
+		free(im_d_wy);	im_d_wy = nullptr;
+		free(im_d_p);	im_d_p = nullptr;
+		free(im_d_r);	im_d_r = nullptr;
 
 		WFT_FPA::Utils::cudaSafeFree(im_d_cxxPadded);
 		WFT_FPA::Utils::cudaSafeFree(im_d_cyyPadded);

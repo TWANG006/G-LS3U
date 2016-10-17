@@ -51,6 +51,9 @@
     <ClCompile Include="WFR2_CUDA_Initialization_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WFR2_CUDA_Computation_Test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="xfyf_2D_1D_Test.cu">

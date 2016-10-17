@@ -549,11 +549,11 @@ void initialize_WFR_final_results_kernel(
 */
 __global__
 void initialize_WFR_im_results_kernel(
-	int iPaddedSize,
+	int iImgSize,
 	cufftReal* d_out_im_wx, cufftReal* d_out_im_wy, cufftReal* d_out_im_p, cufftReal* d_out_im_r)
 {
 	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
-		 i < iPaddedSize;
+		 i < iImgSize;
 		 i += gridDim.x * blockDim.x)
 	{
 		d_out_im_wx[i] = 0;
@@ -581,8 +581,8 @@ void update_r_wx_wy_p_kernel(
 	int iPaddedWidth, int iPaddedHeight, int iImgWidth, int iImgHeight,
 	cufftReal* d_out_r, cufftReal* d_out_wx, cufftReal* d_out_wy, cufftReal* d_out_p)
 {
-	cufftReal rwxt = wxl + cufftReal(wxt) * wxi;
-	cufftReal rwyt = wyl + cufftReal(wyt) * wyi;
+	float rwxt = wxl + float(wxt) * wxi;
+	float rwyt = wyl + float(wyt) * wyi;
 
 	int x = threadIdx.x + blockDim.x * blockIdx.x;
 	int y = threadIdx.y + blockDim.y * blockIdx.y;
@@ -594,13 +594,147 @@ void update_r_wx_wy_p_kernel(
 	{
 		float abs_sf = cuCabsf(d_in_sf[idPadded]);
 		
-		if (abs_sf >d_out_r[idImg])
+		if (abs_sf > d_out_r[idImg])
 		{
 			d_out_r[idImg] = abs_sf;
 			d_out_wx[idImg] = rwxt;
 			d_out_wy[idImg] = rwyt;
 			d_out_p[idImg] = atan2f(d_in_sf[idPadded].y, d_in_sf[idPadded].x);
 		}
+	}
+}
+/*
+ PURPOSE: 
+	Update the final r, wx, wy and p 
+ INPUTS:
+	d_in_r, d_in_wx, d_in_wy, d_in_p: partial results of each stream
+	iImgSize: image size
+ OUTPUTS:
+	d_out_r, d_out_wx, d_out_wy, d_out_p: final results
+*/
+__global__
+void update_final_r_wx_wy_p_kernel( 
+	cufftReal* d_in_r, cufftReal* d_in_wx, cufftReal* d_in_wy, cufftReal* d_in_p,
+	int iImgSize,
+	cufftReal* d_out_r, cufftReal* d_out_wx, cufftReal* d_out_wy, cufftReal* d_out_p)
+{
+	for (int i = threadIdx.x + blockDim.x * blockIdx.x;
+		 i < iImgSize;
+		 i += gridDim.x * blockDim.x)
+	{
+		if(d_in_r[i] > d_out_r[i])
+		{
+			d_out_r[i] = d_in_r[i];
+			d_out_wx[i] = d_in_wx[i];
+			d_out_wy[i] = d_in_wy[i];
+			d_out_p[i] = d_in_p[i];
+		}
+	}
+}
+
+/*
+ PURPOSE:
+	Feed the wx&wy into padded cxx&cyy
+ INPUTS:
+	d_in_wx, d_in_wy
+	iWidth, iHeight: image size
+	iPaddedWidth, iPaddedHeight: padded size
+ OUTPUTS:
+	d_out_cxx, d_out_cyy: padded cxx&cyy
+*/
+__global__
+void feed_cxx_cyy_kernel(
+	cufftReal* d_in_wx, cufftReal* d_in_wy, int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight,
+	cufftComplex *d_out_cxx, cufftComplex *d_out_cyy)
+{
+	int x = threadIdx.x + blockDim.x * blockIdx.x;
+	int y = threadIdx.y + blockDim.y * blockIdx.y;
+
+	int idPadded = y * iPaddedWidth + x;
+	int idImg = y* iWidth + x;
+
+	if (y < iPaddedHeight && x < iPaddedWidth)
+	{
+		if (y < iHeight && x < iWidth)
+		{
+			d_out_cxx[idPadded].x = d_in_wx[idImg];
+			d_out_cyy[idPadded].x = d_in_wy[idImg];
+		}
+		else
+		{
+			d_out_cxx[idPadded].x = 0;
+			d_out_cyy[idPadded].x = 0;
+		}
+		d_out_cxx[idPadded].y = 0;
+		d_out_cyy[idPadded].y = 0;
+	}
+}
+/*
+ PURPOSE:
+	2D Point-wise multiplication of two matrices of complex numbers
+ INPUT:
+	d_in_a1, d_in_b1, d_in_a2, d_in_b2: Two sets of matrices to be multiplied
+	iSize: size of the matrices
+ OUTPUT:
+	d_out_c1, d_out_c2: The results after multiplication
+*/
+__global__
+void complex_pointwise_multiplication_2d_kernel(
+	cufftComplex *d_in_a1, cufftComplex *d_in_b1, cufftComplex *d_in_a2, cufftComplex *d_in_b2,
+	int iSize, 
+	cufftComplex *d_out_c1, cufftComplex *d_out_c2)
+{
+	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
+		 i < iSize;
+		 i += blockDim.x*gridDim.x)
+	{
+		d_out_c1[i] = 
+			WFT_FPA::Utils::ComplexScale(WFT_FPA::Utils::ComplexMul(d_in_a1[i], d_in_b1[i]), 1.0f / iSize);
+		d_out_c2[i] = 
+			WFT_FPA::Utils::ComplexScale(WFT_FPA::Utils::ComplexMul(d_in_a2[i], d_in_b2[i]), 1.0f / iSize);
+	}
+}
+
+/*
+ PURPOSE: 
+	Update the results after compensation
+ INPUTS:
+	d_in_wx, d_in_wy, d_in_r, d_in_p: calculated results used to update the compensated phase
+ OUTPUTS:
+	d_out_cxx, d_out_cyy, d_out_phase_comp, d_out_b: results 
+*/
+__global__
+void update_final_cxx_cyy_phaseComp_b_kernel(
+	cufftComplex* d_in_cxx, cufftComplex* d_in_cyy, cufftReal* d_in_r, cufftReal* d_in_p,
+	int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight, float sumxxg, float sumyyg, float sigmax, float sigmay, int sx, int sy,
+	cufftReal* d_out_cxx, cufftReal* d_out_cyy, cufftReal* d_out_phase_comp, cufftReal* d_out_b)
+{
+	int x = threadIdx.x + blockDim.x * blockIdx.x;
+	int y = threadIdx.y + blockDim.y * blockIdx.y;
+
+	int idImg = y * iWidth + x;
+	int idPadded = (y + sy) * iPaddedWidth + x + sx;
+
+	if (x < iWidth && y < iHeight)
+	{
+		cufftReal cxx = d_in_cxx[idPadded].x;
+		cufftReal cyy = d_in_cyy[idPadded].x;
+
+		// curvature estimation
+		cufftReal tempCxx = -cxx * (1.0f / sumxxg);
+		cufftReal tempCyy = -cyy * (1.0f / sumyyg);
+
+		d_out_cxx[idImg] = tempCxx;
+		d_out_cyy[idImg] = tempCyy;
+		
+		// phase compensation
+		cufftReal tempPhaseComp =  d_in_p[idImg] - 0.5 * atanf(sigmax*sigmax*tempCxx) - 0.5 * atanf(sigmay*sigmay*tempCyy);
+		d_out_phase_comp[idImg] = atan2f(sin(tempPhaseComp), cos(tempPhaseComp));
+
+		//scale amplitude
+		d_out_b[idImg] = d_in_r[idImg] 
+			* powf((1 + sigmax*sigmax*sigmax*sigmax*cxx*cxx)*0.25f*(1.0f / M_PI)*(1.0f / (sigmax*sigmax)), 0.25f)
+			* powf((1 + sigmay*sigmay*sigmay*sigmay*cyy*cyy)*0.25f*(1.0f / M_PI)*(1.0f / (sigmay*sigmay)), 0.25f);
 	}
 }
 
@@ -983,8 +1117,8 @@ void WFT2_CUDAF::cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 
 	for (int i = 0; i < m_iNumStreams; i++)
 	{
-		initialize_WFR_im_results_kernel<<<blocks1D_pad, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
-			iPaddedSize,
+		initialize_WFR_im_results_kernel<<<blocks1D_img, BLOCK_SIZE_256, 0, m_cudaStreams[i]>>>(
+			iImgSize,
 			im_d_wx[i], im_d_wy[i], im_d_p[i], im_d_r[i]);
 		getLastCudaError("initialize_WFR_im_results_kernel Launch Failed!");
 	}
@@ -1017,15 +1151,50 @@ void WFT2_CUDAF::cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 				checkCudaErrors(cufftExecC2C(m_planStreams[i], im_d_Sf[i], im_d_Sf[i], CUFFT_INVERSE));
 
 				// Update r, wx, wy and phase
-
+				update_r_wx_wy_p_kernel<<<blocksImg, threads, 0, m_cudaStreams[i]>>>(
+					im_d_Sf[i], x + i, m_rWxl, m_rWxi, y, m_rWyl, m_rWyi, 
+					m_iPaddedWidth, m_iPaddedHeight, m_iWidth, m_iHeight, 
+					im_d_r[i], im_d_wx[i], im_d_wy[i], im_d_p[i]);
+				getLastCudaError("update_r_wx_wy_p_kernel Launch Failed!");
 			}
 		}
 
 		for (int x = 0; x < iNumResidue; x++)
 		{
+			// Construct Fg
+			compute_Fg_kernel<<<blocks1D_pad, BLOCK_SIZE_256, 0, m_cudaStreams[x]>>>(
+				m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight,
+				x, y, m_rWxi, m_rWyi, m_rWxl, m_rWyl,
+				m_rSigmaX, m_rSigmaY, m_rGaussianNorm2, im_d_Fg[x]);
+			getLastCudaError("compute_Fg_kernel Launch Failed!");
+			
+			// Compute sf=ifft2(Ff.*Fg)
+			complex_pointwise_multiplication_kernel<<<blocks1D_pad, BLOCK_SIZE_256, 0, m_cudaStreams[x]>>>(
+				m_d_fPadded, im_d_Fg[x], iPaddedSize, im_d_Sf[x]);
+			getLastCudaError("complex_pointwise_multiplication_kernel Launch Failed!");
+			checkCudaErrors(cufftExecC2C(m_planStreams[x], im_d_Sf[x], im_d_Sf[x], CUFFT_INVERSE));
 
+			// Update r, wx, wy and phase
+			update_r_wx_wy_p_kernel<<<blocksImg, threads, 0, m_cudaStreams[x]>>>(
+				im_d_Sf[x], x, m_rWxl, m_rWxi, y, m_rWyl, m_rWyi, 
+				m_iPaddedWidth, m_iPaddedHeight, m_iWidth, m_iHeight, 
+				im_d_r[x], im_d_wx[x], im_d_wy[x], im_d_p[x]);
+			getLastCudaError("update_r_wx_wy_p_kernel Launch Failed!");
 		}
 	}
+	// Synchronize streams
+	for (int i = 0; i < m_iNumStreams; i++)
+	{
+		cudaStreamSynchronize(m_cudaStreams[i]);
+	}
+
+	for (int i = 0; i < m_iNumStreams; i++)
+	{
+		update_final_r_wx_wy_p_kernel<<<blocks1D_img, BLOCK_SIZE_256>>>(im_d_r[i], im_d_wx[i], im_d_wy[i], im_d_p[i], iImgSize,
+			d_z.m_d_r, d_z.m_d_wx, d_z.m_d_wy, d_z.m_d_phase);
+		getLastCudaError("update_final_r_wx_wy_p_kernel Launch Failed!");
+	}
+
 	cudaEventRecord(end);
 	cudaEventSynchronize(end);
 
@@ -1033,6 +1202,32 @@ void WFT2_CUDAF::cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	float t = 0;
 	cudaEventElapsedTime(&t, start, end);
 	time = double(t);
+
+	/* Do the Least squre fitting to get cx and cy */
+	/* Feed the wx & wy into their padded versions*/
+	feed_cxx_cyy_kernel<<<blocksPadded, threads>>>(d_z.m_d_wx, d_z.m_d_wy, m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight,
+		im_d_cxxPadded, im_d_cyyPadded);
+	getLastCudaError("feed_cxx_cyy_kernel Launch Failed!");
+
+	// z.cxx=-conv2(z.wx,x.*g,'same')/sum(sum(x.*x.*g));
+    // z.cyy=-conv2(z.wy,y.*g,'same')/sum(sum(y.*y.*g)); 
+	// Forward FFT
+	checkCudaErrors(cufftExecC2C(m_planPadded, im_d_cxxPadded, im_d_cxxPadded, CUFFT_FORWARD));
+	checkCudaErrors(cufftExecC2C(m_planPadded, im_d_cyyPadded, im_d_cyyPadded, CUFFT_FORWARD));
+	// Pointwise multiplication
+	complex_pointwise_multiplication_2d_kernel<<<blocks1D_pad, BLOCK_SIZE_256>>>(im_d_xgPadded, im_d_cxxPadded, im_d_ygPadded, im_d_cyyPadded, iPaddedSize,
+		im_d_cxxPadded, im_d_cyyPadded);
+	getLastCudaError("complex_pointwise_multiplication_2d_kernel Launch Failed!");
+	// Inverse FFT
+	checkCudaErrors(cufftExecC2C(m_planPadded, im_d_cxxPadded, im_d_cxxPadded, CUFFT_INVERSE));
+	checkCudaErrors(cufftExecC2C(m_planPadded, im_d_cyyPadded, im_d_cyyPadded, CUFFT_INVERSE));
+
+	// Update the compensated results
+	update_final_cxx_cyy_phaseComp_b_kernel<<<blocksImg, threads>>>(
+		im_d_cxxPadded, im_d_cyyPadded, d_z.m_d_r, d_z.m_d_phase,
+		m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, m_rxxg_norm2, m_ryyg_norm2, m_rSigmaX, m_rSigmaY, m_iSx, m_iSy,
+		d_z.m_d_cxx, d_z.m_d_cyy, d_z.m_d_phase_comp, d_z.m_d_b);
+	getLastCudaError("update_final_cxx_cyy_phaseComp_b_kernel Launch Failed!");
 }
 
 int WFT2_CUDAF::cuWFT2_Initialize(WFT2_DeviceResultsF &d_z)
@@ -1183,6 +1378,7 @@ void WFT2_CUDAF::cuWFR2_Init(WFT2_DeviceResultsF &d_z)
 	checkCudaErrors(cudaMalloc((void**)&im_d_cxxPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_xgPadded, sizeof(cufftComplex)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&im_d_ygPadded, sizeof(cufftComplex)*iPaddedSize));
+	checkCudaErrors(cudaMalloc((void**)&m_d_rg_norm2, sizeof(float)));
 	checkCudaErrors(cudaMalloc((void**)&m_d_rxxg_norm2, sizeof(float)));
 	checkCudaErrors(cudaMalloc((void**)&m_d_ryyg_norm2, sizeof(float)));
 
@@ -1211,6 +1407,10 @@ void WFT2_CUDAF::cuWFR2_Init(WFT2_DeviceResultsF &d_z)
 
 	// Free the im_d_g since it's no need furthermore
 	checkCudaErrors(cudaFree(im_d_g));	im_d_g = nullptr;
+
+	// Compute the FFT of x.*g & y.*g
+	checkCudaErrors(cufftExecC2C(m_planPadded, im_d_xgPadded, im_d_xgPadded, CUFFT_FORWARD));
+	checkCudaErrors(cufftExecC2C(m_planPadded, im_d_ygPadded, im_d_ygPadded, CUFFT_FORWARD));
 }
 
 void WFT2_CUDAF::cuWFT2_feed_fPadded(cufftComplex *d_f)

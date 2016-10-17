@@ -112,6 +112,7 @@
     <ClCompile Include="WFF2_CPU_ComputationTest.cpp" />
     <ClCompile Include="WFF2_CPU_Initialization_Test.cpp" />
     <ClCompile Include="WFR2_CPU_Initialization_Test.cpp" />
+    <ClCompile Include="WFR2_CUDA_Computation_Test.cpp" />
     <ClCompile Include="WFR2_CUDA_Initialization_Test.cpp" />
   </ItemGroup>
   <ItemGroup>

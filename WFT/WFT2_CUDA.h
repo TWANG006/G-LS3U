@@ -12,6 +12,10 @@ class WFT_FPA_DLL_EXPORTS WFT2_CUDA
 {
 public:
 
+	WFT2_CUDA() = delete;
+	WFT2_CUDA(const WFT2_CUDA&) = delete;
+	WFT2_CUDA &operator=(const WFT2_CUDA&) = delete;
+
 	// Default parameters are used based on the WFT_TYPE
 	WFT2_CUDA(
 		int iWidth, int iHeight,

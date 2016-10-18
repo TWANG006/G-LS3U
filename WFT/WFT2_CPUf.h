@@ -16,6 +16,10 @@ class WFT_FPA_DLL_EXPORTS WFT2_cpuF
 {
 public:
 
+	WFT2_cpuF() = delete;
+	WFT2_cpuF(const WFT2_cpuF&) = delete;
+	WFT2_cpuF &operator=(const WFT2_cpuF&) = delete;
+
 	// Default parameters are used based on the WFT_TYPE
 	WFT2_cpuF(
 		int iWidth, int iHeight,

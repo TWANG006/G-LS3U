@@ -127,16 +127,6 @@ void AIA_CPU_Dn::computePhi(const std::vector<cv::Mat>& v_f)
 	m_v_A[3] = dA3;	m_v_A[4] = dA4;	m_v_A[5] = 0;
 	m_v_A[6] = dA6;	m_v_A[7] = dA7;	m_v_A[8] = dA8;
 
-	// Cholesky factorize A
-	int infor = LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'U', 3, m_v_A.data(), 3);
-	// Check for the exact singularity 
-	if (infor > 0) {
-		std::cerr << "The element of the diagonal factor ";
-		std::cerr << "D(" << infor << "," << infor << ") is zero, so that D is singular;\n";
-		std::cerr << "the solution could not be computed.\n";
-		return;
-	}
-
 	/* Construct the RHS's m_v_b[N-by-3] */
 	#pragma omp parallel for
 	for (int j = 0; j < m_N; j++)
@@ -155,7 +145,13 @@ void AIA_CPU_Dn::computePhi(const std::vector<cv::Mat>& v_f)
 	}
 
 	/* Solve the Ax = b */
-	LAPACKE_dpotrs(LAPACK_COL_MAJOR, 'U', 3, m_N, m_v_A.data(), 3, m_v_b_phi.data(), 3);
+	int info = LAPACKE_dposv(LAPACK_COL_MAJOR, 'U', 3, m_N, m_v_A.data(), 3, m_v_b_phi.data(), 3);
+	 /* Check for the positive definiteness */
+	if (info > 0) {
+		printf("The leading minor of order %i is not positive ", info);
+		printf("definite;\nThe solution could not be computed.\n");
+		exit(1);
+	}
 
 	#pragma omp parallel for
 	for (int j = 0; j < m_N; j++)
@@ -187,16 +183,6 @@ void AIA_CPU_Dn::computeDelta(const std::vector<cv::Mat>& v_f)
 	m_v_A[3] = dA3;	m_v_A[4] = dA4;	m_v_A[5] = 0;
 	m_v_A[6] = dA6;	m_v_A[7] = dA7;	m_v_A[8] = dA8;
 
-	// Cholesky factorize A
-	int infor = LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'U', 3, m_v_A.data(), 3);
-	// Check for the exact singularity 
-	if (infor > 0) {
-		std::cerr << "The element of the diagonal factor ";
-		std::cerr << "D(" << infor << "," << infor << ") is zero, so that D is singular;\n";
-		std::cerr << "the solution could not be computed.\n";
-		return;
-	}
-
 	/* Construct the RHS's m_v_b[M-by-3] */
 	for (int i = 0; i < m_M; i++)
 	{
@@ -223,7 +209,13 @@ void AIA_CPU_Dn::computeDelta(const std::vector<cv::Mat>& v_f)
 	}
 
 	/* Solve the Ax = b */
-	LAPACKE_dpotrs(LAPACK_COL_MAJOR, 'U', 3, m_M, m_v_A.data(), 3, m_v_b_delta.data(), 3);
+	int info = LAPACKE_dposv(LAPACK_COL_MAJOR, 'U', 3, m_M, m_v_A.data(), 3, m_v_b_delta.data(), 3);
+	 /* Check for the positive definiteness */
+	if (info > 0) {
+		printf("The leading minor of order %i is not positive ", info);
+		printf("definite;\nThe solution could not be computed.\n");
+		exit(1);
+	}
 
 	for (int i = 0; i < m_M; i++)
 	{

@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <random>
+#include <functional>
 
 #include <omp.h>
 #include <mkl.h>
@@ -225,18 +226,16 @@ void AIA_CPU_Dn::computeDelta(const std::vector<cv::Mat>& v_f)
 
 double AIA_CPU_Dn::computeMaxError(const std::vector<double> &v_delta, const std::vector<double>& v_deltaOld)
 {
-	double dMaxErr = -1.0;
+	std::vector<double> v_abs;
+
 	for (int i = 0; i < v_delta.size(); i++)
 	{
-		double dErr = abs(v_delta[i] - v_deltaOld[i]);
-
-		if (dErr - dMaxErr > 1e-7)
-		{
-			dMaxErr = dErr;
-		}
+		v_abs.push_back(abs(v_delta[i] - v_deltaOld[i]));
 	}
 
-	return dMaxErr;
+	std::sort(v_abs.begin(), v_abs.end(), std::greater<double>());
+
+	return v_abs[0];
 }
 
 }	// namespace AIA

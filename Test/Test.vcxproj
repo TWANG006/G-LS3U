@@ -102,6 +102,7 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AIA_CPU_Test.cpp" />
     <ClCompile Include="FFTW_C2C_Test.cpp" />
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />

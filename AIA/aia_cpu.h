@@ -32,6 +32,8 @@ public:
 		// Outputs
 		std::vector<double>& phi,
 		double &runningtime,
+		int &iters,
+		double &err,
 		// Inputs
 		const std::vector<cv::Mat>& f,
 		const std::vector<double> v_deltas = {},

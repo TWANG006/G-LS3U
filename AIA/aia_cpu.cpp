@@ -21,6 +21,8 @@ void AIA_CPU_Dn::operator()(
 	// Outputs
 	std::vector<double>& v_phi,
 	double &runningtime,
+	int &iIters,
+	double &dErr,
 	// Inputs
 	const std::vector<cv::Mat>& v_f,
 	const std::vector<double> v_deltas,
@@ -41,7 +43,8 @@ void AIA_CPU_Dn::operator()(
 		// Random numbers picked from standard normal distribution g(0,1)
 		std::normal_distribution<double> distribution(0.0, 1.0);
 
-		for (int i = 0; i < v_f.size(); i++)
+		m_v_delta.push_back(0);
+		for (int i = 0; i < v_f.size() - 1; i++)
 		{
 			m_v_delta.push_back(distribution(generator));
 		}
@@ -62,8 +65,8 @@ void AIA_CPU_Dn::operator()(
 	m_v_b_phi.resize(m_N * 3);
 	m_v_b_delta.resize(m_M * 3);
 
-	double dErr = dMaxErr * 2.0;
-	int iIters = 0;
+	dErr = dMaxErr * 2.0;
+	iIters = 0;
 	std::vector<double> v_deltaOld = m_v_delta;
 
 	double start = omp_get_wtime();
@@ -132,20 +135,32 @@ void AIA_CPU_Dn::computePhi(const std::vector<cv::Mat>& v_f)
 	#pragma omp parallel for
 	for (int j = 0; j < m_N; j++)
 	{
-		int y = j % m_cols;
-		int x = j / m_cols;
+		int y = j / m_cols;
+		int x = j % m_cols;
+
+		double b0 = 0, b1 = 0, b2 = 0;
 
 		for (int i = 0; i < m_M; i++)
 		{
 			double dI = static_cast<double>(v_f[i].at<uchar>(y, x));
 
-			m_v_b_phi[j * 3 + 0] += dI;
-			m_v_b_phi[j * 3 + 1] += dI * cos(m_v_delta[i]);
-			m_v_b_phi[j * 3 + 2] += dI * sin(m_v_delta[i]);
+			b0 += dI;
+			b1 += dI * cos(m_v_delta[i]);
+			b2 += dI * sin(m_v_delta[i]);
 		}
+		m_v_b_phi[j * 3 + 0] = b0;
+		m_v_b_phi[j * 3 + 1] = b1;
+		m_v_b_phi[j * 3 + 2] = b2;
 	}
 
 	/* Solve the Ax = b */
+	/*int infor = LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'U', 3, m_v_A1.data(), 3);
+	if (infor > 0) {
+		std::cout << "The element of the PhiA diagonal factor " << std::endl;
+		std::cout << "D(" << infor << "," << infor << ") is zero, so that D is singular;\n" << std::endl;
+		std::cout << "the solution could not be computed.\n" << std::endl;
+	}
+	LAPACKE_dpotrs(LAPACK_COL_MAJOR, 'U', 3, m_N, m_v_A1.data(), 3, m_v_b_phi.data(), 3);*/
 	int info = LAPACKE_dposv(LAPACK_COL_MAJOR, 'U', 3, m_N, m_v_A.data(), 3, m_v_b_phi.data(), 3);
 	 /* Check for the positive definiteness */
 	if (info > 0) {
@@ -168,10 +183,10 @@ void AIA_CPU_Dn::computeDelta(const std::vector<cv::Mat>& v_f)
 	double dA3 = 0, dA4 = 0, dA6 = 0, dA7 = 0, dA8 = 0;
 
 	#pragma omp parallel for default(shared) reduction(+: dA3, dA4, dA6, dA7, dA8)
-	for (int i = 0; i < m_N; i++)
+	for (int j = 0; j < m_N; j++)
 	{
-		double cos_phi = cos(m_v_phi[i]);
-		double sin_phi = sin(m_v_phi[i]);
+		double cos_phi = cos(m_v_phi[j]);
+		double sin_phi = sin(m_v_phi[j]);
 
 		dA3 += cos_phi;
 		dA4 += cos_phi*cos_phi;
@@ -180,7 +195,7 @@ void AIA_CPU_Dn::computeDelta(const std::vector<cv::Mat>& v_f)
 		dA8 += sin_phi*sin_phi;
 	}
 
-	m_v_A[0] = m_M;	m_v_A[1] = 0;	m_v_A[2] = 0;
+	m_v_A[0] = m_N;	m_v_A[1] = 0;	m_v_A[2] = 0;
 	m_v_A[3] = dA3;	m_v_A[4] = dA4;	m_v_A[5] = 0;
 	m_v_A[6] = dA6;	m_v_A[7] = dA7;	m_v_A[8] = dA8;
 
@@ -192,8 +207,8 @@ void AIA_CPU_Dn::computeDelta(const std::vector<cv::Mat>& v_f)
 		#pragma omp parallel for default(shared) reduction(+: b0, b1, b2)
 		for (int j = 0; j < m_N; j++)
 		{
-			int y = j % m_cols;
-			int x = j / m_cols;
+			int y = j / m_cols;
+			int x = j % m_cols;
 
 			double dI = static_cast<double>(v_f[i].at<uchar>(y, x));
 			double cos_phi = cos(m_v_phi[j]);
@@ -210,6 +225,16 @@ void AIA_CPU_Dn::computeDelta(const std::vector<cv::Mat>& v_f)
 	}
 
 	/* Solve the Ax = b */
+
+	/* Solve the Ax = b */
+	//int infor = LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'U', 3, m_v_A2.data(), 3);
+	//if (infor > 0) {
+	//	std::cout << "The element of the DeltaA diagonal factor " << std::endl;
+	//	std::cout << "D(" << infor << "," << infor << ") is zero, so that D is singular;\n" << std::endl;
+	//	std::cout << "the solution could not be computed.\n" << std::endl;
+	//}
+	//LAPACKE_dpotrs(LAPACK_COL_MAJOR, 'U', 3, m_M, m_v_A2.data(), 3, m_v_b_delta.data(), 3);
+
 	int info = LAPACKE_dposv(LAPACK_COL_MAJOR, 'U', 3, m_M, m_v_A.data(), 3, m_v_b_delta.data(), 3);
 	 /* Check for the positive definiteness */
 	if (info > 0) {

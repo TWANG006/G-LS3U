@@ -45,6 +45,8 @@ iter = 0;
 %inital value of err
 err = max_err*2;
 
+delta
+
 while err>max_err & iter<max_iter 
 
     %save delta value

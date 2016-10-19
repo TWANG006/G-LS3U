@@ -1,10 +1,10 @@
 #include "gtest\gtest.h"
 #include "Utils.h"
 
-TEST(Utils_Estimate_Mem_Usage, Utils_Test)
-{
-	WFT_FPA::Utils::DisplayMemoryUsed(sizeof(cufftDoubleComplex) * 1120 * 1120);
-}
+//TEST(Utils_Estimate_Mem_Usage, Utils_Test)
+//{
+//	WFT_FPA::Utils::DisplayMemoryUsed(sizeof(cufftDoubleComplex) * 1120 * 1120);
+//}
 
 //TEST(Utils_cufftIO, Utils_Test)
 //{

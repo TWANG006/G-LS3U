@@ -18,9 +18,15 @@
     <ClInclude Include="aia_cpu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="aia_cpuf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="aia_cpu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="aia_cpuf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

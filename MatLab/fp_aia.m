@@ -46,7 +46,7 @@ iter = 0;
 err = max_err*2;
 
 delta
-
+tic;
 while err>max_err & iter<max_iter 
 
     %save delta value
@@ -60,7 +60,7 @@ while err>max_err & iter<max_iter
     err=max(abs(delta-delta_old));
     
 end
-
+toc;
 %One more round to caluclate phi once delta is good enough
 phi=phi_est(f,delta);
 

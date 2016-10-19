@@ -1,5 +1,5 @@
-#ifndef AIA_CPU_H
-#define AIA_CPU_H
+#ifndef AIA_CPUF_H
+#define AIA_CPUF_H
 
 #include "WFT-FPA.h"
 #include <vector>
@@ -7,14 +7,14 @@
 
 namespace AIA{
 
-class WFT_FPA_DLL_EXPORTS AIA_CPU_Dn
+class WFT_FPA_DLL_EXPORTS AIA_CPU_DnF
 {
 public:
-	AIA_CPU_Dn(const AIA_CPU_Dn&) = delete;
-	AIA_CPU_Dn &operator=(const AIA_CPU_Dn&) = delete;
+	AIA_CPU_DnF(const AIA_CPU_DnF&) = delete;
+	AIA_CPU_DnF &operator=(const AIA_CPU_DnF&) = delete;
 
-	AIA_CPU_Dn() = default;
-	~AIA_CPU_Dn();
+	AIA_CPU_DnF() = default;
+	~AIA_CPU_DnF();
 
 	/*
 	  PURPOSE:
@@ -30,32 +30,32 @@ public:
 	*/
 	void operator() (
 		// Outputs
-		std::vector<double>& phi,
-		std::vector<double>& delta,
+		std::vector<float>& phi,
+		std::vector<float>& delta,
 		double &runningtime,
 		int &iters,
-		double &err,
+		float &err,
 		// Inputs
 		const std::vector<cv::Mat>& f,
 		int iMaxIterations = 20,
-		double dMaxErr = 1e-4,
+		float dMaxErr = 1e-4,
 		int iNumThreads = 1);
 
 private:
 	void computePhi(
-		std::vector<double>& v_A, 
-		std::vector<double>& v_b_phi,
-		std::vector<double>& v_phi,
-		const std::vector<double>& v_deltas,
+		std::vector<float>& v_A, 
+		std::vector<float>& v_b_phi,
+		std::vector<float>& v_phi,
+		const std::vector<float>& v_deltas,
 		const std::vector<cv::Mat>& v_f);
 	void computeDelta(
-		std::vector<double>& v_A, 
-		std::vector<double>& v_b_delta,
-		std::vector<double>& v_deltas,
-		const std::vector<double>& v_phi,
+		std::vector<float>& v_A, 
+		std::vector<float>& v_b_delta,
+		std::vector<float>& v_deltas,
+		const std::vector<float>& v_phi,
 		const std::vector<cv::Mat>& v_f);
 
-	double computeMaxError(const std::vector<double> &v_delta, const std::vector<double>& v_deltaOld);
+	float computeMaxError(const std::vector<float> &v_delta, const std::vector<float>& v_deltaOld);
 
 private:
 	int m_cols;
@@ -66,4 +66,4 @@ private:
 
 }	// namespace AIA
 
-#endif // !AIA_CPU_H
+#endif // !AIA_CPUF_H

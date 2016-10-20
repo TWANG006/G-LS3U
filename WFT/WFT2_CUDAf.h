@@ -18,29 +18,26 @@ public:
 
 
 	// Default parameters are used based on the WFT_TYPE
-	WFT2_CUDAF(
-		int iWidth, int iHeight,
-		WFT_TYPE type,
-		WFT2_DeviceResultsF& z,
-		int iNumStreams = 1);
+	WFT2_CUDAF(int iWidth, int iHeight,
+			   WFT_TYPE type,
+			   WFT2_DeviceResultsF& z,
+			   int iNumStreams = 1);
 
 	// Parameters are set by the input parameters
-	WFT2_CUDAF(
-		int iWidth, int iHeight,
-		WFT_TYPE type,
-		float rSigmaX, float rWxl, float rWxh, float rWxi,
-		float rSigmaY, float rWyl, float rWyh, float rWyi,
-		float rThr,
-		WFT2_DeviceResultsF &z,
-		int iNumStreams = 1);
+	WFT2_CUDAF(int iWidth, int iHeight,
+			   WFT_TYPE type,
+			   float rSigmaX, float rWxl, float rWxh, float rWxi,
+			   float rSigmaY, float rWyl, float rWyh, float rWyi,
+			   float rThr,
+			   WFT2_DeviceResultsF &z,
+			   int iNumStreams = 1);
 
 	~WFT2_CUDAF();
 
 	// Make this class a callable object (functor)
-	void operator() (
-		cufftComplex *d_f, 
-		WFT2_DeviceResultsF &d_z,
-		double &time);
+	void operator() (cufftComplex *d_f, 
+					 WFT2_DeviceResultsF &d_z,
+					 double &time);
 
 private:
 	/* Initilaize the WFT2 algorithm 

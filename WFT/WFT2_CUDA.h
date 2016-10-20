@@ -17,29 +17,26 @@ public:
 	WFT2_CUDA &operator=(const WFT2_CUDA&) = delete;
 
 	// Default parameters are used based on the WFT_TYPE
-	WFT2_CUDA(
-		int iWidth, int iHeight,
-		WFT_TYPE type,
-		WFT2_DeviceResults& z,
-		int iNumStreams = 1);
+	WFT2_CUDA(int iWidth, int iHeight,
+			  WFT_TYPE type,
+			  WFT2_DeviceResults& z,
+			  int iNumStreams = 1);
 
 	// Parameters are set by the input parameters
-	WFT2_CUDA(
-		int iWidth, int iHeight,
-		WFT_TYPE type,
-		double rSigmaX, double rWxl, double rWxh, double rWxi,
-		double rSigmaY, double rWyl, double rWyh, double rWyi,
-		double rThr,
-		WFT2_DeviceResults &z,
-		int iNumStreams = 1);
+	WFT2_CUDA(int iWidth, int iHeight,
+	  		  WFT_TYPE type,
+			  double rSigmaX, double rWxl, double rWxh, double rWxi,
+			  double rSigmaY, double rWyl, double rWyh, double rWyi,
+			  double rThr,
+			  WFT2_DeviceResults &z,
+			  int iNumStreams = 1);
 
 	~WFT2_CUDA();
 
 	// Make this class a callable object (functor)
-	void operator() (
-		cufftDoubleComplex *d_f, 
-		WFT2_DeviceResults &d_z,
-		double &time);
+	void operator() (cufftDoubleComplex *d_f, 
+				     WFT2_DeviceResults &d_z,
+					 double &time);
 
 private:
 	/* Initilaize the WFT2 algorithm 

@@ -11,10 +11,9 @@
 namespace WFT_FPA{
 namespace WFT{
 
-WFT2_cpu::WFT2_cpu(
-	int iWidth, int iHeight,
-	WFT_TYPE type,
-	WFT2_HostResults &z,
+WFT2_cpu::WFT2_cpu(int iWidth, int iHeight,
+				   WFT_TYPE type,
+				   WFT2_HostResults &z,
 	int iNumberThreads)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
@@ -74,13 +73,12 @@ WFT2_cpu::WFT2_cpu(
 	}
 }
 
-WFT2_cpu::WFT2_cpu(
-	int iWidth, int iHeight,
-	WFT_TYPE type,
-	double rSigmaX,	double rWxl, double rWxh, double rWxi,
-	double rSigmaY, double rWyl, double rWyh, double rWyi,
-	double rThr,
-	WFT2_HostResults &z,
+WFT2_cpu::WFT2_cpu(int iWidth, int iHeight,
+				   WFT_TYPE type,
+				   double rSigmaX,	double rWxl, double rWxh, double rWxi,
+				   double rSigmaY, double rWyl, double rWyh, double rWyi,
+				   double rThr,
+				   WFT2_HostResults &z,
 	int iNumberThreads)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
@@ -177,10 +175,9 @@ WFT2_cpu::~WFT2_cpu()
 	fftw_free(im_Sf);			im_Sf = nullptr;
 }
 
-void WFT2_cpu::operator() (
-	fftw_complex *f, 
-	WFT2_HostResults &z,
-	double &time)
+void WFT2_cpu::operator() (fftw_complex *f, 
+						   WFT2_HostResults &z,
+						   double &time)
 {
 	if(WFT_FPA::WFT::WFT_TYPE::WFF == m_type)
 		WFF2(f, z, time);

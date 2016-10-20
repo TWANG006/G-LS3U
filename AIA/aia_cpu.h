@@ -28,34 +28,33 @@ public:
 		phi: calculated phi's
 		time: calculation time
 	*/
-	void operator() (
-		// Outputs
-		std::vector<double>& phi,
-		std::vector<double>& delta,
-		double &runningtime,
-		int &iters,
-		double &err,
-		// Inputs
-		const std::vector<cv::Mat>& f,
-		int iMaxIterations = 20,
-		double dMaxErr = 1e-4,
-		int iNumThreads = 1);
+	void operator() (// Outputs
+			 		 std::vector<double>& phi,
+					 std::vector<double>& delta,
+					 double &runningtime,
+					 int &iters,
+					 double &err,
+					 // Inputs
+					 const std::vector<cv::Mat>& f,
+					 int iMaxIterations = 20,
+					 double dMaxErr = 1e-4,
+					 int iNumThreads = 1);
 
 private:
-	void computePhi(
-		std::vector<double>& v_A, 
-		std::vector<double>& v_b_phi,
-		std::vector<double>& v_phi,
-		const std::vector<double>& v_deltas,
-		const std::vector<cv::Mat>& v_f);
-	void computeDelta(
-		std::vector<double>& v_A, 
-		std::vector<double>& v_b_delta,
-		std::vector<double>& v_deltas,
-		const std::vector<double>& v_phi,
-		const std::vector<cv::Mat>& v_f);
+	void computePhi(std::vector<double>& v_A, 
+					std::vector<double>& v_b_phi,
+					std::vector<double>& v_phi,
+					const std::vector<double>& v_deltas,
+					const std::vector<cv::Mat>& v_f);
 
-	double computeMaxError(const std::vector<double> &v_delta, const std::vector<double>& v_deltaOld);
+	void computeDelta(std::vector<double>& v_A,
+					  std::vector<double>& v_b_delta,
+					  std::vector<double>& v_deltas,
+					  const std::vector<double>& v_phi,
+					  const std::vector<cv::Mat>& v_f);
+
+	double computeMaxError(const std::vector<double> &v_delta, 
+						   const std::vector<double> &v_deltaOld);
 
 private:
 	int m_cols;

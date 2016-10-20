@@ -29,7 +29,9 @@ float warpReduceSum(float val) {
 	d_out_xf, d_out_yf: Generated meshgrid
   */
 __global__ 
-void gen_xf_yf_Kernel(cufftReal *d_out_xf, cufftReal *d_out_yf, int iWidth, int iHeight)
+void gen_xf_yf_Kernel(cufftReal *d_out_xf, 
+					  cufftReal *d_out_yf, 
+					  int iWidth, int iHeight)
 {
 	int i = threadIdx.y + blockIdx.y * blockDim.y;
 	int j = threadIdx.x + blockIdx.x * blockDim.x;
@@ -57,7 +59,9 @@ void gen_xf_yf_Kernel(cufftReal *d_out_xf, cufftReal *d_out_yf, int iWidth, int 
 
 */
 __global__ 
-void fftshift_xf_yf_kernel(cufftReal *d_out_xf, cufftReal *d_out_yf, int iWidth, int iHeight)
+void fftshift_xf_yf_kernel(cufftReal *d_out_xf, 
+						   cufftReal *d_out_yf,
+						   int iWidth, int iHeight)
 {
 	int i = threadIdx.y + blockIdx.y * blockDim.y;
 	int j = threadIdx.x + blockIdx.x * blockDim.x;
@@ -117,7 +121,10 @@ void fftshift_xf_yf_kernel(cufftReal *d_out_xf, cufftReal *d_out_yf, int iWidth,
 	d_out_fPadded: The padded d_f
 */
 __global__ 
-void feed_fPadded_kernel(cufftComplex *d_in_f, cufftComplex *d_out_fPadded, int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight)
+void feed_fPadded_kernel(cufftComplex *d_in_f, 
+						 cufftComplex *d_out_fPadded, 
+						 int iWidth, int iHeight, 
+						 int iPaddedWidth, int iPaddedHeight)
 {
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -149,7 +156,10 @@ void feed_fPadded_kernel(cufftComplex *d_in_f, cufftComplex *d_out_fPadded, int 
 	d_out_c: The result after multiplication
 */
 __global__
-void complex_pointwise_multiplication_kernel(cufftComplex *d_in_a, cufftComplex *d_in_b, int iSize, cufftComplex *d_out_c)
+void complex_pointwise_multiplication_kernel(cufftComplex *d_in_a, 
+											 cufftComplex *d_in_b, 
+											 int iSize, 
+											 cufftComplex *d_out_c)
 {
 	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
 		 i < iSize;
@@ -175,9 +185,14 @@ void complex_pointwise_multiplication_kernel(cufftComplex *d_in_a, cufftComplex 
 	d_out_Fg: Fg
 */
 __global__
-void compute_Fg_kernel(cufftReal *d_in_xf, cufftReal *d_in_yf, int iPaddedWidth, int iPaddedHeight, 
-					   int wxt, int wyt, float wxi, float wyi, float wxl, float wyl,
-					   float sigmax, float sigmay, float sn2, cufftComplex *d_out_Fg)
+void compute_Fg_kernel(cufftReal *d_in_xf, 
+					   cufftReal *d_in_yf, 
+					   int iPaddedWidth, int iPaddedHeight, 
+					   int wxt, int wyt, float wxi, 
+					   float wyi, float wxl, float wyl,
+					   float sigmax, float sigmay, 
+					   float sn2, 
+					   cufftComplex *d_out_Fg)
 {
 	cufftReal rwxt = wxl + cufftReal(wxt) * wxi;
 	cufftReal rwyt = wyl + cufftReal(wyt) * wyi;
@@ -234,7 +249,8 @@ void compute_WFF_threshold_kernel(cufftComplex *d_in, float *d_out, int size)
 	d_out_filtered:
 */
 __global__ 
-void init_WFF_matrices_kernel(cufftComplex *d_out_filtered, int iWidth, int iHeight)
+void init_WFF_matrices_kernel(cufftComplex *d_out_filtered, 
+							  int iWidth, int iHeight)
 {
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
@@ -258,7 +274,10 @@ void init_WFF_matrices_kernel(cufftComplex *d_out_filtered, int iWidth, int iHei
 	d_out_sf: sf after threshold
 */
 __global__
-void threshold_sf_kernel(cufftComplex *d_out_sf, int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight, float thr)
+void threshold_sf_kernel(cufftComplex *d_out_sf, 
+						 int iWidth, int iHeight, 
+						 int iPaddedWidth, int iPaddedHeight, 
+						 float thr)
 {
 	int x = threadIdx.x + blockDim.x * blockIdx.x;
 	int y = threadIdx.y + blockDim.y * blockIdx.y;
@@ -293,7 +312,10 @@ void threshold_sf_kernel(cufftComplex *d_out_sf, int iWidth, int iHeight, int iP
 	d_out_im_filtered: filtered image after of each stream
 */
 __global__
-void update_WFF_partial_filtered_kernel(cufftComplex *d_in_im_sf, int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight, cufftComplex *d_out_im_filtered)
+void update_WFF_partial_filtered_kernel(cufftComplex *d_in_im_sf,
+										int iWidth, int iHeight, 
+										int iPaddedWidth, int iPaddedHeight, 
+										cufftComplex *d_out_im_filtered)
 {
 	int x = threadIdx.x + blockDim.x * blockIdx.x;
 	int y = threadIdx.y + blockDim.y * blockIdx.y;
@@ -317,7 +339,9 @@ void update_WFF_partial_filtered_kernel(cufftComplex *d_in_im_sf, int iWidth, in
 	d_out_filtered: the final results
 */
 __global__
-void update_WFF_final_filtered_kernel(cufftComplex *d_in_im_filtered, int imgSize, cufftComplex *d_out_filtered)
+void update_WFF_final_filtered_kernel(cufftComplex *d_in_im_filtered, 
+									  int imgSize, 
+									  cufftComplex *d_out_filtered)
 {
 	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
 		 i < imgSize;
@@ -338,7 +362,9 @@ void update_WFF_final_filtered_kernel(cufftComplex *d_in_im_filtered, int imgSiz
 	d_out_filtered: scaled final results
 */
 __global__
-void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, int imgSize, float wxi, float wyi)
+void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, 
+									 int imgSize, 
+									 float wxi, float wyi)
 {
 	float factor = 0.25f * (1.0f / float(M_PI*M_PI)) * wxi * wyi;
 
@@ -364,7 +390,9 @@ void scale_WFF_final_filtered_kernel(cufftComplex *d_out_filtered, int imgSize, 
 	d_out_g
 */
 __global__
-void precompute_g_kernel(cufftReal *d_out_g, int iWinWidth, int iWinHeight, float sigmax, float sigmay)
+void precompute_g_kernel(cufftReal *d_out_g, 
+						 int iWinWidth, int iWinHeight, 
+						 float sigmax, float sigmay)
 {
 	int x = threadIdx.x + blockIdx.x * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -441,7 +469,11 @@ void precompute_normalized_g_kernel(float *d_in_norm2g, int iWinSize, cufftReal 
 	d_out_xg, d_out_yg: the constructed xg&yg
 */
 __global__
-void precompute_xg_yg_kernel(cufftReal *d_in_g, int iWinWidth, int iWinHeight, int iPaddedWidth, int iPaddedHeight, cufftComplex *d_out_xg, cufftComplex *d_out_yg)
+void precompute_xg_yg_kernel(cufftReal *d_in_g,
+							 int iWinWidth, int iWinHeight, 
+							 int iPaddedWidth, int iPaddedHeight, 
+							 cufftComplex *d_out_xg, 
+							 cufftComplex *d_out_yg)
 {
 	int x = threadIdx.x + blockDim.x * blockIdx.x;
 	int y = threadIdx.y + blockDim.y * blockIdx.y;
@@ -482,7 +514,12 @@ void precompute_xg_yg_kernel(cufftReal *d_in_g, int iWinWidth, int iWinHeight, i
 	d_out_sumxxg, d_out_sumyyg: sum of x.*x.*g & y.*y.*g	
 */
 __global__
-void precompute_sum_xxg_yyg_kernel(cufftComplex *d_in_xg, cufftComplex *d_in_yg, int iWinWidth, int iWinHeight, int iPaddedWidth, int iPaddedHeight, float *d_out_sumxxg, float *d_out_sumyyg)
+void precompute_sum_xxg_yyg_kernel(cufftComplex *d_in_xg, 
+								   cufftComplex *d_in_yg, 
+								   int iWinWidth, int iWinHeight, 
+								   int iPaddedWidth, int iPaddedHeight,
+								   float *d_out_sumxxg, 
+								   float *d_out_sumyyg)
 {
 	float sumxxg = float(0);
 	float sumyyg = float(0);
@@ -522,9 +559,15 @@ void precompute_sum_xxg_yyg_kernel(cufftComplex *d_in_xg, cufftComplex *d_in_yg,
 	d_out_wx, d_out_wy, d_out_phase, d_out_phase_comp, d_out_r, d_out_b, d_out_cxx, d_out_cyy: to be initialized 
 */
 __global__
-void initialize_WFR_final_results_kernel(
-	int iImgSize,
-	cufftReal* d_out_wx, cufftReal* d_out_wy, cufftReal* d_out_phase, cufftReal* d_out_phase_comp, cufftReal* d_out_r, cufftReal* d_out_b, cufftReal* d_out_cxx, cufftReal* d_out_cyy)
+void initialize_WFR_final_results_kernel(int iImgSize,
+										 cufftReal* d_out_wx, 
+										 cufftReal* d_out_wy,
+										 cufftReal* d_out_phase,
+										 cufftReal* d_out_phase_comp,
+										 cufftReal* d_out_r,
+										 cufftReal* d_out_b, 
+										 cufftReal* d_out_cxx,
+										 cufftReal* d_out_cyy)
 {
 	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
 		 i < iImgSize;
@@ -549,9 +592,11 @@ void initialize_WFR_final_results_kernel(
 	d_out_im_wx, d_out_im_wy, d_out_im_p, d_out_im_r: to be initialized
 */
 __global__
-void initialize_WFR_im_results_kernel(
-	int iImgSize,
-	cufftReal* d_out_im_wx, cufftReal* d_out_im_wy, cufftReal* d_out_im_p, cufftReal* d_out_im_r)
+void initialize_WFR_im_results_kernel(int iImgSize,
+									  cufftReal* d_out_im_wx, 
+									  cufftReal* d_out_im_wy, 
+									  cufftReal* d_out_im_p, 
+									  cufftReal* d_out_im_r)
 {
 	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
 		 i < iImgSize;
@@ -576,11 +621,15 @@ void initialize_WFR_im_results_kernel(
 	d_out_r, d_out_wx, d_out_wy, d_out_p: updated
 */
 __global__
-void update_r_wx_wy_p_kernel(
-	cufftComplex *d_in_sf,
-	int wxt, float wxl, float wxi, int wyt, float wyl, float wyi, 
-	int iPaddedWidth, int iPaddedHeight, int iImgWidth, int iImgHeight,
-	cufftReal* d_out_r, cufftReal* d_out_wx, cufftReal* d_out_wy, cufftReal* d_out_p)
+void update_r_wx_wy_p_kernel(cufftComplex *d_in_sf,
+							 int wxt, float wxl, float wxi, 
+							 int wyt, float wyl, float wyi, 
+							 int iPaddedWidth, int iPaddedHeight, 
+							 int iImgWidth, int iImgHeight,
+							 cufftReal* d_out_r, 
+							 cufftReal* d_out_wx, 
+							 cufftReal* d_out_wy, 
+							 cufftReal* d_out_p)
 {
 	float rwxt = wxl + float(wxt) * wxi;
 	float rwyt = wyl + float(wyt) * wyi;
@@ -614,10 +663,15 @@ void update_r_wx_wy_p_kernel(
 	d_out_r, d_out_wx, d_out_wy, d_out_p: final results
 */
 __global__
-void update_final_r_wx_wy_p_kernel( 
-	cufftReal* d_in_r, cufftReal* d_in_wx, cufftReal* d_in_wy, cufftReal* d_in_p,
-	int iImgSize,
-	cufftReal* d_out_r, cufftReal* d_out_wx, cufftReal* d_out_wy, cufftReal* d_out_p)
+void update_final_r_wx_wy_p_kernel(cufftReal* d_in_r, 
+								   cufftReal* d_in_wx, 
+								   cufftReal* d_in_wy, 
+								   cufftReal* d_in_p,
+								   int iImgSize,
+								   cufftReal* d_out_r, 
+								   cufftReal* d_out_wx, 
+								   cufftReal* d_out_wy, 
+								   cufftReal* d_out_p)
 {
 	for (int i = threadIdx.x + blockDim.x * blockIdx.x;
 		 i < iImgSize;
@@ -643,9 +697,12 @@ void update_final_r_wx_wy_p_kernel(
 	d_out_cxx, d_out_cyy: padded cxx&cyy
 */
 __global__
-void feed_cxx_cyy_kernel(
-	cufftReal* d_in_wx, cufftReal* d_in_wy, int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight,
-	cufftComplex *d_out_cxx, cufftComplex *d_out_cyy)
+void feed_cxx_cyy_kernel(cufftReal* d_in_wx,
+						 cufftReal* d_in_wy, 
+						 int iWidth, int iHeight, 
+						 int iPaddedWidth, int iPaddedHeight,
+						 cufftComplex *d_out_cxx, 
+						 cufftComplex *d_out_cyy)
 {
 	int x = threadIdx.x + blockDim.x * blockIdx.x;
 	int y = threadIdx.y + blockDim.y * blockIdx.y;
@@ -679,10 +736,13 @@ void feed_cxx_cyy_kernel(
 	d_out_c1, d_out_c2: The results after multiplication
 */
 __global__
-void complex_pointwise_multiplication_2d_kernel(
-	cufftComplex *d_in_a1, cufftComplex *d_in_b1, cufftComplex *d_in_a2, cufftComplex *d_in_b2,
-	int iSize, 
-	cufftComplex *d_out_c1, cufftComplex *d_out_c2)
+void complex_pointwise_multiplication_2d_kernel(cufftComplex *d_in_a1, 
+												cufftComplex *d_in_b1, 
+												cufftComplex *d_in_a2, 
+												cufftComplex *d_in_b2,
+												int iSize, 
+												cufftComplex *d_out_c1, 
+												cufftComplex *d_out_c2)
 {
 	for (int i = threadIdx.x + blockIdx.x*blockDim.x;
 		 i < iSize;
@@ -703,10 +763,19 @@ void complex_pointwise_multiplication_2d_kernel(
 	d_out_cxx, d_out_cyy, d_out_phase_comp, d_out_b: results 
 */
 __global__
-void update_final_cxx_cyy_phaseComp_b_kernel(
-	cufftComplex* d_in_cxx, cufftComplex* d_in_cyy, cufftReal* d_in_r, cufftReal* d_in_p,
-	int iWidth, int iHeight, int iPaddedWidth, int iPaddedHeight, float sumxxg, float sumyyg, float sigmax, float sigmay, int sx, int sy,
-	cufftReal* d_out_cxx, cufftReal* d_out_cyy, cufftReal* d_out_phase_comp, cufftReal* d_out_b)
+void update_final_cxx_cyy_phaseComp_b_kernel(cufftComplex* d_in_cxx,
+											 cufftComplex* d_in_cyy, 
+											 cufftReal* d_in_r, 
+											 cufftReal* d_in_p,
+											 int iWidth, int iHeight,
+											 int iPaddedWidth, int iPaddedHeight, 
+											 float sumxxg, float sumyyg, 
+											 float sigmax, float sigmay, 
+											 int sx, int sy,
+											 cufftReal* d_out_cxx, 
+											 cufftReal* d_out_cyy, 
+											 cufftReal* d_out_phase_comp, 
+											 cufftReal* d_out_b)
 {
 	int x = threadIdx.x + blockDim.x * blockIdx.x;
 	int y = threadIdx.y + blockDim.y * blockIdx.y;
@@ -746,11 +815,10 @@ void update_final_cxx_cyy_phaseComp_b_kernel(
 
 
 /*--------------------------------------------------WFT2 Implementations-----------------------------------------------*/
-WFT2_CUDAF::WFT2_CUDAF(
-	int iWidth, int iHeight,
-	WFT_TYPE type,
-	WFT2_DeviceResultsF& z,
-	int iNumStreams)
+WFT2_CUDAF::WFT2_CUDAF(int iWidth, int iHeight,
+					   WFT_TYPE type,
+					   WFT2_DeviceResultsF& z,
+					   int iNumStreams)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
 	, m_type(type)
@@ -821,14 +889,13 @@ WFT2_CUDAF::WFT2_CUDAF(
 	}
 }
 
-WFT2_CUDAF::WFT2_CUDAF(
-	int iWidth, int iHeight,
-	WFT_TYPE type,
-	float rSigmaX, float rWxl, float rWxh, float rWxi,
-	float rSigmaY, float rWyl, float rWyh, float rWyi,
-	float rThr,
-	WFT2_DeviceResultsF &z,
-	int iNumStreams)
+WFT2_CUDAF::WFT2_CUDAF(int iWidth, int iHeight,
+					   WFT_TYPE type,
+					   float rSigmaX, float rWxl, float rWxh, float rWxi,
+					   float rSigmaY, float rWyl, float rWyh, float rWyi,
+					   float rThr,
+					   WFT2_DeviceResultsF &z,
+					   int iNumStreams)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
 	, m_type(type)
@@ -937,10 +1004,9 @@ WFT2_CUDAF::~WFT2_CUDAF()
 	}
 }
 
-void WFT2_CUDAF::operator()(
-	cufftComplex *d_f,
-	WFT2_DeviceResultsF &d_z,
-	double &time)
+void WFT2_CUDAF::operator()(cufftComplex *d_f,
+							WFT2_DeviceResultsF &d_z,
+							double &time)
 {
 	if (WFT_FPA::WFT::WFT_TYPE::WFF == m_type)
 		cuWFF2(d_f, d_z, time);

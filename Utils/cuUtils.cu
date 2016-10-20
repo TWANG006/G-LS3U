@@ -4,7 +4,9 @@ namespace WFT_FPA{
 namespace Utils{
 
 template<typename T>
-__global__ void initKernel(T * devPtr, const T val, const size_t nwords)
+__global__ void initKernel(T * devPtr, 
+						   const T val, 
+						   const size_t nwords)
 {
     int tidx = threadIdx.x + blockDim.x * blockIdx.x;
     int stride = blockDim.x * gridDim.x;
@@ -15,7 +17,9 @@ __global__ void initKernel(T * devPtr, const T val, const size_t nwords)
 
 
 template<typename T>
-void cuInitialize(T* devPtr, const T val, const size_t nwords)
+void cuInitialize(T* devPtr, 
+				  const T val, 
+				  const size_t nwords)
 {
 	initKernel<T><<<256, 64>>>(devPtr, val, nwords);
 }

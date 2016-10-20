@@ -21,29 +21,26 @@ public:
 	WFT2_cpu &operator=(const WFT2_cpu&) = delete;
 
 	// Default parameters are used based on the WFT_TYPE
-	WFT2_cpu(
-		int iWidth, int iHeight,
-		WFT_TYPE type,
-		WFT2_HostResults &z, 
-		int iNumberThreads = 1);
+	WFT2_cpu(int iWidth, int iHeight,
+			 WFT_TYPE type,
+			 WFT2_HostResults &z, 
+			 int iNumberThreads = 1);
 
 	// Parameters are set by the input parameters
-	WFT2_cpu(
-		int iWidth, int iHeight,
-		WFT_TYPE type,
-		double rSigmaX, double rWxl, double rWxh, double rWxi,
-		double rSigmaY, double rWyl, double rWyh, double rWyi,
-		double rThr,
-		WFT2_HostResults &z,
-		int iNumberThreads = 1);
+	WFT2_cpu(int iWidth, int iHeight,
+			 WFT_TYPE type,
+			 double rSigmaX, double rWxl, double rWxh, double rWxi,
+			 double rSigmaY, double rWyl, double rWyh, double rWyi,
+			 double rThr,
+			 WFT2_HostResults &z,
+			 int iNumberThreads = 1);
 
 	~WFT2_cpu();
 
 	// Make this class a callable object (functor)
-	void operator() (
-		fftw_complex *f, 
-		WFT2_HostResults &z,
-		double &time);
+	void operator() (fftw_complex *f, 
+					 WFT2_HostResults &z,
+					 double &time);
 
 private:
 	/* Initilaize the WFT2 algorithm 

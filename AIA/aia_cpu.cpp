@@ -13,18 +13,17 @@ namespace AIA{
 AIA_CPU_Dn::~AIA_CPU_Dn()
 {}
 
-void AIA_CPU_Dn::operator()(
-	// Outputs
-	std::vector<double>& v_phi,
-	std::vector<double>& v_deltas,
-	double &runningtime,
-	int &iIters,
-	double &dErr,
-	// Inputs
-	const std::vector<cv::Mat>& v_f,
-	int iMaxIterations,
-	double dMaxErr,
-	int iNumThreads)
+void AIA_CPU_Dn::operator()(// Outputs
+							std::vector<double>& v_phi,
+							std::vector<double>& v_deltas,
+							double &runningtime,
+							int &iIters,
+							double &dErr,
+							// Inputs
+							const std::vector<cv::Mat>& v_f,
+							int iMaxIterations,
+							double dMaxErr,
+							int iNumThreads)
 {
 	omp_set_num_threads(iNumThreads);
 
@@ -100,12 +99,11 @@ void AIA_CPU_Dn::operator()(
 	}
 }
 
-void AIA_CPU_Dn::computePhi(
-	std::vector<double>& v_A, 
-	std::vector<double>& v_b_phi,
-	std::vector<double>& v_phi,
-	const std::vector<double>& v_deltas,
-	const std::vector<cv::Mat>& v_f)
+void AIA_CPU_Dn::computePhi(std::vector<double>& v_A, 
+							std::vector<double>& v_b_phi,
+							std::vector<double>& v_phi,
+							const std::vector<double>& v_deltas,
+							const std::vector<cv::Mat>& v_f)
 {
 	/* pixel-by-pixel iterations */
 
@@ -171,12 +169,11 @@ void AIA_CPU_Dn::computePhi(
 	}
 }
 
-void AIA_CPU_Dn::computeDelta(
-	std::vector<double>& v_A,
-	std::vector<double>& v_b_delta,
-	std::vector<double>& v_deltas,
-	const std::vector<double>& v_phi,
-	const std::vector<cv::Mat>& v_f)
+void AIA_CPU_Dn::computeDelta(std::vector<double>& v_A,
+						 	  std::vector<double>& v_b_delta,
+							  std::vector<double>& v_deltas,
+							  const std::vector<double>& v_phi,
+							  const std::vector<cv::Mat>& v_f)
 {
 	/* Frame-by-frame iterations */
 	/* Construct m_v_A only once and use accross multiple RHS vectors m_v_b */
@@ -249,7 +246,8 @@ void AIA_CPU_Dn::computeDelta(
 	}
 }
 
-double AIA_CPU_Dn::computeMaxError(const std::vector<double> &v_delta, const std::vector<double>& v_deltaOld)
+double AIA_CPU_Dn::computeMaxError(const std::vector<double> &v_delta,
+								   const std::vector<double> &v_deltaOld)
 {
 	std::vector<double> v_abs;
 

@@ -12,18 +12,17 @@ namespace AIA{
 AIA_CPU_DnF::~AIA_CPU_DnF()
 {}
 
-void AIA_CPU_DnF::operator()(
-	// Outputs
-	std::vector<float>& v_phi,
-	std::vector<float>& v_deltas,
-	double &runningtime,
-	int &iIters,
-	float &dErr,
-	// Inputs
-	const std::vector<cv::Mat>& v_f,
-	int iMaxIterations,
-	float dMaxErr,
-	int iNumThreads)
+void AIA_CPU_DnF::operator()(// Outputs
+							 std::vector<float>& v_phi,
+							 std::vector<float>& v_deltas,
+							 double &runningtime,
+							 int &iIters,
+							 float &dErr,
+							 // Inputs
+							 const std::vector<cv::Mat>& v_f,
+							 int iMaxIterations,
+							 float dMaxErr,
+							 int iNumThreads)
 {
 	omp_set_num_threads(iNumThreads);
 
@@ -99,12 +98,11 @@ void AIA_CPU_DnF::operator()(
 	}
 }
 
-void AIA_CPU_DnF::computePhi(
-	std::vector<float>& v_A, 
-	std::vector<float>& v_b_phi,
-	std::vector<float>& v_phi,
-	const std::vector<float>& v_deltas,
-	const std::vector<cv::Mat>& v_f)
+void AIA_CPU_DnF::computePhi(std::vector<float>& v_A, 
+						 	 std::vector<float>& v_b_phi,
+							 std::vector<float>& v_phi,
+							 const std::vector<float>& v_deltas,
+							 const std::vector<cv::Mat>& v_f)
 {
 	/* pixel-by-pixel iterations */
 
@@ -163,12 +161,11 @@ void AIA_CPU_DnF::computePhi(
 	}
 }
 
-void AIA_CPU_DnF::computeDelta(
-	std::vector<float>& v_A,
-	std::vector<float>& v_b_delta,
-	std::vector<float>& v_deltas,
-	const std::vector<float>& v_phi,
-	const std::vector<cv::Mat>& v_f)
+void AIA_CPU_DnF::computeDelta(std::vector<float>& v_A,
+							   std::vector<float>& v_b_delta,
+							   std::vector<float>& v_deltas,
+							   const std::vector<float>& v_phi,
+							   const std::vector<cv::Mat>& v_f)
 {
 	/* Frame-by-frame iterations */
 	/* Construct m_v_A only once and use accross multiple RHS vectors m_v_b */
@@ -233,7 +230,8 @@ void AIA_CPU_DnF::computeDelta(
 	}
 }
 
-float AIA_CPU_DnF::computeMaxError(const std::vector<float> &v_delta, const std::vector<float>& v_deltaOld)
+float AIA_CPU_DnF::computeMaxError(const std::vector<float> &v_delta, 
+								   const std::vector<float>& v_deltaOld)
 {
 	std::vector<float> v_abs;
 

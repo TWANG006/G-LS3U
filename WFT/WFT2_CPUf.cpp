@@ -10,11 +10,10 @@
 namespace WFT_FPA{
 namespace WFT{
 
-WFT2_cpuF::WFT2_cpuF(
-	int iWidth, int iHeight,
-	WFT_TYPE type,
-	WFT2_HostResultsF &z,
-	int iNumberThreads)
+WFT2_cpuF::WFT2_cpuF(int iWidth, int iHeight,
+					 WFT_TYPE type,
+					 WFT2_HostResultsF &z,
+					 int iNumberThreads)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
 	, m_type(type)
@@ -73,14 +72,13 @@ WFT2_cpuF::WFT2_cpuF(
 	}
 }
 
-WFT2_cpuF::WFT2_cpuF(
-	int iWidth, int iHeight,
-	WFT_TYPE type,
-	float rSigmaX, float rWxl, float rWxh, float rWxi,
-	float rSigmaY, float rWyl, float rWyh, float rWyi,
-	float rThr,
-	WFT2_HostResultsF &z,
-	int iNumberThreads)
+WFT2_cpuF::WFT2_cpuF(int iWidth, int iHeight,
+					 WFT_TYPE type,
+					 float rSigmaX, float rWxl, float rWxh, float rWxi,
+					 float rSigmaY, float rWyl, float rWyh, float rWyi,
+					 float rThr,
+					 WFT2_HostResultsF &z,
+					 int iNumberThreads)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
 	, m_type(type)
@@ -176,10 +174,9 @@ WFT2_cpuF::~WFT2_cpuF()
 	fftwf_free(im_Sf);			im_Sf = nullptr;
 }
 
-void WFT2_cpuF::operator() (
-	fftwf_complex *f, 
-	WFT2_HostResultsF &z,
-	double &time)
+void WFT2_cpuF::operator() (fftwf_complex *f, 
+							WFT2_HostResultsF &z,
+							double &time)
 {
 	if(WFT_FPA::WFT::WFT_TYPE::WFF == m_type)
 		WFF2(f, z, time);

@@ -49,7 +49,6 @@ private:
 
 	// CUDA sparse solver
 	cusolverSpHandle_t m_cuSolverHandle;
-	cudaStream_t m_stream;
 	cusparseMatDescr_t m_desrA;
 
 	// CSR format for cuSolver

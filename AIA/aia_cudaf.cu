@@ -66,12 +66,13 @@ void generate_csrColIndA1_csrRowPtrA1_kernel(int* d_out_csrColIndA1,
 		 i < N;
 		 i += blockDim.x * gridDim.x)
 	{
-		int a1 = i * 3;
+		int a1 = i * 9;
 		
 		d_out_csrRowPtrA1[i * 3 + 0] = a1;
 		d_out_csrRowPtrA1[i * 3 + 1] = a1 + 3;
 		d_out_csrRowPtrA1[i * 3 + 2] = a1 + 6;
 
+		a1 = i * 3;
 		int a2 = a1 + 1;
 		int a3 = a1 + 2;
 
@@ -132,8 +133,6 @@ AIA_CUDAF::AIA_CUDAF(const std::vector<cv::Mat>& v_f)
 
 	// Create cuSolver required handles
 	checkCudaErrors(cusolverSpCreate(&m_cuSolverHandle));
-	checkCudaErrors(cudaStreamCreate(&m_stream));
-	checkCudaErrors(cusolverSpSetStream(m_cuSolverHandle, m_stream));
 	checkCudaErrors(cusparseCreateMatDescr(&m_desrA));
 	checkCudaErrors(cusparseSetMatType(m_desrA, CUSPARSE_MATRIX_TYPE_GENERAL));
 	checkCudaErrors(cusparseSetMatIndexBase(m_desrA, CUSPARSE_INDEX_BASE_ZERO));
@@ -169,8 +168,6 @@ AIA_CUDAF::AIA_CUDAF(const int iM,
 
 	// Create cuSolver required handles
 	checkCudaErrors(cusolverSpCreate(&m_cuSolverHandle));
-	checkCudaErrors(cudaStreamCreate(&m_stream));
-	checkCudaErrors(cusolverSpSetStream(m_cuSolverHandle, m_stream));
 	checkCudaErrors(cusparseCreateMatDescr(&m_desrA));
 	checkCudaErrors(cusparseSetMatType(m_desrA, CUSPARSE_MATRIX_TYPE_GENERAL));
 	checkCudaErrors(cusparseSetMatIndexBase(m_desrA, CUSPARSE_INDEX_BASE_ZERO));
@@ -179,7 +176,6 @@ AIA_CUDAF::AIA_CUDAF(const int iM,
 AIA_CUDAF::~AIA_CUDAF()
 {
 	checkCudaErrors(cusolverSpDestroy(m_cuSolverHandle));
-	checkCudaErrors(cudaStreamDestroy(m_stream));
 	checkCudaErrors(cusparseDestroyMatDescr(m_desrA));
 
 	WFT_FPA::Utils::cudestroyptr(m_h_A2);
@@ -232,7 +228,7 @@ void AIA_CUDAF::operator() (//Outputs
 			m_h_delta[i] = v_deltas[i];
 		}
 	}
-
+	cudaMemcpyAsync(m_d_delta, m_h_delta, sizeof(float)*m_M, cudaMemcpyHostToDevice);
 	// Copy the images to device
 	for (int i = 0; i < m_M; i++)
 	{
@@ -246,6 +242,9 @@ void AIA_CUDAF::operator() (//Outputs
 
 
 
+	// Load the new deltas
+	checkCudaErrors(cudaMemcpyAsync(m_d_delta, m_h_delta, sizeof(float)*m_M, cudaMemcpyHostToDevice));
+
 	// Generate csrValA & RHS
 	generate_csrValA1_rhs1_kernel<<<8*32, 256>>>(m_d_csrValA1, m_d_b1, m_d_img, m_d_delta, m_M, m_N);
 	getLastCudaError("generate_csrValA1_rhs1_kernel launch failed!");
@@ -257,6 +256,31 @@ void AIA_CUDAF::operator() (//Outputs
 	checkCudaErrors(cudaMemcpy(csrValA, m_d_csrValA1, sizeof(float) * 9 * m_N, cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(csrColIndA, m_d_csrColIndA1, sizeof(int) * 9 * m_N, cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(csrRowPtrA, m_d_csrRowPtrA1, sizeof(int) *(3 * m_N + 1), cudaMemcpyDeviceToHost));
+
+
+
+	/*for(int i=0; i<m_N; i++)
+	{
+		for(int j=0; j<9; j++)
+		{
+			std::cout<<csrColIndA[i * 9 + j]<<",";
+		}
+		for(int j=0; j<3; j++)
+		{
+			std::cout<<csrRowPtrA[i * 3 + j]<<",";
+		}
+		std::cout << "\n";
+	}*/
+
+	for(int i=0; i<3; i++)
+	{
+		for(int j=0;j<3;j++)
+		{
+			std::cout<<csrValA[i*3+j]<<",";
+		}
+		std::cout << std::endl;
+	}
+
 	int issym = 0;
 	checkCudaErrors(cusolverSpXcsrissymHost(m_cuSolverHandle, 3 * m_N, 9 * m_N, m_desrA, csrRowPtrA, csrRowPtrA + 1, csrColIndA, &issym));
 
@@ -271,23 +295,23 @@ void AIA_CUDAF::operator() (//Outputs
 	free(csrColIndA);
 
 	/* Begin the real algorithm */
-	//while (err > dMaxErr && iters < iMaxIterations)
-	//{
-	//	for(int i=0; i<m_M; i++)
-	//	{
-	//		m_h_old_delta[i] = m_h_delta[i];
-	//	}
+	while (err > dMaxErr && iters < iMaxIterations)
+	{
+		for(int i=0; i<m_M; i++)
+		{
+			m_h_old_delta[i] = m_h_delta[i];
+		}
 
-	//	// Step 1: pixel-by-pixel iterations
-	//	computePhi();
+		// Step 1: pixel-by-pixel iterations
+		computePhi();
 
-	//	// Step 2: frame-by-frame iterations
-	//	computeDelta();
+		// Step 2: frame-by-frame iterations
+		computeDelta();
 
-	//	// Step 3: update & check convergence criterion
-	//	iters++;
-	//	err = computeMaxError(m_h_delta, m_h_old_delta, m_M);
-	//}
+		// Step 3: update & check convergence criterion
+		iters++;
+		err = computeMaxError(m_h_delta, m_h_old_delta, m_M);
+	}
 
 }
 

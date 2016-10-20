@@ -29,8 +29,8 @@ public:
 		time: calculation time
 	*/
 	void operator() (// Outputs
-			 		 std::vector<double>& phi,
-					 std::vector<double>& delta,
+			 		 std::vector<double>& v_phi,
+					 std::vector<double>& v_deltas,
 					 double &runningtime,
 					 int &iters,
 					 double &err,

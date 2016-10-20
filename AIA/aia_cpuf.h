@@ -7,6 +7,11 @@
 
 namespace AIA{
 
+/*
+ PURPOSE:
+	Implementation of the AIA using dense matrix solver, i.e,
+	construct A once and solve for multiple b's on the RHS
+*/
 class WFT_FPA_DLL_EXPORTS AIA_CPU_DnF
 {
 public:
@@ -29,13 +34,13 @@ public:
 		time: calculation time
 	*/
 	void operator() (// Outputs
-			 		 std::vector<float>& phi,
-					 std::vector<float>& delta,
+			 		 std::vector<float>& v_phi,
+					 std::vector<float>& v_deltas,
 					 double &runningtime,
 					 int &iters,
 					 float &err,
 					 // Inputs
-					 const std::vector<cv::Mat>& f,
+					 const std::vector<cv::Mat>& v_f,
 					 int iMaxIterations = 20,
 					 float dMaxErr = 1e-4,
 					 int iNumThreads = 1);

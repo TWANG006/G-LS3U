@@ -13,12 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="CUDA Source">
+      <UniqueIdentifier>{c65337b4-9d9a-4475-8769-0aeb616e3c5d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aia_cpu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="aia_cpuf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aia_cudaf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -29,5 +35,10 @@
     <ClCompile Include="aia_cpuf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="aia_cudaf.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

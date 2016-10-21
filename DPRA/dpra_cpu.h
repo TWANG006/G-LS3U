@@ -7,6 +7,11 @@
 namespace WFT_FPA{
 namespace DPRA{
 
+class WFT_FPA_DLL_EXPORTS DPRA_CPU
+{
+public:
+
+};
 }
 }
 

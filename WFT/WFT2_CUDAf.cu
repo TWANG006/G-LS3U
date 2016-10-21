@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -1348,6 +1349,46 @@ int WFT2_CUDAF::cuWFT2_Initialize(WFT2_DeviceResultsF &d_z)
 		// Generate xf, yf
 		gen_xf_yf_Kernel<<<blocks, threads>>>(m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight);
 		getLastCudaError("gen_xf_yf_Kernel Launch Failed!");
+
+
+
+
+		cufftReal *h_xf = (cufftReal*)malloc(sizeof(cufftReal)*m_iPaddedWidth * m_iPaddedHeight);
+		cufftReal *h_yf = (cufftReal*)malloc(sizeof(cufftReal)*m_iPaddedWidth * m_iPaddedHeight);
+
+		checkCudaErrors(cudaMemcpy(h_xf, m_d_xf, sizeof(cufftReal) * m_iPaddedWidth * m_iPaddedHeight, cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaMemcpy(h_yf, m_d_yf, sizeof(cufftReal) * m_iPaddedWidth * m_iPaddedHeight, cudaMemcpyDeviceToHost));
+
+
+		std::ofstream out("x.csv", std::ios::out | std::ios::trunc);
+
+		for (int i = 0; i < m_iPaddedHeight; i++)
+		{
+			for (int j = 0; j < m_iPaddedWidth; j++)
+			{
+				out << h_xf[i * m_iPaddedWidth + j] << ",";
+			}
+			out << "\n";
+		}
+		out.close();
+
+		out.open("y.csv", std::ios::out | std::ios::trunc);
+
+		for (int i = 0; i < m_iPaddedHeight; i++)
+		{
+			for (int j = 0; j < m_iPaddedWidth; j++)
+			{
+				out << h_yf[i * m_iPaddedWidth + j] << ",";
+			}
+			out << "\n";
+		}
+		out.close();
+
+		free(h_xf);
+		free(h_yf);
+
+
+
 		// Shift xf, yf to match the FFT's results
 		fftshift_xf_yf_kernel<<<blocks, threads>>>(m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight);
 		getLastCudaError("fftshift_xf_yf_kernel Launch Failed!");

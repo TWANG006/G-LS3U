@@ -11,7 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="dpra_cpu.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dpra_cpu.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{72C53508-FAEC-41A9-B651-B47872EC619D}</ProjectGuid>
@@ -66,13 +69,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS_MODE;_DEBUG;_WINDOWS;_USRDLL;DPRA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(ProjectDir)..\AIA;$(ProjectDir)..\WFT;$(ProjectDir)..\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310d.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world310d.lib;%(AdditionalDependencies);cudart.lib;cufft.lib;cusolver.lib;cusparse.lib</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)\lib\$(Platform)\$(TargetName).lib</ImportLibrary>
     </Link>
     <CudaCompile>
@@ -90,15 +93,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WFT_FPA_DLL_EXPORTS;NDEBUG;_WINDOWS;_USRDLL;DPRA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(ProjectDir)..\AIA;$(ProjectDir)..\WFT;$(ProjectDir)..\Utils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world310.lib;%(AdditionalDependencies);cudart.lib;cufft.lib;cudart.lib;cusolver.lib;cusparse.lib</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)\lib\$(Platform)\$(TargetName).lib</ImportLibrary>
     </Link>
     <CudaCompile>

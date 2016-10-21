@@ -40,4 +40,14 @@ TEST(AIA_GPU_3_Frames_Single, AIA_GPU_Test)
 
 	AIA::AIA_CUDAF aia(f);
 	aia(phi, delta, time, iter, err, f, 20, 1e-4, 6);
+
+
+	
+
+	std::cout << "Running Time: " << time << std::endl;
+	std::cout << "Error is: " << err << std::endl;
+	std::cout << "Iteration is: " << iter << std::endl;
+
+	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << std::endl;
+	
 }

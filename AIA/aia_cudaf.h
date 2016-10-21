@@ -44,7 +44,7 @@ private:
 						  const float *v_deltaOld,
 						  int m);
 
-private:
+public:
 	uchar *m_d_img;			// Images in devcie mem space
 
 	// CUDA sparse solver
@@ -57,11 +57,14 @@ private:
 	int *m_d_csrRowPtrA1;
 	float *m_d_b1;
 	float *m_d_phi;
+	float *m_d_A2temp;		// Host-alloc
+	float *m_d_b2;
 
 	float *m_d_delta;
 	float *m_h_delta;		// Host-alloc
 	float *m_h_old_delta;	
-	float *m_h_A2;			// Host-alloc
+	float *m_h_A2temp;		// Host-alloc
+	std::vector<float> m_h_A2;
 	float *m_h_b2;			// Host-alloc
 
 	int m_cols;

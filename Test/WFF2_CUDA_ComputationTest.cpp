@@ -23,7 +23,7 @@ TEST(WFF2_CUDA_Computation_Single, WFF2_CUDA_Computation)
 	WFT_FPA::WFT::WFT2_CUDAF cuwft(
 		cols, rows,
 		WFT_FPA::WFT::WFT_TYPE::WFF,
-		20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15,
+		10, -0.2f, 0.2f, 0.1f, 10, -0.2f, 0.2f, 0.1f, 15,
 		z, 1);
 
 	double time = 0;

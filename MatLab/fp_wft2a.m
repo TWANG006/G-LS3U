@@ -82,7 +82,7 @@ sy=round(3*sigmay);
 %image size
 [m n]=size(f); 
 %expanded size: size(A)+size(B)-1
-mm=378; nn = 378;
+mm=m+2*sy; nn = n+2*sx;
 %expand f to size [mm nn]
 f=fexpand(f,mm,nn); 
 %pre-compute the spectrum of f; 

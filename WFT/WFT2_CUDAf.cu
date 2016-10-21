@@ -78,37 +78,32 @@ void fftshift_xf_yf_kernel(cufftReal *d_out_xf,
 
 	cufftReal Tempx, Tempy;
 
-	if (j < iHalfx)
+	if (j < iHalfx && i < iHalfy)
 	{
-		if(i < iHalfy)
-		{
-			Tempx = d_out_xf[id];
-			Tempy = d_out_yf[id];
+		Tempx = d_out_xf[id];
+		Tempy = d_out_yf[id];
 
-			// First Quadrant
-			d_out_xf[id] = d_out_xf[id + idQ13];
-			d_out_yf[id] = d_out_yf[id + idQ13];
+		// First Quadrant
+		d_out_xf[id] = d_out_xf[id + idQ13];
+		d_out_yf[id] = d_out_yf[id + idQ13];
 
-			// Third Quadrant
-			d_out_xf[id + idQ13] = Tempx;
-			d_out_yf[id + idQ13] = Tempy;
-		}
+		// Third Quadrant
+		d_out_xf[id + idQ13] = Tempx;
+		d_out_yf[id + idQ13] = Tempy;
 	}
-	else
+	else if (j >= iHalfx && j < iWidth && i < iHalfy)
 	{
-		if (i < iHalfy)
-		{
-			Tempx = d_out_xf[id];
-			Tempy = d_out_yf[id];
 
-			// Second Quadrant
-			d_out_xf[id] = d_out_xf[id + idQ24];
-			d_out_yf[id] = d_out_yf[id + idQ24];
+		Tempx = d_out_xf[id];
+		Tempy = d_out_yf[id];
 
-			// Fourth Quadrant
-			d_out_xf[id + idQ24] = Tempx;
-			d_out_yf[id + idQ24] = Tempy;
-		}
+		// Second Quadrant
+		d_out_xf[id] = d_out_xf[id + idQ24];
+		d_out_yf[id] = d_out_yf[id + idQ24];
+
+		// Fourth Quadrant
+		d_out_xf[id + idQ24] = Tempx;
+		d_out_yf[id + idQ24] = Tempy;		
 	}
 }
 /*
@@ -1349,45 +1344,6 @@ int WFT2_CUDAF::cuWFT2_Initialize(WFT2_DeviceResultsF &d_z)
 		// Generate xf, yf
 		gen_xf_yf_Kernel<<<blocks, threads>>>(m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight);
 		getLastCudaError("gen_xf_yf_Kernel Launch Failed!");
-
-
-
-
-		cufftReal *h_xf = (cufftReal*)malloc(sizeof(cufftReal)*m_iPaddedWidth * m_iPaddedHeight);
-		cufftReal *h_yf = (cufftReal*)malloc(sizeof(cufftReal)*m_iPaddedWidth * m_iPaddedHeight);
-
-		checkCudaErrors(cudaMemcpy(h_xf, m_d_xf, sizeof(cufftReal) * m_iPaddedWidth * m_iPaddedHeight, cudaMemcpyDeviceToHost));
-		checkCudaErrors(cudaMemcpy(h_yf, m_d_yf, sizeof(cufftReal) * m_iPaddedWidth * m_iPaddedHeight, cudaMemcpyDeviceToHost));
-
-
-		std::ofstream out("x.csv", std::ios::out | std::ios::trunc);
-
-		for (int i = 0; i < m_iPaddedHeight; i++)
-		{
-			for (int j = 0; j < m_iPaddedWidth; j++)
-			{
-				out << h_xf[i * m_iPaddedWidth + j] << ",";
-			}
-			out << "\n";
-		}
-		out.close();
-
-		out.open("y.csv", std::ios::out | std::ios::trunc);
-
-		for (int i = 0; i < m_iPaddedHeight; i++)
-		{
-			for (int j = 0; j < m_iPaddedWidth; j++)
-			{
-				out << h_yf[i * m_iPaddedWidth + j] << ",";
-			}
-			out << "\n";
-		}
-		out.close();
-
-		free(h_xf);
-		free(h_yf);
-
-
 
 		// Shift xf, yf to match the FFT's results
 		fftshift_xf_yf_kernel<<<blocks, threads>>>(m_d_xf, m_d_yf, m_iPaddedWidth, m_iPaddedHeight);

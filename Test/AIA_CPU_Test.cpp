@@ -1,11 +1,11 @@
-//#include <gtest\gtest.h>
-//
-//#include <vector>
-//
-//#include "aia_cpu.h"
-//#include "aia_cpuf.h"
-//#include "opencv2\opencv.hpp"
-//#include "opencv2\highgui.hpp"
+#include <gtest\gtest.h>
+
+#include <vector>
+
+#include "aia_cpu.h"
+#include "aia_cpuf.h"
+#include "opencv2\opencv.hpp"
+#include "opencv2\highgui.hpp"
 //
 //TEST(AIA_CPU_3_Frames_Double, AIA_CPU_Test)
 //{
@@ -93,3 +93,54 @@
 //	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << std::endl;
 //	
 //}
+
+TEST(AIA_CPU_4_Frames_Single, AIA_CPU_Test)
+{
+	std::vector<cv::Mat> f;
+
+	cv::Mat img = cv::imread("00.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("01.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("02.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("03.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+	
+
+	// computation
+	std::vector<float> phi;
+	std::vector<float> delta{  
+		  0.5055f,
+    0.8790f,
+    0.6663f,
+    0.3342f};
+	double time = 0;
+	float err = 0;
+	int iter = 0;
+
+	AIA::AIA_CPU_DnF aia;
+	aia(phi, delta, time, iter, err, f, 1000, 1e-4, 12);
+
+	std::cout << "Running Time: " << time << std::endl;
+	std::cout << "Error is: " << err << std::endl;
+	std::cout << "Iteration is: " << iter << std::endl;
+
+	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << "," << delta[3] << std::endl;
+	
+}

@@ -214,12 +214,11 @@ void DPRA_CPU::dpra_per_frame(const cv::Mat &f,
 				//LAPACKE_spotrs(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data(), 3, m_b.data(), 3);
 	
 				MKL_INT ipiv[3];
-				int info = LAPACKE_dsysv(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data(), 3, ipiv, m_b.data(), 3);
+				int info = LAPACKE_dsysv(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data() + id_A, 3, ipiv, m_b.data() + id_B, 3);
 				if (info > 0)
 				{
 					printf("The leading minor of order %i is not positive ", info);
 					printf("definite;\nThe solution could not be computed for %d and %d.\n", i, j);
-					return;
 				}
 				
 				// Update delta phi

@@ -27,9 +27,9 @@ public:
 	ireUpdateRate: how many frames would reference phase be updated
 	iNumThreads: number of CPU-threads used					*/
 	DPRA_CPUF(const float *v_Phi0, 
-			 const int iWidth, const int iHeight, 
-			 const int irefUpdateRate = 1,
-			 const int iNumThreads = 1);
+			  const int iWidth, const int iHeight, 
+			  const int irefUpdateRate = 1,
+			  const int iNumThreads = 1);
 	
 	~DPRA_CPUF();
 

@@ -20,7 +20,7 @@ DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 	, m_b(iNumThreads * 3, 0)
 	, m_WFT(WFT_FPA::WFT::WFT2_cpuF(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
 									20, -0.2f, 0.2f, 0.05f, 20, -0.2f, 0.2f, 0.05f, 10, 
-									m_z))
+									m_z, iNumThreads))
 	, m_dPhiWFT(nullptr)
 	/*, m_deltaPhi(iWidth*iHeight, 0)*/
 	//, m_deltaPhiRef(iWidth*iHeight, 0)

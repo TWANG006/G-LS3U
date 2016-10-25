@@ -49,7 +49,7 @@ TEST(dpra_single, DPRA_Test)
 
 	/* DPRA Results */
 	
-	DPRA::DPRA_CPUF dpra(phi.data(), f[0].cols, f[0].rows, 1, 1);
+	DPRA::DPRA_CPUF dpra(phi.data(), f[0].cols, f[0].rows, 1, 12);
 
 	std::vector<float> delta_phi(f[0].cols*f[0].rows,0);
 	double timeDpra = 0;
@@ -103,7 +103,7 @@ TEST(dpra_double, DPRA_Test)
 
 	/* DPRA Results */
 	
-	DPRA::DPRA_CPU dpra(phi.data(), f[0].cols, f[0].rows, 1, 1);
+	DPRA::DPRA_CPU dpra(phi.data(), f[0].cols, f[0].rows, 1, 12);
 
 	std::vector<double> delta_phi(f[0].cols*f[0].rows,0);
 	double timeDpra = 0;

@@ -12,9 +12,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dpra_cpu.cpp" />
+    <ClCompile Include="dpra_cpuf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dpra_cpu.h" />
+    <ClInclude Include="dpra_cpuf.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{72C53508-FAEC-41A9-B651-B47872EC619D}</ProjectGuid>

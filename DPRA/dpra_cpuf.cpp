@@ -1,4 +1,4 @@
-#include "dpra_cpu.h"
+#include "dpra_cpuf.h"
 
 #include <omp.h>
 #include <mkl.h>
@@ -7,7 +7,7 @@
 namespace WFT_FPA{
 namespace DPRA{
 
-DPRA_CPU::DPRA_CPU(const double *v_Phi0,
+DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 				   const int iWidth, const int iHeight,
 				   const int irefUpdateRate,
 				   const int iNumThreads)
@@ -19,8 +19,8 @@ DPRA_CPU::DPRA_CPU(const double *v_Phi0,
 	, m_PhiCurr(iWidth*iHeight, 0)
 	, m_A(iNumThreads * 9, 0)
 	, m_b(iNumThreads * 3, 0)
-	, m_WFT(WFT::WFT2_cpu(iWidth, iHeight, WFT::WFT_TYPE::WFF, 
-						  20, -0.2, 0.2, 0.1, 20, -0.2, 0.2, 0.1, 15, 
+	, m_WFT(WFT::WFT2_cpuF(iWidth, iHeight, WFT::WFT_TYPE::WFF, 
+						  20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15, 
 						  m_z))
 	/*, m_deltaPhi(iWidth*iHeight, 0)*/
 	//, m_deltaPhiRef(iWidth*iHeight, 0)
@@ -34,7 +34,7 @@ DPRA_CPU::DPRA_CPU(const double *v_Phi0,
 	WFT_FPA::Utils::hcreateptr(m_deltaPhi, iSize);
 	WFT_FPA::Utils::hcreateptr(m_deltaPhiRef, iSize);*/
 
-	m_dPhiWFT = (fftw_complex*)fftw_malloc(sizeof(fftw_complex*)*iSize);
+	m_dPhiWFT = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex*)*iSize);
 
 	// Load the initial phase map
 	for (int i = 0; i < iSize; i++)
@@ -46,17 +46,17 @@ DPRA_CPU::DPRA_CPU(const double *v_Phi0,
 
 }
 
-DPRA_CPU::~DPRA_CPU()
+DPRA_CPUF::~DPRA_CPUF()
 {
 	/*if (m_A)	WFT_FPA::Utils::hdestroyptr(m_A);
 	if (m_b)	WFT_FPA::Utils::hdestroyptr(m_b);
 	if (m_PhiRef) WFT_FPA::Utils::hdestroyptr(m_PhiRef);*/
-	fftw_free(m_dPhiWFT);	m_dPhiWFT = nullptr;
+	fftwf_free(m_dPhiWFT);	m_dPhiWFT = nullptr;
 }
 
 
-void DPRA_CPU::operator()(const std::vector<cv::Mat> &f, 
-						  std::vector<std::vector<double>> &dPhi_Sum,
+void DPRA_CPUF::operator()(const std::vector<cv::Mat> &f, 
+						  std::vector<std::vector<float>> &dPhi_Sum,
 						  double &time)
 {
 	if (f.empty())
@@ -65,7 +65,7 @@ void DPRA_CPU::operator()(const std::vector<cv::Mat> &f,
 		return;
 	}
 	
-	std::vector<double> dPhi_per_frame(m_iWidth*m_iHeight, 0);
+	std::vector<float> dPhi_per_frame(m_iWidth*m_iHeight, 0);
 
 	time = 0;
 
@@ -88,8 +88,8 @@ void DPRA_CPU::operator()(const std::vector<cv::Mat> &f,
 	}
 }
 
-void DPRA_CPU::dpra_per_frame(const cv::Mat &f, 
-							  std::vector<double> &dPhi,
+void DPRA_CPUF::dpra_per_frame(const cv::Mat &f, 
+							  std::vector<float> &dPhi,
 							  double &time)
 {
 	// If the input images have the same size as initialized
@@ -127,8 +127,8 @@ void DPRA_CPU::dpra_per_frame(const cv::Mat &f,
 				int idImg = i*m_iWidth + j;
 
 				// Use local sum's to avoid false sharing
-				double sum_cos = 0, sum_sin = 0, sum_sincos = 0, sum_sin2 = 0, sum_cos2 = 0;
-				double sum_ft = 0, sum_ft_cos = 0, sum_ft_sin = 0;
+				float sum_cos = 0, sum_sin = 0, sum_sincos = 0, sum_sin2 = 0, sum_cos2 = 0;
+				float sum_ft = 0, sum_ft_cos = 0, sum_ft_sin = 0;
 
 				// Get the neighbors
 				for (int m = std::max(i - 1, 0); m <= std::min(i + 1, m_iHeight - 1); m++)
@@ -137,9 +137,9 @@ void DPRA_CPU::dpra_per_frame(const cv::Mat &f,
 					{
 						int idNeighbor = m*m_iWidth + n;
 
-						double cos_phi = cos(m_PhiRef[idNeighbor]);
-						double sin_phi = sin(m_PhiRef[idNeighbor]);
-						double ft = static_cast<double>(f.at<uchar>(m, n));
+						float cos_phi = cos(m_PhiRef[idNeighbor]);
+						float sin_phi = sin(m_PhiRef[idNeighbor]);
+						float ft = static_cast<float>(f.at<uchar>(m, n));
 
 						// Elements of A
 						sum_cos += cos_phi;
@@ -165,7 +165,7 @@ void DPRA_CPU::dpra_per_frame(const cv::Mat &f,
 				m_b[id_B + 2] = sum_ft_sin;
 
 				// Solve Ax = b & Check for the positive definiteness
-				int info = LAPACKE_dposv(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data() + id_A, 3, m_b.data() + id_B, 3);
+				int info = LAPACKE_sposv(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data() + id_A, 3, m_b.data() + id_B, 3);
 				if (info > 0)
 				{
 					printf("The leading minor of order %i is not positive ", info);
@@ -174,7 +174,7 @@ void DPRA_CPU::dpra_per_frame(const cv::Mat &f,
 				}
 				
 				// Update delta phi
-				double m_deltaPhi = atan2(-m_b[id_B + 2], m_b[id_B + 1]);
+				float m_deltaPhi = atan2(-m_b[id_B + 2], m_b[id_B + 1]);
 				m_dPhiWFT[idImg][0] = cos(m_deltaPhi);
 				m_dPhiWFT[idImg][1] = sin(m_deltaPhi);
 			}

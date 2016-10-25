@@ -18,9 +18,15 @@
     <ClCompile Include="dpra_cpu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dpra_cpuf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dpra_cpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dpra_cpuf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

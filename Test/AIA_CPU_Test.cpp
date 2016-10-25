@@ -32,8 +32,7 @@
 //
 //	// computation
 //	std::vector<double> phi;
-//	std::vector<double> delta{  
-//		 0.8622,
+//	std::vector<double> delta{0.8622,
 //    0.3188,
 //   -1.3077};
 //	double time = 0;

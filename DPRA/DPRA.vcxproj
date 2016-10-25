@@ -17,6 +17,12 @@
   <ItemGroup>
     <ClInclude Include="dpra_cpu.h" />
     <ClInclude Include="dpra_cpuf.h" />
+    <ClInclude Include="dpra_cuda.h" />
+    <ClInclude Include="dpra_cudaf.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="dpra_cuda.cu" />
+    <CudaCompile Include="dpra_cudaf.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{72C53508-FAEC-41A9-B651-B47872EC619D}</ProjectGuid>
@@ -29,7 +35,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <UseIntelMKL>Parallel</UseIntelMKL>
+    <UseIntelMKL>Sequential</UseIntelMKL>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -38,7 +44,7 @@
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <UseIntelMKL>Parallel</UseIntelMKL>
+    <UseIntelMKL>Sequential</UseIntelMKL>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />

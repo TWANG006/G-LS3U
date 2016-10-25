@@ -4,7 +4,6 @@
 #include <mkl.h>
 #include "mem_manager.h"
 
-namespace WFT_FPA{
 namespace DPRA{
 
 DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
@@ -19,9 +18,10 @@ DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 	, m_PhiCurr(iWidth*iHeight, 0)
 	, m_A(iNumThreads * 9, 0)
 	, m_b(iNumThreads * 3, 0)
-	, m_WFT(WFT::WFT2_cpuF(iWidth, iHeight, WFT::WFT_TYPE::WFF, 
-						  20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15, 
-						  m_z))
+	, m_WFT(WFT_FPA::WFT::WFT2_cpuF(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
+									20, -0.2f, 0.2f, 0.05f, 20, -0.2f, 0.2f, 0.05f, 10, 
+									m_z))
+	, m_dPhiWFT(nullptr)
 	/*, m_deltaPhi(iWidth*iHeight, 0)*/
 	//, m_deltaPhiRef(iWidth*iHeight, 0)
 {
@@ -34,8 +34,6 @@ DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 	WFT_FPA::Utils::hcreateptr(m_deltaPhi, iSize);
 	WFT_FPA::Utils::hcreateptr(m_deltaPhiRef, iSize);*/
 
-	m_dPhiWFT = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex*)*iSize);
-
 	// Load the initial phase map
 	for (int i = 0; i < iSize; i++)
 	{
@@ -43,7 +41,7 @@ DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 	}
 
 	// Construct the WFT
-
+	m_dPhiWFT = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*iSize);
 }
 
 DPRA_CPUF::~DPRA_CPUF()
@@ -83,7 +81,46 @@ void DPRA_CPUF::operator()(const std::vector<cv::Mat> &f,
 		/* Update reference */
 		if (i % m_rr == 0)
 		{
-			m_PhiRef = m_PhiCurr;
+			update_ref_phi();
+		}
+	}
+}
+
+void DPRA_CPUF::operator()(const std::vector<std::string> &fileNames,
+						  std::vector<std::vector<float>> &dPhi_Sum,
+						  double &time)
+{
+	if (fileNames.empty())
+	{
+		std::cout << "No input fringe patterns! Error!" << std::endl;
+		return;
+	}
+	
+	cv::Mat f;
+	f.reserve(m_iHeight);
+	std::vector<float> dPhi_per_frame(m_iWidth*m_iHeight, 0);
+
+	time = 0;
+
+	
+
+	/* Iterate though all frames */
+	for (int i = 0; i < fileNames.size(); i++)
+	{
+		f = cv::imread(fileNames[i]);
+
+		double time_1frame = 0;
+		/* Compute the DPRA for 1 frame */
+		dpra_per_frame(f, dPhi_per_frame, time_1frame);
+		time += time_1frame;
+
+		/* Save the 1 frame results */
+		dPhi_Sum.push_back(dPhi_per_frame);
+
+		/* Update reference */
+		if (i % m_rr == 0)
+		{
+			update_ref_phi();
 		}
 	}
 }
@@ -164,12 +201,29 @@ void DPRA_CPUF::dpra_per_frame(const cv::Mat &f,
 				m_b[id_B + 1] = sum_ft_cos;
 				m_b[id_B + 2] = sum_ft_sin;
 
+				if(i==15 && j == 206)
+				{
+					printf("Computation for %d and %d.\n", i, j);
+				}
+
 				// Solve Ax = b & Check for the positive definiteness
-				int info = LAPACKE_sposv(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data() + id_A, 3, m_b.data() + id_B, 3);
+			
+				//int infor = LAPACKE_spotrf(LAPACK_ROW_MAJOR, 'L', 3, m_A.data(), 3);
+				//// Check for the exact singularity 
+				//if (infor > 0) {
+				//	std::cout << "The element of the diagonal factor \n";
+				//	std::cout << "D(" << infor << "," << infor << ") is zero, so that D is singular;\n";
+				//	std::cout << "the solution could not be computed.\n";
+				//	return;
+				//}
+				//LAPACKE_spotrs(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data(), 3, m_b.data(), 3);
+				
+				MKL_INT ipiv[3];
+				int info = LAPACKE_ssysv(LAPACK_COL_MAJOR, 'U', 3, 1, m_A.data(), 3, ipiv, m_b.data(), 3);
 				if (info > 0)
 				{
 					printf("The leading minor of order %i is not positive ", info);
-					printf("definite;\nThe solution could not be computed.\n");
+					printf("definite;\nThe solution could not be computed for %d and %d.\n", i, j);
 					return;
 				}
 				
@@ -197,5 +251,9 @@ void DPRA_CPUF::dpra_per_frame(const cv::Mat &f,
 	}
 }
 
+void DPRA_CPUF::update_ref_phi()
+{
+	m_PhiRef = m_PhiCurr;
+}
+
 }	// namespace DPRA
-}	// namespace WFT_FPA

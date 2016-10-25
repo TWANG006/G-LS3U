@@ -25,8 +25,12 @@ N = rand(m,n)*0.5*pi-0.25*pi;
 
 I1 = I1 + N;
 I1 = uint8((I1-min(I1(:)))/(max(I1(:))-min(I1(:)))*255);
+
+N = rand(m,n)*0.5*pi-0.25*pi;
 I2 = I2 + N;
 I2 = uint8((I2-min(I2(:)))/(max(I2(:))-min(I2(:)))*255);
+
+N = rand(m,n)*0.5*pi-0.25*pi;
 I3 = I3 + N;
 I3 = uint8((I3-min(I3(:)))/(max(I3(:))-min(I3(:)))*255);
 

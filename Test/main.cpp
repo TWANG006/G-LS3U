@@ -7,6 +7,8 @@
 #include "gtest\gtest.h"
 #include "opencv2\opencv.hpp"
 #include "aia_cudaf.h"
+#include "dpra_cpu.h"
+#include "aia_cpu.h"
 
 using namespace std;
 

@@ -6,10 +6,10 @@
 #include "WFT2_CPU.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 #include "opencv2\opencv.hpp"
 
-namespace WFT_FPA{
 namespace DPRA{
 
 class WFT_FPA_DLL_EXPORTS DPRA_CPU
@@ -46,6 +46,10 @@ public:
 	void operator() (const std::vector<cv::Mat> &f, 
 					 std::vector<std::vector<double>> &dPhi_Sum,
 					 double &time);
+	void operator() (const std::vector<std::string> &fileNames,
+					 std::vector<std::vector<double>> &dPhi_Sum,
+					 double &time);
+
 /*
  Purpose:
 	Compute the DPRA of 1 frame
@@ -56,6 +60,8 @@ public:
 	void dpra_per_frame(const cv::Mat &f, 
 						std::vector<double> &dPhi,
 						double &time);
+
+	void update_ref_phi();
 
 private:
 	// Context parameters
@@ -71,12 +77,11 @@ private:
 	std::vector<double> m_b;			// Vector b
 
 	/* Parameters used for WFF */
-	WFT::WFT2_HostResults m_z;
-	WFT::WFT2_cpu m_WFT;	
+	WFT_FPA::WFT::WFT2_HostResults m_z;
+	WFT_FPA::WFT::WFT2_cpu m_WFT;	
 	fftw_complex *m_dPhiWFT;
 };
 
 }	//	namespace DPRA
-}	//	namespace WFT_FPA
 
 #endif // !DPRA_CPU_H

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="CUDA Source">
+      <UniqueIdentifier>{93a3e494-d740-49b7-b9a2-61fb7330fad0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dpra_cpu.cpp">
@@ -29,5 +32,19 @@
     <ClInclude Include="dpra_cpuf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dpra_cudaf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dpra_cuda.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="dpra_cudaf.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="dpra_cuda.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

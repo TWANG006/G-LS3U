@@ -18,9 +18,9 @@ DPRA_CPU::DPRA_CPU(const double *v_Phi0,
 	, m_PhiCurr(iWidth*iHeight, 0)
 	, m_A(iNumThreads * 9, 0)
 	, m_b(iNumThreads * 3, 0)
-	, m_WFT(WFT_FPA::WFT::WFT2_cpu(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
-									20, -0.2, 0.2, 0.05, 20, -0.2, 0.2, 0.05, 10, 
-									m_z, iNumThreads))
+	, m_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
+			20, -0.2, 0.2, 0.05, 20, -0.2, 0.2, 0.05, 10, 
+			m_z, iNumThreads)
 	, m_dPhiWFT(nullptr)
 	/*, m_deltaPhi(iWidth*iHeight, 0)*/
 	//, m_deltaPhiRef(iWidth*iHeight, 0)

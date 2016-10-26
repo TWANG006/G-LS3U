@@ -38,12 +38,18 @@
     <ClInclude Include="dpra_cuda.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dpra_hybridf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="dpra_cudaf.cu">
       <Filter>CUDA Source</Filter>
     </CudaCompile>
     <CudaCompile Include="dpra_cuda.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="dpra_hybridf.cu">
       <Filter>CUDA Source</Filter>
     </CudaCompile>
   </ItemGroup>

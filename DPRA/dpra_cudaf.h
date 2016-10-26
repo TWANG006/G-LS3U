@@ -3,16 +3,18 @@
 
 #include "WFT-FPA.h"
 #include "WFT2_CUDAf.h"
+#include "opencv2\opencv.hpp"
 
 #include <string>
 #include <vector>
 
 #include "cuda_runtime.h"
-#include "cuSparse.h"
+#include "cusparse.h"
 #include "cusolverSp.h"
 #include "helper_cuda.h"
+#include "mem_manager.h"
 
-#include "opencv2\opencv.hpp"
+
 
 namespace DPRA{
 
@@ -36,26 +38,33 @@ public:
 					 std::vector<std::vector<float>> &dPhi_Sum,
 					 double &time);
 
-	void dpra_per_frame(const cv::cuda::HostMem &f,
-						std::vector<float> &dPhi,
+	void dpra_per_frame(const uchar *d_imag,
+						float *&d_dPhi,
 						double &time);
 
 	void update_ref_phi();
 
-private:
-	int m_iWidth;
-	int m_iHeight;
+public:
+	int m_iImgWidth;
+	int m_iImgHeight;
+	int m_iPaddedWidth;
+	int m_iPaddedHeight;
+
 	int m_rr;
 	
-	float *m_d_PhiRef;
-	float *m_d_PhiCurr;
+	float *m_d_PhiRef;		// m_iWidth + 2, m_iHeight + 2
+	float *m_d_PhiCurr;		// m_iWidth +2, m_iHeight +2
 
 	cusparseMatDescr_t m_desrA;
 	cusolverSpHandle_t m_cuSolverHandle;
 
+	float *m_d_cosPhi;		// padded
+	float *m_d_sinPhi;		// padded
+	uchar *m_d_img_Padded;	// padded
+
 	float *m_d_csrValA;
-	float *m_d_csrRowPtrA;
-	float *m_d_csrColIndA;
+	int *m_d_csrRowPtrA;
+	int *m_d_csrColIndA;
 	float *m_d_b;
 
 	WFT_FPA::WFT::WFT2_DeviceResultsF m_d_z;

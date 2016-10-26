@@ -105,6 +105,7 @@
     <ClCompile Include="AIA_CPU_Test.cpp" />
     <ClCompile Include="AIA_CUDA_Test.cpp" />
     <ClCompile Include="DPRA_CPU_Test.cpp" />
+    <ClCompile Include="DPRA_CUDA_Test.cpp" />
     <ClCompile Include="FFTW_C2C_Test.cpp" />
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />
@@ -120,6 +121,9 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="xfyf_2D_1D_Test.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cuda_testt.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

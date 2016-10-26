@@ -34,6 +34,8 @@ const int BLOCK_SIZE_16 = 16;
 #include <cfloat>
 #include <cuda_runtime.h>
 #include <cufft.h>
+#include <cusparse.h>
+#include <cusolverSp.h>
 
 /* The fftw3 lib should either be enabled by install MKL or use the
  3rd fftw lib downloaded online */

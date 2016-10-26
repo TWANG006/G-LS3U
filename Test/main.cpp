@@ -8,7 +8,9 @@
 #include "opencv2\opencv.hpp"
 #include "aia_cudaf.h"
 #include "dpra_cpu.h"
-#include "aia_cpu.h"
+#include "aia_cpuf.h"
+#include "dpra_cudaf.h"
+#include "cuda_testt.h"
 
 using namespace std;
 

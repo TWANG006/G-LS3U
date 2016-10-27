@@ -197,6 +197,19 @@ void WFT2_cpuF::WFF2(fftwf_complex *f, WFT2_HostResultsF &z, double &time)
 	/* Pre-compute the FFT of m_fPadded */
 	fftwf_execute(m_planForwardf);
 
+	std::ofstream out("Ffpadded_inner.csv", std::ios::out | std::ios::trunc);
+
+	for (int i = 0; i < m_iPaddedHeight; i++)
+	{
+		for (int j = 0; j < m_iPaddedWidth; j++)
+		{
+			out << m_FfPadded[i*m_iPaddedWidth + j][0] << "+" << "i" << m_FfPadded[i*m_iPaddedWidth + j][1] << ", ";
+		}
+		out << "\n";
+	}
+
+	out.close();
+
 	/* Clear the results if they already contain last results */
 	#pragma omp parallel for
 	for (int i = 0; i < m_iNumberThreads; i++)
@@ -742,7 +755,7 @@ int WFT2_cpuF::WFT2_Initialize(WFT2_HostResultsF &z)
 		m_planInverseSf = new fftwf_plan[m_iNumberThreads];
 
 		/* Make the FFTW plan for the precomputation of Ff = fft2(f) */
-		m_planForwardf = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, m_fPadded, m_FfPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planForwardf = fftwf_plan_dft_2d(m_iPaddedHeight, m_iPaddedWidth, m_fPadded, m_FfPadded, FFTW_FORWARD, FFTW_ESTIMATE);
 
 		/* Generate the windows g (g is the same across the calculation) *
 		 * g = exp(-x.*x /2/sigmax/sigmax - y.*y /2/sigmay/sigmay)	     *
@@ -838,9 +851,9 @@ void WFT2_cpuF::WFF2_Init(WFT2_HostResultsF &z)
 	// make FFTW plans for each thread
 	for (int i = 0; i < m_iNumberThreads; i++)
 	{
-		m_planForwardgwave[i] = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_gwave[i*iPaddedSize], &im_Fgwave[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
-		m_planInverseSf[i] = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_BACKWARD, FFTW_ESTIMATE);
-		m_planForwardSf[i] = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planForwardgwave[i] = fftwf_plan_dft_2d(m_iPaddedHeight, m_iPaddedWidth, &im_gwave[i*iPaddedSize], &im_Fgwave[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planInverseSf[i] = fftwf_plan_dft_2d(m_iPaddedHeight, m_iPaddedWidth, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_BACKWARD, FFTW_ESTIMATE);
+		m_planForwardSf[i] = fftwf_plan_dft_2d(m_iPaddedHeight, m_iPaddedWidth, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
 	}
 }
 int WFT2_cpuF::WFR2_Init(WFT2_HostResultsF &z)
@@ -937,17 +950,17 @@ int WFT2_cpuF::WFR2_Init(WFT2_HostResultsF &z)
 		int iPaddedSize = m_iPaddedHeight * m_iPaddedWidth;		
 		for (int i = 0; i < m_iNumberThreads; i++)
 		{
-			m_planForwardgwave[i] = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_gwave[i*iPaddedSize], &im_Fgwave[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
-			m_planInverseSf[i] = fftwf_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_BACKWARD, FFTW_ESTIMATE);
+			m_planForwardgwave[i] = fftwf_plan_dft_2d(m_iPaddedHeight, m_iPaddedWidth, &im_gwave[i*iPaddedSize], &im_Fgwave[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
+			m_planInverseSf[i] = fftwf_plan_dft_2d(m_iPaddedHeight, m_iPaddedWidth, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_BACKWARD, FFTW_ESTIMATE);
 		}
 		
 		// make the plans for cxx and cyy computation
-		m_planForwardxg = fftwf_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_xgPadded, im_xgPadded, FFTW_FORWARD, FFTW_ESTIMATE);
-		m_planForwardyg = fftwf_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_ygPadded, im_ygPadded, FFTW_FORWARD, FFTW_ESTIMATE);
-		m_planForwardcxx = fftwf_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cxxPadded, im_cxxPadded, FFTW_FORWARD, FFTW_ESTIMATE);
-		m_planInversecxx = fftwf_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cxxPadded, im_cxxPadded, FFTW_BACKWARD, FFTW_ESTIMATE);
-		m_planForwardcyy = fftwf_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cyyPadded, im_cyyPadded, FFTW_FORWARD, FFTW_ESTIMATE);
-		m_planInversecyy = fftwf_plan_dft_2d(m_iPaddedWidthCurvature, m_iPaddedHeightCurvature, im_cyyPadded, im_cyyPadded, FFTW_BACKWARD, FFTW_ESTIMATE);
+		m_planForwardxg = fftwf_plan_dft_2d(m_iPaddedHeightCurvature, m_iPaddedWidthCurvature,  im_xgPadded, im_xgPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planForwardyg = fftwf_plan_dft_2d(m_iPaddedHeightCurvature, m_iPaddedWidthCurvature, im_ygPadded, im_ygPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planForwardcxx = fftwf_plan_dft_2d(m_iPaddedHeightCurvature, m_iPaddedWidthCurvature,im_cxxPadded, im_cxxPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planInversecxx = fftwf_plan_dft_2d(m_iPaddedHeightCurvature, m_iPaddedWidthCurvature, im_cxxPadded, im_cxxPadded, FFTW_BACKWARD, FFTW_ESTIMATE);
+		m_planForwardcyy = fftwf_plan_dft_2d(m_iPaddedHeightCurvature, m_iPaddedWidthCurvature, im_cyyPadded, im_cyyPadded, FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planInversecyy = fftwf_plan_dft_2d(m_iPaddedHeightCurvature, m_iPaddedWidthCurvature, im_cyyPadded, im_cyyPadded, FFTW_BACKWARD, FFTW_ESTIMATE);
 
 		// Do the FFT for xg and yg once and use them 
 		fftwf_execute(m_planForwardxg);

@@ -1,6 +1,6 @@
 function fp_outMatrix(f, name)
 
-[cols, rows] = size(f);
+[rows, cols] = size(f);
 
 % write the image to disk
 filename = name; 

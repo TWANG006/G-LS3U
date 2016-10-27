@@ -1,9 +1,9 @@
-#include "gtest\gtest.h"
-#include "WFT2_CPU.h"
-#include "Utils.h"
-#include <fstream>
-#include <omp.h>
-
+//#include "gtest\gtest.h"
+//#include "WFT2_CPU.h"
+//#include "Utils.h"
+//#include <fstream>
+//#include <omp.h>
+//
 //TEST(WFT2_CPU_Init_Double, WFT2_CPU)
 //{
 //	/* Need to be revised*/
@@ -12,10 +12,10 @@
 //
 //	/* Load the FP image f */
 //	fftw_complex *f = nullptr;
-//	std::ifstream in("132.fp");
+//	std::ifstream in("371-366.fp");
 //	int rows, cols;
 //
-//	if(!WFT_FPA::fftwComplexMatRead2D(in, f, rows, cols))
+//	if(!WFT_FPA::Utils::fftwComplexMatRead2D(in, f, rows, cols))
 //		std::cout<<"load error"<<std::endl;
 //	std::cout<<rows<<", "<<cols<<std::endl;
 //
@@ -30,6 +30,7 @@
 //	WFT_FPA::WFT::WFT2_HostResults z1;	
 //	WFT_FPA::WFT::WFT2_cpu wft1(cols, rows, WFT_FPA::WFT::WFT_TYPE::WFF,
 //		10, -2, 2, 0.1f, 10, -2, 2, 0.1f, 6, z1, 6);	
+//
 //
 //	/* Assert the results */
 //	std::cout << wft1.m_FfPadded[0][0] << ", " << wft1.m_FfPadded[0][1] << std::endl;

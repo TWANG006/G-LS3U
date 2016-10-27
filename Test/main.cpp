@@ -3,7 +3,7 @@
 
 #include "Utils.h"
 #include "WFT.h"
-#include "WFT2_CPU.h"
+#include "WFT2_CPUf.h"
 #include "gtest\gtest.h"
 #include "opencv2\opencv.hpp"
 #include "aia_cudaf.h"
@@ -17,6 +17,8 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+	/* Need to be revised*/
+
 	::testing::InitGoogleTest(&argc, argv);
 	RUN_ALL_TESTS();
 

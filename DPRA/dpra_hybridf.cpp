@@ -146,6 +146,7 @@ void DPRA_HYBRIDF::operator() (const std::vector<std::string> &fileNames,
 {
 	/* 1. create per-frame parmeters */
 	std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
+	cv::Mat f;
 
 	time = 0;
 	double dTime_per_Frame = 0;;
@@ -154,7 +155,9 @@ void DPRA_HYBRIDF::operator() (const std::vector<std::string> &fileNames,
 	for (int i = 0; i < fileNames.size(); i++)
 	{
 		/* 2.0 Load image from files specified by fileNames */
-		cv::Mat f;
+		f = cv::imread(fileNames[i]);
+		cv::cvtColor(f, f, CV_BGR2GRAY);
+
 		/* 2.1 Compute dpra per-frame */
 		dpra_per_frame(f, deltaPhi, dTime_per_Frame);
 		
@@ -226,7 +229,7 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 			}
 
 			// Update delta phi
-			float fdeltaPhi = atan2(-m_h_b[idb + 2], m_h_b[idb + 1]);
+			float fdeltaPhi = float(atan2(-(double)m_h_b[idb + 2], (double)m_h_b[idb + 1]));
 			m_h_deltaPhiWFT[i].x = cos(fdeltaPhi);
 			m_h_deltaPhiWFT[i].y = sin(fdeltaPhi);
 		}

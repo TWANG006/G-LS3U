@@ -60,6 +60,7 @@ jj = sqrt(-1);
 phiRef = phi0;
 %reference phase change
 dphiRef = phi0*0; 
+X=0;
 for k = startNo: endNo
     k
     tic;
@@ -89,8 +90,10 @@ for k = startNo: endNo
         end
     end
     %denoising by WFF2
+    dphiWft = exp(sqrt(-1)*dphi);
+    
     fb=0.2;
-    t = fp_wft2f('wff',exp(sqrt(-1)*dphi),20,-fb,0.1,fb,20,-fb,0.1,fb,15);
+    t = fp_wft2f('wff',dphiWft, 20,-fb,0.1,fb,20,-fb,0.1,fb,15);
 %    t = fp_wft2f('wff',exp(sqrt(-1)*dphi),10,-fb,0.1,fb,10,-fb,0.1,fb,5);
 
     dphi = angle(t.filtered);

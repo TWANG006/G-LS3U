@@ -7,9 +7,9 @@
 namespace DPRA{
 
 DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
-				   const int iWidth, const int iHeight,
-				   const int irefUpdateRate,
-				   const int iNumThreads)
+				     const int iWidth, const int iHeight,
+				     const int irefUpdateRate,
+				     const int iNumThreads)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
 	, m_rr(irefUpdateRate)
@@ -41,7 +41,7 @@ DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 	}
 
 	// Construct the WFT
-	m_dPhiWFT = (fftwf_complex*)fftw_malloc(sizeof(fftwf_complex)*iSize);
+	m_dPhiWFT = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex)*iSize);
 }
 
 DPRA_CPUF::~DPRA_CPUF()

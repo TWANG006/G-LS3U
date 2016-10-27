@@ -45,9 +45,9 @@ if strcmp(type, 'peaks')
     f = f + sqrt(nV) * randn(size(phi));
 elseif strcmp(type, 'circular')
     % Generate x,y distributions
-    [y, x] = meshgrid(1:N, 1:N);
+    [y, x] = meshgrid(1:width, 1:height);
     % phi is generated as circle
-    phi = 0.5 * k * ((x - N/2).^2 + (y-N/2).^2);
+    phi = 0.5 * k * ((x - width/2).^2 + (y-height/2).^2);
     % output f with noise added to the image
     f = b * exp(1j*phi) + sqrt(nV) * randn(size(phi));
 else

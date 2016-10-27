@@ -88,7 +88,7 @@ WFT2_cpu::WFT2_cpu(int iWidth, int iHeight,
 	, m_rWxl(rWxl)
 	, m_rWxi(rWxi)
 	, m_rWxh(rWxh)
-	, m_rWyl(rWxl)
+	, m_rWyl(rWyl)
 	, m_rWyi(rWyi)
 	, m_rWyh(rWyh)
 	, m_rThr(rThr)
@@ -839,8 +839,8 @@ void WFT2_cpu::WFF2_Init(WFT2_HostResults &z)
 	for (int i = 0; i < m_iNumberThreads; i++)
 	{
 		m_planForwardgwave[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_gwave[i*iPaddedSize], &im_Fgwave[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
-		m_planInverseSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_BACKWARD, FFTW_ESTIMATE);
-		m_planForwardSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedWidth, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
+		m_planInverseSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_BACKWARD, FFTW_ESTIMATE);
+		m_planForwardSf[i] = fftw_plan_dft_2d(m_iPaddedWidth, m_iPaddedHeight, &im_Sf[i*iPaddedSize], &im_Sf[i*iPaddedSize], FFTW_FORWARD, FFTW_ESTIMATE);
 	}
 }
 int WFT2_cpu::WFR2_Init(WFT2_HostResults &z)

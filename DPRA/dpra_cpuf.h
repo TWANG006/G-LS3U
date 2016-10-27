@@ -62,7 +62,7 @@ public:
 
 	void update_ref_phi();
 
-private:
+public:
 	// Context parameters
 	int m_iWidth;
 	int m_iHeight;

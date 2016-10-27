@@ -838,12 +838,12 @@ WFT2_CUDAF::WFT2_CUDAF(int iWidth, int iHeight,
 	, m_planStreams(nullptr)
 {
 	// Check the input image size
-	if (iWidth % 2 != 0 || iHeight % 2 != 0)
-	{
-		std::cout << "GPU implementation of WFT curretly only suppports even image size!" << std::endl;
-		throw -2;
+	//if (iWidth % 2 != 0 || iHeight % 2 != 0)
+	//{
+	//	std::cout << "GPU implementation of WFT curretly only suppports even image size!" << std::endl;
+	//	throw -2;
 
-	}
+	//}
 	
 	// Get the number of SMs on GPU 
 	cudaDeviceGetAttribute(&m_iSMs, cudaDevAttrMultiProcessorCount, 0);
@@ -923,12 +923,12 @@ WFT2_CUDAF::WFT2_CUDAF(int iWidth, int iHeight,
 	, m_planStreams(nullptr)
 {
 	// Check the input image size
-	if (iWidth % 2 != 0 || iHeight % 2 != 0)
-	{
-		std::cout << "GPU implementation of WFT curretly only suppports even image size!" << std::endl;
-		throw -2;
+	//if (iWidth % 2 != 0 || iHeight % 2 != 0)
+	//{
+	//	std::cout << "GPU implementation of WFT curretly only suppports even image size!" << std::endl;
+	//	throw -2;
 
-	}
+	//}
 	
 	// Get the number of SMs on GPU 
 	cudaDeviceGetAttribute(&m_iSMs, cudaDevAttrMultiProcessorCount, 0);

@@ -7,7 +7,7 @@
 //
 //	/* Load the Fringe Pattern */
 //	cufftComplex *f = nullptr;
-//	std::ifstream in("256.fp");
+//	std::ifstream in("371-366.fp");
 //	int rows, cols;
 //	if (!WFT_FPA::Utils::cufftComplexMatRead2D(in, f, rows, cols))
 //		std::cout << "load error" << std::endl;
@@ -23,7 +23,7 @@
 //	WFT_FPA::WFT::WFT2_CUDAF cuwft(
 //		cols, rows,
 //		WFT_FPA::WFT::WFT_TYPE::WFF,
-//		10, -0.2f, 0.2f, 0.1f, 10, -0.2f, 0.2f, 0.1f, 15,
+//		20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15,
 //		z, 1);
 //
 //	double time = 0;

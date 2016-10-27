@@ -39,7 +39,7 @@ public:
 
 	void update_ref_phi();
 
-private:
+public:
 	// Context parameters
 	int m_iWidth;
 	int m_iHeight;
@@ -50,9 +50,13 @@ private:
 	int m_iNumThreads;
 
 	/* DPRA parameters */
-	std::vector<float> m_PhiRef;	// Reference phase
-	std::vector<float> m_PhiCurr;	// Current phase
+	//std::vector<float> m_PhiRef;	// Reference phase
+	//std::vector<float> m_PhiCurr;	// Current phase
+	float *m_h_deltaPhi;
+
 	float *m_d_PhiRef;
+	float *m_d_deltaPhi;
+	float *m_d_PhiCurr;
 	
 	float *m_h_A;			// Matrix A
 	float *m_h_b;			// Vector b
@@ -75,6 +79,11 @@ private:
 	cudaEvent_t m_d_event_start;
 	cudaEvent_t m_d_event_1;
 	cudaEvent_t m_d_event_2;
+	cudaEvent_t m_d_event_3;
+	cudaEvent_t m_d_event_4;
+	cudaEvent_t m_d_event_5;
+	cudaEvent_t m_d_event_6;
+	cudaEvent_t m_d_event_7;
 
 	dim3 m_threads2D;
 	dim3 m_blocks_2Dshrunk;

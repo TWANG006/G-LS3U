@@ -9,6 +9,7 @@ namespace DPRA{
 class WFT_FPA_DLL_EXPORTS DPRA_CUDA
 {
 public:
+	// TODO
 
 };
 

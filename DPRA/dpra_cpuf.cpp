@@ -19,7 +19,7 @@ DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 	, m_A(iNumThreads * 9, 0)
 	, m_b(iNumThreads * 3, 0)
 	, m_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
-			20, -0.2f, 0.2f, 0.05f, 20, -0.2f, 0.2f, 0.05f, 10, 
+			20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15, 
 			m_z, iNumThreads)
 	, m_dPhiWFT(nullptr)
 	/*, m_deltaPhi(iWidth*iHeight, 0)*/
@@ -235,7 +235,7 @@ void DPRA_CPUF::dpra_per_frame(const cv::Mat &f,
 	double dWFT_time = 0;
 	m_WFT(m_dPhiWFT, m_z, dWFT_time);
 
-	//time += dWFT_time;		// DPRA + WFF
+	time += dWFT_time;		// DPRA + WFF
 
 	// Update phi using the calculated delta phi
 	for (int i = 0; i < iSize; i++)

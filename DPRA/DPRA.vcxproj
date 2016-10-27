@@ -13,12 +13,14 @@
   <ItemGroup>
     <ClCompile Include="dpra_cpu.cpp" />
     <ClCompile Include="dpra_cpuf.cpp" />
+    <ClCompile Include="dpra_hybridf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dpra_cpu.h" />
     <ClInclude Include="dpra_cpuf.h" />
     <ClInclude Include="dpra_cuda.h" />
     <ClInclude Include="dpra_cudaf.h" />
+    <ClInclude Include="dpra_hybridf.cuh" />
     <ClInclude Include="dpra_hybridf.h" />
   </ItemGroup>
   <ItemGroup>

@@ -106,6 +106,7 @@
     <ClCompile Include="AIA_CUDA_Test.cpp" />
     <ClCompile Include="DPRA_CPU_Test.cpp" />
     <ClCompile Include="DPRA_CUDA_Test.cpp" />
+    <ClCompile Include="DPRA_HYBRID_Test.cpp" />
     <ClCompile Include="FFTW_C2C_Test.cpp" />
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />

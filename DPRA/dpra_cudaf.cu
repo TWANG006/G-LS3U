@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+// TODO
 namespace DPRA{
 
 /*---------------------------------------CUDA Kernels----------------------------------*/
@@ -222,7 +223,9 @@ DPRA_CUDAF::DPRA_CUDAF(const float *d_Phi0,
 	, m_d_b(nullptr)
 	, m_d_cosPhi(nullptr)
 	, m_d_sinPhi(nullptr)
-	, m_d_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, m_d_z, 1)
+	, m_d_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF,
+			  20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15,
+			  m_d_z, 1)
 	, m_d_deltaPhi_WFT(nullptr)
 {
 	int iImgSize = m_iImgWidth * m_iImgHeight;

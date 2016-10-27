@@ -66,6 +66,9 @@
     <ClCompile Include="DPRA_CUDA_Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DPRA_HYBRID_Test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="xfyf_2D_1D_Test.cu">

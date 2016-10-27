@@ -1021,7 +1021,12 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	dim3 blocksImg((m_iWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16);
 	int blocks1D = std::min((m_iPaddedWidth*m_iPaddedHeight + BLOCK_SIZE_256 - 1) / BLOCK_SIZE_256, 2048);
 
+	cudaEvent_t start, end;
+	cudaEventCreate(&start);
+	cudaEventCreate(&end);
 	/* Set the threshold m_rThr if it's not specified by the client */
+
+	cudaEventRecord(start);
 	cuWFF2_SetThreashold(d_f);
 
 	/* Feed the f to its padded version */
@@ -1056,12 +1061,10 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	getLastCudaError("init_WFF_matrices_kernel Launch Failed!");*/
 
 	/* Start the Real WFF iterations */
-	cudaEvent_t start, end;
-	cudaEventCreate(&start);
-	cudaEventCreate(&end);
+	
 
 	int iNumResidue = iwx % m_iNumStreams;
-	cudaEventRecord(start);
+	
 	for (int y = 0; y < iwy; y++)
 	{
 		// Now we have equal number of kernels executed in each stream

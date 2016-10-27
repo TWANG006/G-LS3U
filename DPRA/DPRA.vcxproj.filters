@@ -24,6 +24,9 @@
     <ClCompile Include="dpra_cpuf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dpra_hybridf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dpra_cpu.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dpra_hybridf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dpra_hybridf.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,4 @@
-#include "dpra_hybridf.h"
+#include "dpra_hybrid.h"
 #include <omp.h>
 #include <mkl.h>
 #include "mem_manager.h"
@@ -6,10 +6,10 @@
 
 namespace DPRA
 {
-DPRA_HYBRIDF::DPRA_HYBRIDF(const float *v_Phi0, 
-						   const int iWidth, const int iHeight, 
-						   const int irefUpdateRate,
-						   const int iNumThreads)
+DPRA_HYBRID::DPRA_HYBRID(const double *v_Phi0, 
+						 const int iWidth, const int iHeight, 
+						 const int irefUpdateRate,
+						 const int iNumThreads)
 	: m_iWidth(iWidth)
 	, m_iHeight(iHeight)
 	, m_iPaddedHeight(iHeight + 2)
@@ -31,12 +31,12 @@ DPRA_HYBRIDF::DPRA_HYBRIDF(const float *v_Phi0,
 	, m_d_img(nullptr)
 	, m_d_img_Padded(nullptr)
 	, m_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
-			20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15,
+			20, -0.2, 0.2, 0.1, 20, -0.2, 0.2, 0.1, 15,
 			m_d_z,1)
 	, m_d_deltaPhiWFT(nullptr)
 	, m_h_deltaPhiWFT(nullptr)
 	, m_threads2D(BLOCK_SIZE_16, BLOCK_SIZE_16)
-	, m_blocks_2Dshrunk((int)ceil((float)m_iPaddedWidth / (BLOCK_SIZE_16 - 2)), (int)ceil((float)m_iPaddedHeight / (BLOCK_SIZE_16 - 2)))
+	, m_blocks_2Dshrunk((int)ceil((double)m_iPaddedWidth / (BLOCK_SIZE_16 - 2)), (int)ceil((double)m_iPaddedHeight / (BLOCK_SIZE_16 - 2)))
 	, m_blocks_2D((m_iPaddedWidth + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16, (m_iPaddedHeight + BLOCK_SIZE_16 - 1) / BLOCK_SIZE_16)
 {
 	int iSize = iWidth * iHeight;
@@ -53,21 +53,21 @@ DPRA_HYBRIDF::DPRA_HYBRIDF(const float *v_Phi0,
 	
 
 	// Allocate corresponding device memory
-	checkCudaErrors(cudaMalloc((void**)&m_d_A, sizeof(float)*iSize * 9));
-	checkCudaErrors(cudaMalloc((void**)&m_d_b, sizeof(float)*iSize * 3));
+	checkCudaErrors(cudaMalloc((void**)&m_d_A, sizeof(double)*iSize * 9));
+	checkCudaErrors(cudaMalloc((void**)&m_d_b, sizeof(double)*iSize * 3));
 	checkCudaErrors(cudaMalloc((void**)&m_d_img, sizeof(uchar)*iSize));
-	checkCudaErrors(cudaMalloc((void**)&m_d_deltaPhiWFT, sizeof(cufftComplex)*iSize));
-	checkCudaErrors(cudaMalloc((void**)&m_d_deltaPhi, sizeof(float)*iSize));
+	checkCudaErrors(cudaMalloc((void**)&m_d_deltaPhiWFT, sizeof(cufftDoubleComplex)*iSize));
+	checkCudaErrors(cudaMalloc((void**)&m_d_deltaPhi, sizeof(double)*iSize));
 
 	// Allocate device memory for computing m_d_A & m_d_b for every pixel
-	checkCudaErrors(cudaMalloc((void**)&m_d_cosPhi, sizeof(float)*iPaddedSize));
-	checkCudaErrors(cudaMalloc((void**)&m_d_sinPhi, sizeof(float)*iPaddedSize));
+	checkCudaErrors(cudaMalloc((void**)&m_d_cosPhi, sizeof(double)*iPaddedSize));
+	checkCudaErrors(cudaMalloc((void**)&m_d_sinPhi, sizeof(double)*iPaddedSize));
 	checkCudaErrors(cudaMalloc((void**)&m_d_img_Padded, sizeof(uchar)*iPaddedSize));
-	checkCudaErrors(cudaMalloc((void**)&m_d_PhiCurr, sizeof(float)*iSize));
+	checkCudaErrors(cudaMalloc((void**)&m_d_PhiCurr, sizeof(double)*iSize));
 
 	// Copy the initial v_Phi0 to local device array
-	checkCudaErrors(cudaMalloc((void**)&m_d_PhiRef, sizeof(float)*iSize));
-	checkCudaErrors(cudaMemcpy(m_d_PhiRef, v_Phi0, sizeof(float)*iSize, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc((void**)&m_d_PhiRef, sizeof(double)*iSize));
+	checkCudaErrors(cudaMemcpy(m_d_PhiRef, v_Phi0, sizeof(double)*iSize, cudaMemcpyHostToDevice));
 
 	// Copy the initial v_Phi0 to local host array
 	//memcpy(m_PhiRef.data(), v_Phi0, sizeof(float)*iSize);
@@ -83,7 +83,7 @@ DPRA_HYBRIDF::DPRA_HYBRIDF(const float *v_Phi0,
 	checkCudaErrors(cudaEventCreate(&m_d_event_7));
 }
 
-DPRA_HYBRIDF::~DPRA_HYBRIDF()
+DPRA_HYBRID::~DPRA_HYBRID()
 {
 	checkCudaErrors(cudaEventDestroy(m_d_event_start));
 	checkCudaErrors(cudaEventDestroy(m_d_event_1));
@@ -112,12 +112,12 @@ DPRA_HYBRIDF::~DPRA_HYBRIDF()
 	WFT_FPA::Utils::cudestroyptr(m_h_deltaPhi);
 }
 
-void DPRA_HYBRIDF::operator() (const std::vector<cv::Mat> &f, 
-							   std::vector<std::vector<float>> &dPhi_Sum,
+void DPRA_HYBRID::operator() (const std::vector<cv::Mat> &f, 
+							   std::vector<std::vector<double>> &dPhi_Sum,
 							   double &time)
 {
 	/* 1. create per-frame parmeters */
-	std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
+	std::vector<double> deltaPhi(m_iWidth*m_iHeight, 0);
 
 	time = 0;
 	double dTime_per_Frame = 0;;
@@ -140,12 +140,12 @@ void DPRA_HYBRIDF::operator() (const std::vector<cv::Mat> &f,
 	}
 }
 
-void DPRA_HYBRIDF::operator() (const std::vector<std::string> &fileNames,
-							   std::vector<std::vector<float>> &dPhi_Sum,
+void DPRA_HYBRID::operator() (const std::vector<std::string> &fileNames,
+							   std::vector<std::vector<double>> &dPhi_Sum,
 							   double &time)
 {
 	/* 1. create per-frame parmeters */
-	std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
+	std::vector<double> deltaPhi(m_iWidth*m_iHeight, 0);
 	cv::Mat f;
 
 	time = 0;
@@ -173,8 +173,8 @@ void DPRA_HYBRIDF::operator() (const std::vector<std::string> &fileNames,
 	}
 }
 
-void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img, 
-								  std::vector<float> &dPhi,
+void DPRA_HYBRID::dpra_per_frame(const cv::Mat &img, 
+								  std::vector<double> &dPhi,
 								  double &time)
 {
 	int iSize = m_iWidth * m_iHeight;
@@ -200,8 +200,8 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 	get_A_b(m_d_A, m_d_b, m_d_img_Padded, m_d_cosPhi, m_d_sinPhi, m_iWidth, m_iHeight, m_iPaddedWidth, m_iPaddedHeight, m_blocks_2Dshrunk, m_threads2D);
 
 	/* 3. copy A and b from device to host */
-	checkCudaErrors(cudaMemcpyAsync(m_h_A, m_d_A, sizeof(float)*iSize * 9, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpyAsync(m_h_b, m_d_b, sizeof(float)*iSize * 3, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpyAsync(m_h_A, m_d_A, sizeof(double)*iSize * 9, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpyAsync(m_h_b, m_d_b, sizeof(double)*iSize * 3, cudaMemcpyDeviceToHost));
 
 	cudaEventRecord(m_d_event_2);
 	cudaEventSynchronize(m_d_event_2);
@@ -221,7 +221,7 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 
 			MKL_INT ipiv[3];
 
-			int infor = LAPACKE_ssysv(LAPACK_COL_MAJOR, 'U', 3, 1, m_h_A + idA, 3, ipiv, m_h_b + idb, 3);
+			int infor = LAPACKE_dsysv(LAPACK_COL_MAJOR, 'U', 3, 1, m_h_A + idA, 3, ipiv, m_h_b + idb, 3);
 			if (infor > 0)
 			{
 				printf("The leading minor of order %i is not positive ", infor);
@@ -229,7 +229,7 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 			}
 
 			// Update delta phi
-			float fdeltaPhi = float(atan2(-m_h_b[idb + 2], m_h_b[idb + 1]));
+			double fdeltaPhi = double(atan2(-m_h_b[idb + 2], m_h_b[idb + 1]));
 			m_h_deltaPhiWFT[i].x = cos(fdeltaPhi);
 			m_h_deltaPhiWFT[i].y = sin(fdeltaPhi);
 		}
@@ -242,7 +242,7 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 	/* 5. Copy the resulted phiWFT array to GPU to get the delta phi */	
 	cudaEventRecord(m_d_event_3);
 
-	checkCudaErrors(cudaMemcpyAsync(m_d_deltaPhiWFT, m_h_deltaPhiWFT, sizeof(cufftComplex)*iSize, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpyAsync(m_d_deltaPhiWFT, m_h_deltaPhiWFT, sizeof(cufftDoubleComplex)*iSize, cudaMemcpyHostToDevice));
 
 	cudaEventRecord(m_d_event_4);
 
@@ -258,13 +258,13 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 	cudaEventRecord(m_d_event_6);
 
 	/* 8. Copy the delta Phi to host */
-	checkCudaErrors(cudaMemcpyAsync(m_h_deltaPhi, m_d_deltaPhi, sizeof(float)*iSize, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpyAsync(m_h_deltaPhi, m_d_deltaPhi, sizeof(double)*iSize, cudaMemcpyDeviceToHost));
 
 	cudaEventRecord(m_d_event_7);
 	cudaEventSynchronize(m_d_event_7);
 
 	/* I/O */
-	memcpy(dPhi.data(), m_h_deltaPhi, sizeof(float)*iSize);
+	memcpy(dPhi.data(), m_h_deltaPhi, sizeof(double)*iSize);
 	
 	float f_1_time = 0;
 	cudaEventElapsedTime(&f_1_time, m_d_event_start, m_d_event_1);
@@ -292,9 +292,9 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 	time = double(f_1_time + f_23_time + d_4_time + f_5_time + f_5_time + d_6_time + f_7_time + f_8_time);
 }
 
-void DPRA_HYBRIDF::update_ref_phi()
+void DPRA_HYBRID::update_ref_phi()
 {
-	checkCudaErrors(cudaMemcpyAsync(m_d_PhiRef, m_d_PhiCurr, sizeof(float)*m_iWidth*m_iHeight, cudaMemcpyDeviceToDevice));
+	checkCudaErrors(cudaMemcpyAsync(m_d_PhiRef, m_d_PhiCurr, sizeof(double)*m_iWidth*m_iHeight, cudaMemcpyDeviceToDevice));
 }
 
 }	// namespace DPRA

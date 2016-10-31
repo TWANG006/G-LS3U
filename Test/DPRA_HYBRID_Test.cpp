@@ -55,7 +55,7 @@ TEST(DPRA_Hybrid_Single_4, DPRA_HYBRID_Test)
 	std::cout << "AIA Error is: " << err << std::endl;
 	std::cout << "AIA Iteration is: " << iter << std::endl;
 
-	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << std::endl;
+	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << "," << delta[3] << std::endl;
 
 	//WFT_FPA::WFT::WFT2_HostResultsF z;
 	//WFT_FPA::WFT::WFT2_cpuF wft(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 

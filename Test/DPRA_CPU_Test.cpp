@@ -168,7 +168,7 @@ TEST(dpra_double4, DPRA_Test)
 	std::cout << "AIA Error is: " << err << std::endl;
 	std::cout << "AIA Iteration is: " << iter << std::endl;
 
-	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << std::endl;
+	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << "," << delta[3] << std::endl;
 
 	/* DPRA Results */
 	

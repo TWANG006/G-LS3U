@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="dpra_cpu.cpp" />
     <ClCompile Include="dpra_cpuf.cpp" />
+    <ClCompile Include="dpra_hybrid.cpp" />
     <ClCompile Include="dpra_hybridf.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -20,13 +21,14 @@
     <ClInclude Include="dpra_cpuf.h" />
     <ClInclude Include="dpra_cuda.h" />
     <ClInclude Include="dpra_cudaf.h" />
-    <ClInclude Include="dpra_hybridf.cuh" />
+    <ClInclude Include="dpra_hybrid.cuh" />
+    <ClInclude Include="dpra_hybrid.h" />
     <ClInclude Include="dpra_hybridf.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="dpra_cuda.cu" />
     <CudaCompile Include="dpra_cudaf.cu" />
-    <CudaCompile Include="dpra_hybridf.cu" />
+    <CudaCompile Include="dpra_hybrid.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{72C53508-FAEC-41A9-B651-B47872EC619D}</ProjectGuid>

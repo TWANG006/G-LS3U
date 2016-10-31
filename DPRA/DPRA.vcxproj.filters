@@ -16,6 +16,9 @@
     <Filter Include="CUDA Source">
       <UniqueIdentifier>{93a3e494-d740-49b7-b9a2-61fb7330fad0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CUDA Header">
+      <UniqueIdentifier>{75155637-72a6-4660-89b0-5d674b3488a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dpra_cpu.cpp">
@@ -25,6 +28,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dpra_hybridf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dpra_hybrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,7 +50,10 @@
     <ClInclude Include="dpra_hybridf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dpra_hybridf.cuh">
+    <ClInclude Include="dpra_hybrid.cuh">
+      <Filter>CUDA Header</Filter>
+    </ClInclude>
+    <ClInclude Include="dpra_hybrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -55,7 +64,7 @@
     <CudaCompile Include="dpra_cuda.cu">
       <Filter>CUDA Source</Filter>
     </CudaCompile>
-    <CudaCompile Include="dpra_hybridf.cu">
+    <CudaCompile Include="dpra_hybrid.cu">
       <Filter>CUDA Source</Filter>
     </CudaCompile>
   </ItemGroup>

@@ -1341,7 +1341,7 @@ int WFT2_CUDA::cuWFT2_Initialize(WFT2_DeviceResults &d_z)
 		checkCudaErrors(cudaMalloc((void**)&m_d_yf, sizeof(cufftDoubleReal)*iPaddedSize));
 
 		/* Make the CUFFT plans */
-		checkCudaErrors(cufftPlan2d(&m_planPadded, m_iPaddedWidth, m_iPaddedHeight, CUFFT_Z2Z));
+		checkCudaErrors(cufftPlan2d(&m_planPadded, m_iPaddedHeight, m_iPaddedWidth, CUFFT_Z2Z));
 		checkCudaErrors(cufftSetStream(m_planPadded, 0));
 
 		/* Construct the xf & yf */
@@ -1393,7 +1393,7 @@ void WFT2_CUDA::cuWFF2_Init(WFT2_DeviceResults &d_z)
 		checkCudaErrors(cudaMalloc((void**)&im_d_filtered[i], sizeof(cufftDoubleComplex)*iPaddedSize));
 		checkCudaErrors(cudaMalloc((void**)&im_d_Sf[i], sizeof(cufftDoubleComplex)*iPaddedSize));
 
-		checkCudaErrors(cufftPlan2d(&m_planStreams[i], m_iPaddedWidth, m_iPaddedHeight, CUFFT_Z2Z));
+		checkCudaErrors(cufftPlan2d(&m_planStreams[i], m_iPaddedHeight, m_iPaddedWidth, CUFFT_Z2Z));
 		checkCudaErrors(cufftSetStream(m_planStreams[i], m_cudaStreams[i]));
 	}
 
@@ -1443,7 +1443,7 @@ void WFT2_CUDA::cuWFR2_Init(WFT2_DeviceResults &d_z)
 		checkCudaErrors(cudaMalloc((void**)&im_d_p[i], sizeof(cufftDoubleReal)*iImgSize));
 		checkCudaErrors(cudaMalloc((void**)&im_d_r[i], sizeof(cufftDoubleReal)*iImgSize));		
 
-		checkCudaErrors(cufftPlan2d(&m_planStreams[i], m_iPaddedWidth, m_iPaddedHeight, CUFFT_Z2Z));
+		checkCudaErrors(cufftPlan2d(&m_planStreams[i], m_iPaddedHeight, m_iPaddedWidth, CUFFT_Z2Z));
 		checkCudaErrors(cufftSetStream(m_planStreams[i], m_cudaStreams[i]));
 	}
 	// Allocate the memory for corresponding arrays

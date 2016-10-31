@@ -1035,6 +1035,23 @@ void WFT2_CUDAF::cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &tim
 	/* Pre-compute the FFT of m_d_fPadded */
 	checkCudaErrors(cufftExecC2C(m_planPadded, m_d_fPadded, m_d_fPadded, CUFFT_FORWARD));
 
+	/*cufftComplex *h_fPadded = (cufftComplex*)malloc(sizeof(cufftComplex) * m_iPaddedWidth * m_iPaddedHeight);
+	checkCudaErrors(cudaMemcpy(h_fPadded, m_d_fPadded, sizeof(cufftComplex) * m_iPaddedWidth * m_iPaddedHeight, cudaMemcpyDeviceToHost));
+	std::ofstream out("device_FfPadded.csv", std::ios::out | std::ios::trunc);
+
+	for (int i = 0; i < m_iPaddedHeight; i++)
+	{
+		for (int j = 0; j < m_iPaddedWidth; j++)
+		{
+			out << h_fPadded[i * m_iPaddedWidth + j].x << "+" << h_fPadded[i * m_iPaddedWidth + j].y << "i" << ",";
+		}
+		out << "\n";
+	}
+	out.close();
+
+	free(h_fPadded);*/
+
+
 	/* Clear the results if they already contain last results */	
 	init_WFF_matrices_kernel<<<blocksImg, threads>>>(d_z.m_d_filtered, m_iWidth, m_iHeight);
 	getLastCudaError("init_WFF_matrices_kernel Launch Failed!");

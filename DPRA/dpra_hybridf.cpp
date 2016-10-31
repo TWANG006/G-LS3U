@@ -229,7 +229,7 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 			}
 
 			// Update delta phi
-			float fdeltaPhi = float(atan2(-(double)m_h_b[idb + 2], (double)m_h_b[idb + 1]));
+			float fdeltaPhi = float(atan2(-m_h_b[idb + 2], m_h_b[idb + 1]));
 			m_h_deltaPhiWFT[i].x = cos(fdeltaPhi);
 			m_h_deltaPhiWFT[i].y = sin(fdeltaPhi);
 		}
@@ -281,13 +281,13 @@ void DPRA_HYBRIDF::dpra_per_frame(const cv::Mat &img,
 	float f_8_time = 0;
 	cudaEventElapsedTime(&f_8_time, m_d_event_6, m_d_event_7);
 
-	/*std::cout << "Step 1 running time is: " << f_1_time << "ms" << std::endl;
+	std::cout << "Step 1 running time is: " << f_1_time << "ms" << std::endl;
 	std::cout << "Step 2&3 running time is: " << f_23_time << "ms" << std::endl;
 	std::cout << "Step 4 running time is: " << d_4_time << "ms" << std::endl;
 	std::cout << "Step 5 running time is: " << f_5_time << "ms" << std::endl;
 	std::cout << "Step 6 running time is: " << d_6_time << "ms" << std::endl;
 	std::cout << "Step 7 running time is: " << f_7_time << "ms" << std::endl;
-	std::cout << "Step 8 running time is: " << f_8_time << "ms" << std::endl;*/
+	std::cout << "Step 8 running time is: " << f_8_time << "ms" << std::endl;
 
 	time = double(f_1_time + f_23_time + d_4_time + f_5_time + f_5_time + d_6_time + f_7_time + f_8_time);
 }

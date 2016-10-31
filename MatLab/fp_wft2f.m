@@ -82,7 +82,7 @@ sy=round(3*sigmay);
 %image size
 [m n]=size(f);
 %expanded size: size(A)+size(B)-1
-mm=432;nn=432;
+mm=m+2*sy;nn=n+2*sx;
 %meshgrid (2D index) for window
 [y x]=meshgrid(-sy:sy,-sx:sx); 
 %generate a window g

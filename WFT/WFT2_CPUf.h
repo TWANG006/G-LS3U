@@ -63,7 +63,7 @@ private:
 	void WFR2(fftwf_complex *f, WFT2_HostResultsF &z, double &time);
 	
 
-public:
+private:
 	/* Internal arrays */
 	fftwf_complex	*m_fPadded;			// Padded f 
 	fftwf_complex	*m_FfPadded;		// FFT of padded f

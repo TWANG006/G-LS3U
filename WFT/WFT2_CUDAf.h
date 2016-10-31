@@ -58,7 +58,7 @@ private:
 	void cuWFF2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time);
 	void cuWFR2(cufftComplex *d_f, WFT2_DeviceResultsF &d_z, double &time);
 
-public:
+private:
 	/* Internal Arrays */
 	cufftComplex	*m_d_fPadded;				// Padded f
 	cufftReal		*m_d_xf;					// Explicit Freq in x for Gaussian Window

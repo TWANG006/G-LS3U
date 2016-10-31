@@ -44,7 +44,7 @@ public:
 
 	void update_ref_phi();
 
-public:
+private:
 	int m_iImgWidth;
 	int m_iImgHeight;
 	int m_iPaddedWidth;

@@ -44,7 +44,7 @@ private:
 						  const float *v_deltaOld,
 						  int m);
 
-public:
+private:
 	uchar *m_d_img;			// Images in devcie mem space
 
 	// CUDA sparse solver

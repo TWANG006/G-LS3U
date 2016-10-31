@@ -1,4 +1,5 @@
 #ifdef MEM_MANAGER_H
+
 //!- Host memory allo/deallo-cation methods.
 template<typename T>
 void hcreateptr(T*& ptr, 

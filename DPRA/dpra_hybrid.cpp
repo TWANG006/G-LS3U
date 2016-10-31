@@ -20,6 +20,7 @@ DPRA_HYBRID::DPRA_HYBRID(const double *v_Phi0,
 	//, m_PhiCurr(iWidth*iHeight, 0)
 	, m_h_deltaPhi(nullptr)
 	, m_d_PhiRef(nullptr)
+	, m_d_dPhiRef(nullptr)
 	, m_d_deltaPhi(nullptr)
 	, m_d_PhiCurr(nullptr)
 	, m_h_A(nullptr)
@@ -68,6 +69,10 @@ DPRA_HYBRID::DPRA_HYBRID(const double *v_Phi0,
 	// Copy the initial v_Phi0 to local device array
 	checkCudaErrors(cudaMalloc((void**)&m_d_PhiRef, sizeof(double)*iSize));
 	checkCudaErrors(cudaMemcpy(m_d_PhiRef, v_Phi0, sizeof(double)*iSize, cudaMemcpyHostToDevice));
+
+	checkCudaErrors(cudaMalloc((void**)&m_d_dPhiRef, sizeof(double)*iSize));
+	WFT_FPA::Utils::cuInitialize<double>(m_d_dPhiRef, 0, iSize);
+
 
 	// Copy the initial v_Phi0 to local host array
 	//memcpy(m_PhiRef.data(), v_Phi0, sizeof(float)*iSize);
@@ -253,7 +258,7 @@ void DPRA_HYBRID::dpra_per_frame(const cv::Mat &img,
 	/* 7. Get the delta phi and current phi on device */
 	cudaEventRecord(m_d_event_5);
 	
-	get_deltaPhi_currPhi(m_d_deltaPhi, m_d_PhiCurr, m_d_PhiRef, m_d_z.m_d_filtered, iSize);
+	get_deltaPhi_currPhi(m_d_deltaPhi, m_d_PhiCurr, m_d_dPhiRef, m_d_PhiRef, m_d_z.m_d_filtered, iSize);
 
 	cudaEventRecord(m_d_event_6);
 
@@ -295,6 +300,7 @@ void DPRA_HYBRID::dpra_per_frame(const cv::Mat &img,
 void DPRA_HYBRID::update_ref_phi()
 {
 	checkCudaErrors(cudaMemcpyAsync(m_d_PhiRef, m_d_PhiCurr, sizeof(double)*m_iWidth*m_iHeight, cudaMemcpyDeviceToDevice));
+	checkCudaErrors(cudaMemcpyAsync(m_d_dPhiRef, m_d_deltaPhi, sizeof(double)*m_iWidth*m_iHeight, cudaMemcpyDeviceToDevice));
 }
 
 }	// namespace DPRA

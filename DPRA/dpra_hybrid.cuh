@@ -41,6 +41,7 @@ WFT_FPA_DLL_EXPORTS void get_A_b(float *d_out_A,
 
 WFT_FPA_DLL_EXPORTS void get_deltaPhi_currPhi(float *d_out_deltaPhi,
 											  float *d_out_currPhi,
+											  float *d_in_dphiRef,
 											  float *d_in_refPhi,
 											  cufftComplex *d_in_filtered,
 											  const int iSize);
@@ -69,8 +70,17 @@ WFT_FPA_DLL_EXPORTS void get_A_b(double *d_out_A,
 
 WFT_FPA_DLL_EXPORTS void get_deltaPhi_currPhi(double *d_out_deltaPhi,
 											  double *d_out_currPhi,
+											  double *d_in_dphiRef,
 											  double *d_in_refPhi,
 											  cufftDoubleComplex *d_in_filtered,
 											  const int iSize);
+
+WFT_FPA_DLL_EXPORTS void update_dphiRef(float *d_out_dphiRef,
+									    const float *d_in_dphi,
+										const int iSize);
+
+WFT_FPA_DLL_EXPORTS void update_dphiRef(double *d_out_dphiRef,
+									    const double *d_in_dphi,
+										const int iSize);
 }
 #endif // !DPRA_HYBRID_CUH

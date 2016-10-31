@@ -57,6 +57,7 @@ private:
 	double *m_h_deltaPhi;
 
 	double *m_d_PhiRef;
+	double *m_d_dPhiRef;
 	double *m_d_deltaPhi;
 	double *m_d_PhiCurr;
 	

@@ -297,6 +297,7 @@ void generate_A_b_double_kernel(double *d_out_A,
 __global__
 void get_deltaPhi_currPhi_kernel(float *d_out_deltaPhi,
 								 float *d_out_currPhi,
+								 float *d_in_dphiRef,
 								 float *d_in_refPhi,
 								 cufftComplex *d_in_filtered,
 								 const int iSize)
@@ -308,7 +309,7 @@ void get_deltaPhi_currPhi_kernel(float *d_out_deltaPhi,
 		float temp = atan2f(d_in_filtered[i].y, d_in_filtered[i].x);
 		float tempRefPhi = d_in_refPhi[i];
 
-		d_out_deltaPhi[i] = temp;
+		d_out_deltaPhi[i] = d_in_dphiRef[i] + temp;
 		d_out_currPhi[i] = atan2f(sinf(temp + tempRefPhi), cos(temp + tempRefPhi));
 	}
 }
@@ -320,6 +321,7 @@ void get_deltaPhi_currPhi_kernel(float *d_out_deltaPhi,
 __global__
 void get_deltaPhi_currPhi_double_kernel(double *d_out_deltaPhi,
 										double *d_out_currPhi,
+										double *d_in_dphiRef,
 										double *d_in_refPhi,
 										cufftDoubleComplex *d_in_filtered,
 										const int iSize)
@@ -331,8 +333,34 @@ void get_deltaPhi_currPhi_double_kernel(double *d_out_deltaPhi,
 		double temp = atan2f(d_in_filtered[i].y, d_in_filtered[i].x);
 		double tempRefPhi = d_in_refPhi[i];
 
-		d_out_deltaPhi[i] = temp;
+		d_out_deltaPhi[i] = d_in_dphiRef[i] + temp;
 		d_out_currPhi[i] = atan2f(sinf(temp + tempRefPhi), cos(temp + tempRefPhi));
+	}
+}
+
+__global__
+void update_dphiRef_kernel(float *d_out_dphiRef,
+						   const float *d_in_dphi,
+						   const int iSize)
+{
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
+		 i < iSize;
+		 i += blockDim.x * gridDim.x)
+	{
+		d_out_dphiRef[i] += d_in_dphi[i];
+	}
+}
+
+__global__
+void update_dphiRef_double_kernel(double *d_out_dphiRef,
+						          const double *d_in_dphi,
+						          const int iSize)
+{
+	for (int i = threadIdx.x + blockIdx.x * blockDim.x;
+		 i < iSize;
+		 i += blockDim.x * gridDim.x)
+	{
+		d_out_dphiRef[i] += d_in_dphi[i];
 	}
 }
 
@@ -447,12 +475,14 @@ void get_A_b(double *d_out_A,
 
 void get_deltaPhi_currPhi(float *d_out_deltaPhi,
 						  float *d_out_currPhi,
+						  float *d_in_dphiRef,
 						  float *d_in_refPhi,
 						  cufftComplex *d_in_filtered,
 						  const int iSize)
 {
 	get_deltaPhi_currPhi_kernel<<<8*32, 256>>>(d_out_deltaPhi,
 											   d_out_currPhi,
+											   d_in_dphiRef,
 											   d_in_refPhi,
 											   d_in_filtered,
 											   iSize);
@@ -461,16 +491,40 @@ void get_deltaPhi_currPhi(float *d_out_deltaPhi,
 
 void get_deltaPhi_currPhi(double *d_out_deltaPhi,
 						  double *d_out_currPhi,
+						  double *d_in_dphiRef,
 						  double *d_in_refPhi,
 						  cufftDoubleComplex *d_in_filtered,
 						  const int iSize)
 {
 	get_deltaPhi_currPhi_double_kernel<<<8*32, 256>>>(d_out_deltaPhi,
 													  d_out_currPhi,
+													  d_in_dphiRef,
 													  d_in_refPhi,
 													  d_in_filtered,
 													  iSize);
 	getLastCudaError("get_deltaPhi_currPhi_double_kernel launch failed!");
+}
+
+void update_dphiRef(float *d_out_dphiRef,
+				    const float *d_in_dphi,
+					const int iSize)
+{
+	update_dphiRef_kernel<<<8*32, 256>>>(d_out_dphiRef,
+										 d_in_dphi,
+										 iSize);
+
+	getLastCudaError("update_dphiRef_kernel launch failed!");
+}
+
+void update_dphiRef(double *d_out_dphiRef,
+				    const double *d_in_dphi,
+					const int iSize)
+{
+	update_dphiRef_double_kernel<<<8*32, 256>>>(d_out_dphiRef,
+												d_in_dphi,
+												iSize);
+
+	getLastCudaError("update_dphiRef_double_kernel launch failed!");
 }
 
 }	// namespace DPRA

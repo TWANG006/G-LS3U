@@ -55,6 +55,7 @@ private:
 	float *m_h_deltaPhi;
 
 	float *m_d_PhiRef;
+	float *m_d_dPhiRef;
 	float *m_d_deltaPhi;
 	float *m_d_PhiCurr;
 	

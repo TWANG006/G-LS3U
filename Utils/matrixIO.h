@@ -6,16 +6,13 @@
 #include <cctype>
 #include "cuda_runtime.h"
 
-namespace WFT_FPA{
-namespace Utils{
-
 /* 2D matrix I/O in Row-major using binary file format */
 inline long ELT(const int iNumCols, const int y, const int x)
 {
 	return (long(y)*long(iNumCols) + long(x));
 }
 
-int ReadMatrixSizeFromStream(FILE * file, int * rows, int * cols)
+inline int ReadMatrixSizeFromStream(FILE * file, int * rows, int * cols)
 {
 	if (fread(rows, sizeof(int), 1, file) < 1)
 		return 1;
@@ -24,7 +21,7 @@ int ReadMatrixSizeFromStream(FILE * file, int * rows, int * cols)
 
 	return 0;
 }
-int WriteMatrixHeaderToStream(FILE * file, int rows, int cols)
+inline int WriteMatrixHeaderToStream(FILE * file, int rows, int cols)
 {
 	if (fwrite(&rows, sizeof(int), 1, file) < 1)
 		return 1;
@@ -33,6 +30,9 @@ int WriteMatrixHeaderToStream(FILE * file, int rows, int cols)
 
 	return 0;
 }
+
+namespace WFT_FPA{
+namespace Utils{
 
 //Read matrix into cudaHostAlloc memory
 template <class T>

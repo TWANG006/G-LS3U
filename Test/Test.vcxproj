@@ -110,6 +110,7 @@
     <ClCompile Include="FFTW_C2C_Test.cpp" />
     <ClCompile Include="gtest-all.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="matrixIO_2D_Test.cpp" />
     <ClCompile Include="WFF2_CUDA_ComputationTest.cpp" />
     <ClCompile Include="WFF2_CUDA_InitializationTest.cpp" />
     <ClCompile Include="WFR2_CPU_Computation_Test.cpp" />

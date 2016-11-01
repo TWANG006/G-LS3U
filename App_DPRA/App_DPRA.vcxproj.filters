@@ -61,6 +61,9 @@
     <ClInclude Include="GeneratedFiles\ui_app_dpra.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="app_dpra.h">
@@ -72,5 +75,11 @@
     <CustomBuild Include="app_dpra.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="App_DPRA.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Figure.ico" />
   </ItemGroup>
 </Project>

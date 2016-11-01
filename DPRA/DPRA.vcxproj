@@ -90,7 +90,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310d.lib;%(AdditionalDependencies);cudart.lib;cufft.lib;cusolver.lib;cusparse.lib;WFTd.lib;Utilsd.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world310d.lib;%(AdditionalDependencies);cudart.lib;cufft.lib;cusolver.lib;cusparse.lib;AIAd.lib;WFTd.lib;Utilsd.lib</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)\lib\$(Platform)\$(TargetName).lib</ImportLibrary>
     </Link>
     <CudaCompile>

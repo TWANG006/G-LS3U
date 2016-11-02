@@ -1,4 +1,9 @@
 <RCC>
-    <qresource prefix="App_DPRA">
-    </qresource>
+  <qresource prefix="App_DPRA">
+    <file alias="icon-volmute">Resources/volume.ico</file>
+    <file alias="icon-vol">Resources/volume_muted.ico</file>
+    <file alias="icon-play">Resources/play.ico</file>
+    <file alias="icon-stop">Resources/stop.ico</file>
+    <file alias="icon-pause">Resources/pause.ico</file>
+  </qresource>
 </RCC>

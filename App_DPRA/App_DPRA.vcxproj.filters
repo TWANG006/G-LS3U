@@ -125,9 +125,13 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="App_DPRA.rc" />
+    <ResourceCompile Include="App_DPRA.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Resources\Figure.ico" />
+    <Image Include="Resources\Figure.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

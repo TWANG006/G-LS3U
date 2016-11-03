@@ -5,6 +5,8 @@ VideoWidget::VideoWidget(QWidget *parent)
 	: QVideoWidget(parent)
 {
 	setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+	setMinimumWidth(640);
+	setMinimumHeight(480);
 
 	QPalette p = palette();
 	p.setColor(QPalette::Window, Qt::black);

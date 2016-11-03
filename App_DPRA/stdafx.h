@@ -4,6 +4,10 @@
 #include <QFileDialog>
 #include <QSlider>
 #include <QBoxLayout>
+#include <QVideoProbe>
+#include <QModelIndex>
+#include <QUrl>
+#include <QMediaMetaData>
 
 #include <vector>
 #include <iostream>

@@ -12,7 +12,20 @@ public:
 	DPRAWidget(QWidget *parent = 0);
 	~DPRAWidget();
 
+signals:
+	void outputFileNameChanged(const QString&);
+
+private slots:
+	void openPhi();
+	void openAIAImages();
+	void openDPRAImages();
+
 private:
+	QString m_outputVideoFileName;
+	QString m_phiFileName;
+	QStringList m_AIAImgFileList;
+	QStringList m_DPRAImgFileList;
+
 	Ui::DPRAWidget ui;
 };
 

@@ -68,7 +68,9 @@ App_DPRA::App_DPRA(QWidget *parent)
 	connect(m_playerControl, &PlayerControl::changeMuting, m_player, &QMediaPlayer::setMuted);
 	connect(m_player, &QMediaPlayer::mutedChanged, m_playerControl, &PlayerControl::setMuted);
 	connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &App_DPRA::statusChanged);
-	
+
+	connect(m_dpraWidget, &DPRAWidget::onexit, this, &App_DPRA::close);
+
 	metaDataChanged();
 }
 

@@ -374,11 +374,19 @@
  <tabstops>
   <tabstop>loadphiButton</tabstop>
   <tabstop>computePhiButton</tabstop>
+  <tabstop>loadAIAImgButton</tabstop>
+  <tabstop>textEdit</tabstop>
+  <tabstop>errEdit</tabstop>
+  <tabstop>itersEdit</tabstop>
+  <tabstop>threadsAIAspinBox</tabstop>
+  <tabstop>computeAIAButton</tabstop>
   <tabstop>chooseImgButton</tabstop>
   <tabstop>threadsSpinBox</tabstop>
   <tabstop>rateSpinBox</tabstop>
-  <tabstop>errEdit</tabstop>
-  <tabstop>itersEdit</tabstop>
+  <tabstop>computeDPRAButton</tabstop>
+  <tabstop>fpsDoubleSpinBox</tabstop>
+  <tabstop>outputButton</tabstop>
+  <tabstop>exitButton</tabstop>
  </tabstops>
  <resources/>
  <connections>

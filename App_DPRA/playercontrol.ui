@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>413</width>
+    <width>432</width>
     <height>43</height>
    </rect>
   </property>
@@ -112,6 +112,15 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>openButton</tabstop>
+  <tabstop>playButton</tabstop>
+  <tabstop>stopButton</tabstop>
+  <tabstop>muteButton</tabstop>
+  <tabstop>volumeSlider</tabstop>
+  <tabstop>rateBox</tabstop>
+  <tabstop>fullscreenButton</tabstop>
+ </tabstops>
  <resources>
   <include location="app_dpra.qrc"/>
  </resources>

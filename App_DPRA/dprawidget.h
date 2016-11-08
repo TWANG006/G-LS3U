@@ -19,12 +19,17 @@ signals:
 	void onexit();
 
 private slots:
-	void computeAIA();
-	void computeDPRA();
 	void openPhi();
 	void openAIAImages();
+	void computeAIA();
 
-	void openDPRAImages();	
+	void openDPRAImages();
+	void computeDPRA();
+
+	void outputVideo();
+
+private:
+	bool videoWritter(const QString& fileName);
 
 private:
 	QString m_outputVideoFileName;
@@ -39,14 +44,15 @@ private:
 	// AIA parameters
 	int m_iMaxIterations;
 	float m_fMaxError;
-	int m_iNumberThreads;	
+	int m_iNumberThreads;
 	std::vector<float> mv_refPhi;
+	AIA::AIA_CPU_DnF m_aia;
 
 	// DPRA parameters
 	int m_iWidth;
 	int m_iHeight;
-
-	AIA::AIA_CPU_DnF m_aia;
+	
+	std::vector<std::vector<float>> m_deltaPhiSum;
 	std::unique_ptr<DPRA::DPRA_HYBRIDF> m_dpraPtr;
 
 	//QThread *m_dpraworkerThread;

@@ -69,6 +69,8 @@ App_DPRA::App_DPRA(QWidget *parent)
 	connect(m_player, &QMediaPlayer::mutedChanged, m_playerControl, &PlayerControl::setMuted);
 	connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &App_DPRA::statusChanged);
 
+	connect(m_dpraWidget, &DPRAWidget::outputFileNameChanged, this, &App_DPRA::playVideoFile);
+
 	connect(m_dpraWidget, &DPRAWidget::onexit, this, &App_DPRA::close);
 
 	metaDataChanged();
@@ -79,10 +81,20 @@ App_DPRA::~App_DPRA()
 	m_player->stop();
 }
 
+void App_DPRA::playVideoFile(const QString& qstr)
+{
+	m_videoFileName = qstr;
+
+	QFileInfo fileInfo(m_videoFileName);
+	m_filePath = fileInfo.path();
+	m_player->setMedia(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
+	m_player->play();
+}
+
 void App_DPRA::openVideo()
 {
 	// Open video & remember the last opened path
-	m_videoFileName = QFileDialog::getOpenFileName(this, tr("Open Video Files"), m_filePath, tr("Videos (*.mp4 *.mpg *.mpeg *.3gp *.wmv)"));
+	m_videoFileName = QFileDialog::getOpenFileName(this, tr("Open Video Files"), m_filePath, tr("Videos (*.mp4 *.wmv *.mpeg *.flv)"));
 	if (!m_videoFileName.isNull())
 	{
 		QFileInfo fileInfo(m_videoFileName);

@@ -19,6 +19,9 @@ public:
 	App_DPRA(QWidget *parent = 0);
 	~App_DPRA();
 
+public slots:
+	void playVideoFile(const QString& qstr);
+
 private slots:
 	void openVideo();
 	void durationChanged(qint64 duration);

@@ -339,9 +339,20 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 	std::vector<cv::Mat> outFrames;
 	outFrames.reserve(m_deltaPhiSum.size());
 
+	QProgressDialog progress(this);
+
+	progress.setLabelText(tr("Writting Video..."));
+	progress.setRange(0, m_deltaPhiSum.size());
+	progress.setCancelButton(0);
+	progress.setModal(true);
+	progress.show();
+
 	// Construct video frames
 	for (int i = 0; i < m_deltaPhiSum.size(); i++)
 	{
+		progress.setValue(i);
+		QApplication::processEvents();
+
 		std::vector<uchar> v_img;
 		v_img.reserve(m_iWidth*m_iHeight);
 		for (int j = 0; j < m_deltaPhiSum[0].size(); j++)

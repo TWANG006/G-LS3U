@@ -302,8 +302,6 @@ void DPRAWidget::computeDPRA()
 
 void DPRAWidget::outputVideo()
 {
-	qDebug() << m_iWidth << ", " << m_iHeight;
-
 	// Get the output file name
 	QString outputFileName = QFileDialog::getSaveFileName(
 		this, 

@@ -1,7 +1,7 @@
 #ifndef DPRA_HYBRID_H
 #define DPRA_HYBRID_H
 
-#include "dpra_hybrid.cuh"
+#include "dpra_general.cuh"
 
 #include "WFT-FPA.h"
 #include "Utils.h"

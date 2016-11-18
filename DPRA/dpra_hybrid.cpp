@@ -2,7 +2,7 @@
 #include <omp.h>
 #include <mkl.h>
 #include "mem_manager.h"
-#include "dpra_hybrid.cuh"
+#include "dpra_general.cuh"
 
 namespace DPRA
 {

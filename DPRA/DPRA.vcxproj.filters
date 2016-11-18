@@ -50,11 +50,11 @@
     <ClInclude Include="dpra_hybridf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dpra_hybrid.cuh">
-      <Filter>CUDA Header</Filter>
-    </ClInclude>
     <ClInclude Include="dpra_hybrid.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dpra_general.cuh">
+      <Filter>CUDA Header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

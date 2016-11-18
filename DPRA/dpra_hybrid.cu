@@ -1,4 +1,4 @@
-#include "dpra_hybrid.cuh"
+#include "dpra_general.cuh"
 
 #include "helper_cuda.h"
 #include "device_launch_parameters.h"

@@ -6,7 +6,29 @@
 namespace DPRA{
 
 /*---------------------------------------CUDA Kernels----------------------------------*/
+__global__ 
+void Gaussian_Elimination_3x3_kernel(const float *in_A, 
+									 float *out_b,
+									 int iSize)
+{
+	float A[3][4];	// The augmented matrix
 
+	for (int i = threadIdx.x + blockDim.x * blockIdx.x;
+		 i < iSize;
+		 i += blockDim.x * gridDim.x)
+	{
+		int idA = i * 9; // Index in Mat A
+		int idb = i * 3; // Index in Vec b
+
+		// Load values from A&b to the augmented matrix A per thread
+		A[0][0] = 9;		A[0][1] = in_A[idA + 3];	A[0][2] = in_A[idA + 6];	A[0][3] = out_b[idb + 0];
+		A[1][0] = A[0][1];	A[1][1] = in_A[idA + 4];	A[1][2] = in_A[idA + 7];	A[1][3] = out_b[idb + 1];
+		A[2][0] = A[0][2];	A[2][1] = A[1][2];			A[2][2] = in_A[idA + 8];	A[2][3] = out_b[idb + 2];
+
+		// Gaussian Elimination with partial pivoting algorithm
+
+	}
+}
 
 
 /*--------------------------------------End CUDA Kernels--------------------------------*/

@@ -26,7 +26,51 @@ void Gaussian_Elimination_3x3_kernel(const float *in_A,
 		A[2][0] = A[0][2];	A[2][1] = A[1][2];			A[2][2] = in_A[idA + 8];	A[2][3] = out_b[idb + 2];
 
 		// Gaussian Elimination with partial pivoting algorithm
+		for (int k = 0; k < 3; k++)
+		{
+			// 1. Find the i-th pivot of the following A[k][i] elements
+			int i_max = -1;
+			float i_pivot = 0.0f;
+			
+			for (int i = k; i < 3; i++)
+			{
+				if (fabsf(i_pivot) - fabsf(A[i][k]) <= 1e-6)
+				{
+					i_pivot = A[i][k];
+					i_max = i;
+				}
 
+			}
+
+			// 2. swap rows
+			for (int j = 0; j < 4; j++)
+			{
+				float temp = A[i_max][j];
+				A[i_max][j] = A[k][j];
+				A[k][j] = temp;
+			}
+
+			// 3. Triangulate the matrix
+			for (int i = k + 1; i < 3; i++)
+			{
+				float mult = A[i][k] / A[k][k];
+				
+				for (int j = 0; j < 4; j++)
+				{
+					A[i][j] = A[i][j] - A[k][j] * mult;
+				}
+			}
+		}
+
+		// 4. Find the solution using backward substitution method
+		A[2][3] = A[2][3] / A[2][2];
+		A[1][3] = (A[1][3] - A[2][3] * A[1][2]) / A[1][1];
+		A[0][3] = (A[0][3] - A[2][3] * A[0][2] - A[1][3] * A[0][1]) / A[0][0];
+
+		// 5. Wirte the results back to out_b
+		out_b[idb + 0] = A[0][3];
+		out_b[idb + 1] = A[1][3];
+		out_b[idb + 2] = A[2][3];
 	}
 }
 

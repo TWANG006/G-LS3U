@@ -8,57 +8,10 @@
 
 TEST(dpra_single4, DPRA_Test)
 {
-	/* AIA to get the initial phi */
-	std::vector<cv::Mat> f;
-
-	cv::Mat img = cv::imread("00.bmp");
-	cv::cvtColor(img,
-				 img,
+	cv::Mat dpra_f = cv::imread("1000.bmp");
+	cv::cvtColor(dpra_f,
+				 dpra_f,
 				 CV_BGR2GRAY);
-	f.push_back(img);
-
-	img = cv::imread("01.bmp");
-	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
-	f.push_back(img);
-
-	img = cv::imread("02.bmp");
-	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
-	f.push_back(img);
-
-	img = cv::imread("03.bmp");
-	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
-	f.push_back(img);
-	
-
-	// computation
-	/*std::vector<float> phi;
-	std::vector<float> delta{
-	 -0.1806f,
-   -0.8725f,
-    0.0501f,
-    0.1354f
-	};
-	double time = 0;
-	float err = 0;
-	int iter = 0;
-
-	AIA::AIA_CPU_DnF aia;
-	aia(phi, delta, time, iter, err, f, 20, 1e-4, 12);
-
-	int iWidth = f[0].cols;
-	int iHeight = f[0].rows;
-
-	std::cout << "AIA Running Time: " << time << std::endl;
-	std::cout << "AIA Error is: " << err << std::endl;
-	std::cout << "AIA Iteration is: " << iter << std::endl;
-
-	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << std::endl;*/
 
 	float *phi = nullptr;
 
@@ -66,8 +19,8 @@ TEST(dpra_single4, DPRA_Test)
 
 	WFT_FPA::Utils::ReadMatrixFromDisk("2_phi.bin", &rows, &cols, &phi);
 	
-	int iWidth = f[0].cols;
-	int iHeight = f[0].rows;
+	int iWidth = dpra_f.cols;
+	int iHeight = dpra_f.rows;
 
 	/* DPRA Results */
 	
@@ -76,10 +29,6 @@ TEST(dpra_single4, DPRA_Test)
 	std::vector<float> delta_phi(f[0].cols*f[0].rows,0);
 	double timeDpra = 0;
 
-	cv::Mat dpra_f = cv::imread("1000.bmp");
-	cv::cvtColor(dpra_f,
-				 dpra_f,
-				 CV_BGR2GRAY);
 	dpra.dpra_per_frame(dpra_f, delta_phi, timeDpra);
 
 
@@ -95,38 +44,6 @@ TEST(dpra_single4, DPRA_Test)
 		out<<"\n";
 	}
 	out.close();
-
-	// check m_d_z.filtered
-
-	//std::ofstream out("cpu_z_filtered4.csv", std::ios::out | std::ios::trunc);
-
-	//for (int i = 0; i < dpra.m_iHeight; i++)
-	//{
-	//	for (int j = 0; j < dpra.m_iWidth; j++)
-	//	{
-	//		out << dpra.m_z.m_filtered[i * dpra.m_iWidth + j][0] << "+"<< dpra.m_z.m_filtered[i * dpra.m_iWidth + j][1]<<"i,";
-	//		
-	//	}
-	//	out<<"\n";
-	//}
-
-	//out.close();
-
-
-	//// Check before wff
-	//out.open("m_dPhiWFT_CPU4.csv", std::ios::out | std::ios::trunc);
-
-	//for (int i = 0; i < dpra.m_iHeight; i++)
-	//{
-	//	for (int j = 0; j < dpra.m_iWidth; j++)
-	//	{
-	//		out << dpra.m_dPhiWFT[i * dpra.m_iWidth + j][0] << "+"<< dpra.m_dPhiWFT[i * dpra.m_iWidth + j][1]<<"i,";
-	//		
-	//	}
-	//	out<<"\n";
-	//}
-
-	//out.close();
 
 	std::cout << "DPRA Running Time is: " << timeDpra << std::endl;
 }

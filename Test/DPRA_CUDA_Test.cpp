@@ -1,8 +1,14 @@
-//#include "gtest\gtest.h"
-//
-//#include "aia_cpuf.h"
-//#include "dpra_cudaf.h"
-//
+#include "gtest\gtest.h"
+
+#include "Utils.h"
+#include "matrixIO.h"
+
+#include "aia_cpuf.h"
+#include "dpra_cudaf.h"
+#include <fstream>
+
+using namespace std;
+
 //TEST(DPRA_CUDAF_csrValA, DPRA_CUDA_Single)
 //{
 //		/* AIA to get the initial phi */
@@ -174,3 +180,68 @@
 //	cudaFree(dImg);
 //	cudaFree(dPhi0);
 //}
+TEST(DPRA_CUDAF_NewDesign, DPRA_CUDA_Single)
+{
+	/* AIA to get the initial phi */
+	std::vector<cv::Mat> f;
+
+	cv::Mat img = cv::imread("00.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("01.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("02.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("03.bmp");
+	cv::cvtColor(img,
+				 img,
+				 CV_BGR2GRAY);
+	f.push_back(img);
+	
+	float *phi = nullptr;
+
+	int rows = 0, cols = 0;
+
+	WFT_FPA::Utils::ReadMatrixFromDisk("2_phi.bin", &rows, &cols, &phi);
+	
+	int iWidth = f[0].cols;
+	int iHeight = f[0].rows;
+	DPRA::DPRA_CUDAF dpra_hybrid(phi, iWidth, iHeight, 1);
+	
+	vector<float> dPHi(iWidth*iHeight, 0);
+	double ddtime = 0;
+
+	cv::Mat dpra_f = cv::imread("1000.bmp");
+	cv::cvtColor(dpra_f,
+				 dpra_f,
+				 CV_BGR2GRAY);
+
+	dpra_hybrid.dpra_per_frame(dpra_f, dPHi, ddtime);
+
+	ofstream out("deltaPhiSumCuda.csv", std::ios::out | std::ios::trunc);
+
+	for (int i = 0; i < iHeight; i++)
+	{
+		for (int j = 0; j < iWidth; j++)
+		{
+			
+				out << dPHi[i * iWidth + j]<<",";
+		}
+		out<<"\n";
+	}
+	out.close();
+
+	free(phi);
+	std::cout << "DPRA CUDA Running Time is: " << ddtime << "ms" << std::endl;
+}

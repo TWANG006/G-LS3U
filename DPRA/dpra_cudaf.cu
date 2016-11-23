@@ -74,6 +74,22 @@ void Gaussian_Elimination_3x3_kernel(const float *in_A,
 	}
 }
 
+__global__
+void Update_Delta_Phi_Kernel(const float *in_b,
+							 const int iSize,
+							 cufftComplex *out_deltaPhiWFT)
+{
+	for (int i = threadIdx.x + blockDim.x * blockIdx.x;
+		 i < iSize;
+		 i += gridDim.x * blockDim.x)
+	{
+		int idb = i * 3;
+		float fDeltaPhi = atan2f(-in_b[idb + 2], in_b[idb + 1]);
+
+		out_deltaPhiWFT[i].x = cosf(fDeltaPhi);
+		out_deltaPhiWFT[i].y = sinf(fDeltaPhi);
+	}
+}
 
 /*--------------------------------------End CUDA Kernels--------------------------------*/
 
@@ -126,6 +142,7 @@ DPRA_CUDAF::DPRA_CUDAF(const float *v_Phi0,
 	checkCudaErrors(cudaMalloc((void**)&m_d_img, sizeof(uchar)*iImgSize));	
 	checkCudaErrors(cudaMalloc((void**)&m_d_PhiCurr, sizeof(float)*iImgSize));
 	checkCudaErrors(cudaMalloc((void**)&m_d_deltaPhi_WFT, sizeof(cufftComplex) * iImgSize));
+	checkCudaErrors(cudaMalloc((void**)&m_d_deltaPhi, sizeof(float)*iImgSize));
 
 	// Copy the initial v_Phi0 to local device array
 	checkCudaErrors(cudaMalloc((void**)&m_d_PhiRef, sizeof(float)*iImgSize));
@@ -156,6 +173,7 @@ DPRA_CUDAF::~DPRA_CUDAF()
 	WFT_FPA::Utils::cudaSafeFree(m_d_deltaPhiRef);
 	WFT_FPA::Utils::cudaSafeFree(m_d_A);
 	WFT_FPA::Utils::cudaSafeFree(m_d_b);
+	WFT_FPA::Utils::cudaSafeFree(m_d_deltaPhi);
 	WFT_FPA::Utils::cudaSafeFree(m_d_deltaPhi_WFT);
 	WFT_FPA::Utils::cudaSafeFree(m_d_cosPhi);
 	WFT_FPA::Utils::cudaSafeFree(m_d_sinPhi);
@@ -204,6 +222,10 @@ void DPRA_CUDAF::dpra_per_frame(const cv::Mat &img,
 	cudaEventRecord(m_d_event_1);
 
 	/* 3. Solve Ax = b and construct the m_h_deltaPhiWFT for, each pixel a thread */
+	Gaussian_Elimination_3x3_kernel<<<256, 256>>>(m_d_A, m_d_b, iSize);
+	getLastCudaError("Gaussian_Elimination_3x3_kernel launch failed!");
+	Update_Delta_Phi_Kernel<<<256, 256>>>(m_d_b, iSize, m_d_deltaPhi_WFT);
+	getLastCudaError("Update_Delta_Phi_Kernel launch failed!");
 
 	cudaEventRecord(m_d_event_2);
 

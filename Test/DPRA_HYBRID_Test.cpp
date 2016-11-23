@@ -38,76 +38,15 @@ TEST(DPRA_Hybrid_Single_4, DPRA_HYBRID_Test)
 	{
 		for (int j = 0; j < iWidth; j++)
 		{
-			
-				out << dPHi[i * iWidth + j]<<",";
+
+			out << dPHi[i * iWidth + j] << ",";
 		}
-		out<<"\n";
+		out << "\n";
 	}
 	out.close();
 
 	free(phi);
-
-	// Check A and b
-	//ofstream out("csrA_b_hybrid4.csv", std::ios::out | std::ios::trunc);
-
-	//for (int i = 0; i < dpra_hybrid.m_iHeight*dpra_hybrid.m_iWidth; i++)
-	//{
-	//	for (int j = 0; j < 3; j++)
-	//	{
-	//		for (int k = 0; k < 3; k++)
-	//		{
-	//			out << dpra_hybrid.m_h_A[i * 9 + j * 3 + k]<<",";
-	//		}
-	//		out << dpra_hybrid.m_h_b[i * 3 + j] << "\n";
-	//	}
-	//	out<<"\n";
-	//}
-
-	//out.close();
-
-	// check before filtered
-	//out.open("hybrid_dphi_wft4.csv", std::ios::out | std::ios::trunc);
-
-	//for (int i = 0; i < dpra_hybrid.m_iHeight; i++)
-	//{
-	//	for (int j = 0; j < dpra_hybrid.m_iWidth; j++)
-	//	{
-	//		out << dpra_hybrid.m_h_deltaPhiWFT[i * dpra_hybrid.m_iWidth + j].x << "+"<<dpra_hybrid.m_h_deltaPhiWFT[i * dpra_hybrid.m_iWidth + j].y<<"i,";
-	//		
-	//	}
-	//	out<<"\n";
-	//}
-
-	//out.close();
-
-	////out.open("371-366.fp");
-	////WFT_FPA::Utils::cufftComplexMatWrite2D(out, dpra_hybrid.m_h_deltaPhiWFT, iHeight, iWidth);
-	////out.close();
-
-	//// check m_d_z.filtered
-	//cufftComplex *h_z = (cufftComplex*)malloc(sizeof(cufftComplex)*iWidth*iHeight);
-	//cudaMemcpy(h_z, dpra_hybrid.m_d_z.m_d_filtered, sizeof(cufftComplex)*iWidth*iHeight, cudaMemcpyDeviceToHost);
-
-	//out.open("hybrid_d_z_filtered4.csv", std::ios::out | std::ios::trunc);
-
-	//for (int i = 0; i < dpra_hybrid.m_iHeight; i++)
-	//{
-	//	for (int j = 0; j < dpra_hybrid.m_iWidth; j++)
-	//	{
-	//		out << h_z[i * dpra_hybrid.m_iWidth + j].x << "+"<<h_z[i * dpra_hybrid.m_iWidth + j].y<<"i,";
-	//		
-	//	}
-	//	out<<"\n";
-	//}
-
-	//out.close();
-
-	//free(h_z);
 	std::cout << "DPRA hybrid Running Time is: " << ddtime << "ms" << std::endl;
-
-	//dpra_hybrid.dpra_per_frame(f[1], dPHi, ddtime);
-
-	//std::cout << "DPRA hybrid Running Time is: " << ddtime << "ms" << std::endl;
 }
 
 //TEST(DPRA_Hybrid_Double_4, DPRA_HYBRID_Test)

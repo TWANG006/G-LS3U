@@ -5,6 +5,7 @@
 #include "ui_dprawidget.h"
 #include "aia_cpuf.h"
 #include "dpra_hybridf.h"
+#include "dpra_cudaf.h"
 
 class DPRAWidget : public QWidget
 {
@@ -54,6 +55,7 @@ private:
 	
 	std::vector<std::vector<float>> m_deltaPhiSum;
 	std::unique_ptr<DPRA::DPRA_HYBRIDF> m_dpraPtr;
+	std::unique_ptr<DPRA::DPRA_CUDAF> m_cudpraPtr;
 
 	//QThread *m_dpraworkerThread;
 	//DPRAWorker *m_dpraworkerPtr;

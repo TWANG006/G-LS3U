@@ -219,7 +219,21 @@
       <string>DPRA</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="1" column="0">
+      <item row="4" column="0">
+       <widget class="QPushButton" name="computeDPRAButton">
+        <property name="text">
+         <string>Compute DPRA</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="chooseImgButton">
+        <property name="text">
+         <string>Choose Images...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
        <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0" columnstretch="10,10">
         <item row="0" column="0">
          <widget class="QLabel" name="threadsLabel">
@@ -237,6 +251,9 @@
         </item>
         <item row="1" column="0">
          <widget class="QSpinBox" name="threadsSpinBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="toolTipDuration">
            <number>-1</number>
           </property>
@@ -275,17 +292,20 @@
         </item>
        </layout>
       </item>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="chooseImgButton">
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="GPUradioButton">
         <property name="text">
-         <string>Choose Images...</string>
+         <string>GPU Implementation</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QPushButton" name="computeDPRAButton">
+       <widget class="QRadioButton" name="GPUCPUradioButton">
         <property name="text">
-         <string>Compute DPRA</string>
+         <string>Hybrid GPU &amp; CPU Implementation</string>
         </property>
        </widget>
       </item>
@@ -403,6 +423,22 @@
     <hint type="destinationlabel">
      <x>175</x>
      <y>104</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GPUCPUradioButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>threadsSpinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>406</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>75</x>
+     <y>438</y>
     </hint>
    </hints>
   </connection>

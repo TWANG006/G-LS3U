@@ -24,9 +24,9 @@ TEST(dpra_single4, DPRA_Test)
 
 	/* DPRA Results */
 	
-	DPRA::DPRA_CPUF dpra(phi, f[0].cols, f[0].rows, 1, 12);
+	DPRA::DPRA_CPUF dpra(phi, dpra_f.cols, dpra_f.rows, 1, 12);
 
-	std::vector<float> delta_phi(f[0].cols*f[0].rows,0);
+	std::vector<float> delta_phi(dpra_f.cols*dpra_f.rows,0);
 	double timeDpra = 0;
 
 	dpra.dpra_per_frame(dpra_f, delta_phi, timeDpra);

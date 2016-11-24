@@ -262,7 +262,7 @@ void DPRA_CUDAF::dpra_per_frame(const cv::Mat &img,
 
 void DPRA_CUDAF::update_ref_phi()
 {
-	checkCudaErrors(cudaMemcpyAsync(m_d_PhiRef, m_d_PhiCurr, sizeof(float)*m_iPaddedWidth*m_iPaddedHeight, cudaMemcpyDeviceToDevice));
+	checkCudaErrors(cudaMemcpyAsync(m_d_PhiRef, m_d_PhiCurr, sizeof(float)*m_iImgWidth*m_iImgHeight, cudaMemcpyDeviceToDevice));
 	checkCudaErrors(cudaMemcpyAsync(m_d_deltaPhiRef, m_d_deltaPhi, sizeof(float)*m_iImgWidth*m_iImgHeight, cudaMemcpyDeviceToDevice));
 }
 

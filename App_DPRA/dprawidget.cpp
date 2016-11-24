@@ -7,6 +7,7 @@ DPRAWidget::DPRAWidget(QWidget *parent)
 	, m_iWidth(0)
 	, m_iHeight(0)
 	, m_dpraPtr(nullptr)
+	, m_cudpraPtr(nullptr)
 {
 	ui.setupUi(this);
 	ui.computeAIAgroupBox->hide();
@@ -213,88 +214,180 @@ void DPRAWidget::computeDPRA()
 	}
 	m_deltaPhiSum.reserve(m_DPRAImgFileList.size());
 
-	// Construct the DPRA hybrid object
-	m_dpraPtr.reset(new DPRA::DPRA_HYBRIDF(mv_refPhi.data(), m_iWidth, m_iHeight, iupdateRate, iNumThreads));
-
-	// The final deltaPhi
-	std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
-
-	// Use the progress bar to monitor the progress
-	QProgressDialog progress(this);
-
-	progress.setLabelText(tr("DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
-	progress.setRange(0, m_DPRAImgFileList.size());
-	progress.setModal(true);
-	progress.show();
-
-	/* DPRA computation starts */
-	int i = 0;
-	foreach(const QString& imgstr, m_DPRAImgFileList)
+	
+	if (ui.GPUradioButton->isChecked())
 	{
-		cv::Mat img = cv::imread(imgstr.toStdString());
+		// Construct the DPRA CUDA object
+		m_cudpraPtr.reset(new DPRA::DPRA_CUDAF(mv_refPhi.data(), m_iWidth, m_iHeight, iupdateRate));
 
-		if (img.cols != m_iWidth || img.rows != m_iHeight)
+		// The final deltaPhi
+		std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
+
+		// Use the progress bar to monitor the progress
+		QProgressDialog progress(this);
+
+		progress.setLabelText(tr("DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
+		progress.setRange(0, m_DPRAImgFileList.size());
+		progress.setModal(true);
+		progress.show();
+
+		/* DPRA computation starts */
+		int i = 0;
+		foreach(const QString& imgstr, m_DPRAImgFileList)
 		{
-			QMessageBox::critical(this, tr("Error!"), tr("DPRA images must have the same size!"));
-			return;
-		}
+			cv::Mat img = cv::imread(imgstr.toStdString());
 
-		// Convert the image to grayscale
-		cv::cvtColor(img, img, CV_BGRA2GRAY);
-		
-		// per-frame computation
-		m_dpraPtr->dpra_per_frame(img, deltaPhi, dTime_per_Frame);
+			if (img.cols != m_iWidth || img.rows != m_iHeight)
+			{
+				QMessageBox::critical(this, tr("Error!"), tr("DPRA images must have the same size!"));
+				return;
+			}
 
-		// Get the time
-		dTotaltime += dTime_per_Frame;
+			// Convert the image to grayscale
+			cv::cvtColor(img, img, CV_BGRA2GRAY);
 
-		m_deltaPhiSum.push_back(deltaPhi);
+			// per-frame computation
+			m_cudpraPtr->dpra_per_frame(img, deltaPhi, dTime_per_Frame);
 
-		// Update the reference
-		if (i % iupdateRate == 0)
-			m_dpraPtr->update_ref_phi();
+			// Get the time
+			dTotaltime += dTime_per_Frame;
 
-		progress.setValue(i);
-		QApplication::processEvents();
+			m_deltaPhiSum.push_back(deltaPhi);
 
-		if(progress.wasCanceled())
-		{
-			QMessageBox::StandardButton result = QMessageBox::warning(
-				this, 
-				tr("Cancel Processing"),
-				tr("Would you like to cancle the execution?\n") + 
-				tr("Only (%1) of (%2) frames have been computed")
+			// Update the reference
+			if (i % iupdateRate == 0)
+				m_cudpraPtr->update_ref_phi();
+
+			progress.setValue(i);
+			QApplication::processEvents();
+
+			if (progress.wasCanceled())
+			{
+				QMessageBox::StandardButton result = QMessageBox::warning(
+					this,
+					tr("Cancel Processing"),
+					tr("Would you like to cancle the execution?\n") +
+					tr("Only (%1) of (%2) frames have been computed")
 					.arg(i)
 					.arg(m_DPRAImgFileList.size()),
-				QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-			if (result == QMessageBox::Yes)
-			{
-				break;
+					QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+				if (result == QMessageBox::Yes)
+				{
+					break;
+				}
+				else
+				{
+					progress.reset();
+				}
 			}
-			else
-			{
-				progress.reset();
-			}
+
+			//char str[5];
+			//sprintf(str, "%d", i);
+			//std::string s = "1_deltaPhi" + std::string(str) + ".bin";
+
+			//WFT_FPA::Utils::WriteMatrixToDisk(s.c_str(), m_iHeight, m_iWidth, m_deltaPhiSum[i].data());
+
+
+			++i;
 		}
 
-		//char str[5];
-		//sprintf(str, "%d", i);
-		//std::string s = "1_deltaPhi" + std::string(str) + ".bin";
-
-		//WFT_FPA::Utils::WriteMatrixToDisk(s.c_str(), m_iHeight, m_iWidth, m_deltaPhiSum[i].data());
-
-
-		++i;
-	}
-	
-	QMessageBox::information(
-		this,
-		tr("DPRA computation completed"),
-		tr("DPRA Algorithm on %1 images of %2 images completed in %3 ms.")
+		QMessageBox::information(
+			this,
+			tr("DPRA computation completed"),
+			tr("DPRA Algorithm on %1 images of %2 images completed in %3 ms. Average FPS is %4.")
 			.arg(i)
 			.arg(m_DPRAImgFileList.size())
-			.arg(dTotaltime));
-	
+			.arg(dTotaltime)
+			.arg(1000.0 / (dTotaltime / m_DPRAImgFileList.size())));
+
+	}
+	else
+	{
+		// Construct the DPRA hybrid object
+		m_dpraPtr.reset(new DPRA::DPRA_HYBRIDF(mv_refPhi.data(), m_iWidth, m_iHeight, iupdateRate, iNumThreads));
+
+		// The final deltaPhi
+		std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
+
+		// Use the progress bar to monitor the progress
+		QProgressDialog progress(this);
+
+		progress.setLabelText(tr("DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
+		progress.setRange(0, m_DPRAImgFileList.size());
+		progress.setModal(true);
+		progress.show();
+
+		/* DPRA computation starts */
+		int i = 0;
+		foreach(const QString& imgstr, m_DPRAImgFileList)
+		{
+			cv::Mat img = cv::imread(imgstr.toStdString());
+
+			if (img.cols != m_iWidth || img.rows != m_iHeight)
+			{
+				QMessageBox::critical(this, tr("Error!"), tr("DPRA images must have the same size!"));
+				return;
+			}
+
+			// Convert the image to grayscale
+			cv::cvtColor(img, img, CV_BGRA2GRAY);
+
+			// per-frame computation
+			m_dpraPtr->dpra_per_frame(img, deltaPhi, dTime_per_Frame);
+
+			// Get the time
+			dTotaltime += dTime_per_Frame;
+
+			m_deltaPhiSum.push_back(deltaPhi);
+
+			// Update the reference
+			if (i % iupdateRate == 0)
+				m_dpraPtr->update_ref_phi();
+
+			progress.setValue(i);
+			QApplication::processEvents();
+
+			if (progress.wasCanceled())
+			{
+				QMessageBox::StandardButton result = QMessageBox::warning(
+					this,
+					tr("Cancel Processing"),
+					tr("Would you like to cancle the execution?\n") +
+					tr("Only (%1) of (%2) frames have been computed")
+					.arg(i)
+					.arg(m_DPRAImgFileList.size()),
+					QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+				if (result == QMessageBox::Yes)
+				{
+					break;
+				}
+				else
+				{
+					progress.reset();
+				}
+			}
+
+			//char str[5];
+			//sprintf(str, "%d", i);
+			//std::string s = "1_deltaPhi" + std::string(str) + ".bin";
+
+			//WFT_FPA::Utils::WriteMatrixToDisk(s.c_str(), m_iHeight, m_iWidth, m_deltaPhiSum[i].data());
+
+
+			++i;
+		}
+
+		QMessageBox::information(
+			this,
+			tr("DPRA computation completed"),
+			tr("DPRA Algorithm on %1 images of %2 images completed in %3 ms. Average FPS is %4.")
+			.arg(i)
+			.arg(m_DPRAImgFileList.size())
+			.arg(dTotaltime)
+			.arg(1000.0 / (dTotaltime / m_DPRAImgFileList.size())));
+	}
+
+
 	// Disable the DPRA after computation
 	ui.DPRABox->setDisabled(true);
 	ui.outputVideogroupBox->setDisabled(false);

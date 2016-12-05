@@ -397,33 +397,38 @@ void DPRAWidget::outputVideo()
 {
 	// Get the output file name
 	QString outputFileName = QFileDialog::getSaveFileName(
-		this, 
-		tr("Save the DPRA results to a video"), 
-		m_filePath, 
+		this,
+		tr("Save the DPRA results to a video"),
+		m_filePath,
 		tr("Video (*.mp4 *.wmv *.mpeg *.flv)"));
 
 	if (!outputFileName.isEmpty())
 	{
 		QFileInfo fileInfor(outputFileName);
 		m_filePath = fileInfor.path();
-	}
 
-	// Write to video
-	if (!videoWritter(outputFileName))
-		return;
 
-	ui.outputVideogroupBox->setDisabled(true);
+		// Write to video
+		if (!videoWritter(outputFileName))
+			return;
 
-	QMessageBox::StandardButton result = QMessageBox::information(
-		this,
-		tr("Output Video Completed"),
-		tr("The Video is successfully output to ") + outputFileName +
-		tr("\nWould you like to play the output video now? "),
-		QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+		ui.outputVideogroupBox->setDisabled(true);
 
-	if (result == QMessageBox::Yes)
-	{
-		emit(outputFileNameChanged(outputFileName));
+		QMessageBox::StandardButton result = QMessageBox::information(
+			this,
+			tr("Output Video Completed"),
+			tr("The Video is successfully output to ") + outputFileName +
+			tr("\nWould you like to play the output video now? "),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+		if (result == QMessageBox::Yes)
+		{
+			emit(outputFileNameChanged(outputFileName));
+		}
+		else
+		{
+			return;
+		}
 	}
 }
 

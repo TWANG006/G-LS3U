@@ -215,8 +215,8 @@ TEST(DPRA_CUDAF_NewDesign, DPRA_CUDA_Single)
 
 	WFT_FPA::Utils::ReadMatrixFromDisk("2_phi.bin", &rows, &cols, &phi);
 	
-	int iWidth = f[0].cols;
-	int iHeight = f[0].rows;
+	int iWidth = cols;
+	int iHeight = rows;
 	DPRA::DPRA_CUDAF dpra_hybrid(phi, iWidth, iHeight, 1);
 	
 	vector<float> dPHi(iWidth*iHeight, 0);

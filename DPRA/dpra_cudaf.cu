@@ -158,6 +158,9 @@ DPRA_CUDAF::DPRA_CUDAF(const float *v_Phi0,
 	checkCudaErrors(cudaEventCreate(&m_d_event_2));
 	checkCudaErrors(cudaEventCreate(&m_d_event_3));
 	checkCudaErrors(cudaEventCreate(&m_d_event_4));
+	checkCudaErrors(cudaEventCreate(&m_d_event_5));
+	checkCudaErrors(cudaEventCreate(&m_d_event_6));
+	checkCudaErrors(cudaEventCreate(&m_d_event_7));
 }
 
 DPRA_CUDAF::~DPRA_CUDAF()
@@ -167,6 +170,9 @@ DPRA_CUDAF::~DPRA_CUDAF()
 	checkCudaErrors(cudaEventDestroy(m_d_event_2));
 	checkCudaErrors(cudaEventDestroy(m_d_event_3));
 	checkCudaErrors(cudaEventDestroy(m_d_event_4));
+	checkCudaErrors(cudaEventDestroy(m_d_event_5));
+	checkCudaErrors(cudaEventDestroy(m_d_event_6));
+	checkCudaErrors(cudaEventDestroy(m_d_event_7));
 
 	WFT_FPA::Utils::cudaSafeFree(m_d_PhiRef);
 	WFT_FPA::Utils::cudaSafeFree(m_d_PhiCurr);
@@ -215,49 +221,68 @@ void DPRA_CUDAF::dpra_per_frame(const cv::Mat &img,
 	/* 1. Load the image f into device padded memory */
 	checkCudaErrors(cudaMemcpyAsync(m_d_img, m_h_img, sizeof(uchar)*iSize, cudaMemcpyHostToDevice));
 	load_img_padding(m_d_img_Padded, m_d_img, m_iImgWidth, m_iImgHeight, m_iPaddedWidth, m_iPaddedHeight, m_blocks_2D, m_threads2D);
+	cudaEventRecord(m_d_event_1);
 	/* 2. construct matrix A and vector b on GPU */
 	compute_cosPhi_sinPhi(m_d_cosPhi, m_d_sinPhi, m_d_PhiRef, m_iImgWidth, m_iImgHeight, m_iPaddedWidth, m_iPaddedHeight, m_blocks_2D, m_threads2D);
-	get_A_b(m_d_A, m_d_b, m_d_img_Padded, m_d_cosPhi, m_d_sinPhi, m_iImgWidth, m_iImgHeight, m_iPaddedWidth, m_iPaddedHeight, m_blocks_2Dshrunk, m_threads2D);
+	cudaEventRecord(m_d_event_2);
 
-	cudaEventRecord(m_d_event_1);
+	get_A_b(m_d_A, m_d_b, m_d_img_Padded, m_d_cosPhi, m_d_sinPhi, m_iImgWidth, m_iImgHeight, m_iPaddedWidth, m_iPaddedHeight, m_blocks_2Dshrunk, m_threads2D);
+	cudaEventRecord(m_d_event_3);
+	
 
 	/* 3. Solve Ax = b and construct the m_h_deltaPhiWFT for, each pixel a thread */
 	Gaussian_Elimination_3x3_kernel<<<256, 256>>>(m_d_A, m_d_b, iSize);
 	getLastCudaError("Gaussian_Elimination_3x3_kernel launch failed!");
+	cudaEventRecord(m_d_event_4);
+
 	Update_Delta_Phi_Kernel<<<256, 256>>>(m_d_b, iSize, m_d_deltaPhi_WFT);
 	getLastCudaError("Update_Delta_Phi_Kernel launch failed!");
 
-	cudaEventRecord(m_d_event_2);
+	cudaEventRecord(m_d_event_5);
 
 	/* 4. Run the CUDA based WFF */
 	double d_wft_time = 0;
 	m_d_WFT(m_d_deltaPhi_WFT, m_d_z, d_wft_time);
-
-	cudaEventRecord(m_d_event_3);
-
+	
+	cudaEventRecord(m_d_event_6);
 	/* 5. Get the delta phi and current phi */
 	get_deltaPhi_currPhi(m_d_deltaPhi, m_d_PhiCurr, m_d_deltaPhiRef, m_d_PhiRef, m_d_z.m_d_filtered, iSize);
+	
+	
 	/* 6. Copy the delta Phi to host */
 	checkCudaErrors(cudaMemcpyAsync(m_h_deltaPhi, m_d_deltaPhi, sizeof(float)*iSize, cudaMemcpyDeviceToHost));
 	
-	cudaEventRecord(m_d_event_4);
-	cudaEventSynchronize(m_d_event_4);
+	cudaEventRecord(m_d_event_7);
+	cudaEventSynchronize(m_d_event_7);
 
 	/* END Per-frame algorithm starts here */
 
 	/* I/O */
 	memcpy(dPhi.data(), m_h_deltaPhi, sizeof(float)*iSize);
 
-	float f_12_time = 0;
-	cudaEventElapsedTime(&f_12_time, m_d_event_start, m_d_event_1);
-
+	float f_1_time = 0;
+	cudaEventElapsedTime(&f_1_time, m_d_event_start, m_d_event_1);
+	float f_2_time = 0;
+	cudaEventElapsedTime(&f_2_time, m_d_event_1, m_d_event_2);
 	float f_3_time = 0;
-	cudaEventElapsedTime(&f_3_time, m_d_event_1, m_d_event_2);
+	cudaEventElapsedTime(&f_3_time, m_d_event_2, m_d_event_3);
+	float f_4_time = 0;
+	cudaEventElapsedTime(&f_4_time, m_d_event_3, m_d_event_4);
+	float f_5_time = 0;
+	cudaEventElapsedTime(&f_5_time, m_d_event_4, m_d_event_5);
+	float f_6_time = 0;
+	cudaEventElapsedTime(&f_6_time, m_d_event_6, m_d_event_7);
 
-	float f_56_time = 0;
-	cudaEventElapsedTime(&f_56_time, m_d_event_2, m_d_event_3);
+	std::cout << "Step 1 running time is: " << f_1_time << "ms" << std::endl;
+	std::cout << "Step 2 running time is: " << f_2_time << "ms" << std::endl;
+	std::cout << "Step 3 running time is: " << f_3_time << "ms" << std::endl;
+	std::cout << "Step 4 running time is: " << f_4_time << "ms" << std::endl;
+	std::cout << "Step 5 running time is: " << f_5_time << "ms" << std::endl;
+	std::cout << "Step 6 running time is: " << d_wft_time << "ms" << std::endl;
+	std::cout << "Step 7 running time is: " << f_6_time << "ms" << std::endl;
 
-	time = double(f_12_time + f_56_time) + d_wft_time;
+
+	time = double(f_1_time + f_2_time + f_3_time + f_4_time + f_5_time + f_6_time) + d_wft_time;
 }
 
 void DPRA_CUDAF::update_ref_phi()

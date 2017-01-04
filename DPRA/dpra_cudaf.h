@@ -81,6 +81,9 @@ private:
 	cudaEvent_t m_d_event_2;
 	cudaEvent_t m_d_event_3;
 	cudaEvent_t m_d_event_4;
+	cudaEvent_t m_d_event_5;
+	cudaEvent_t m_d_event_6;
+	cudaEvent_t m_d_event_7;
 
 	dim3 m_threads2D;
 	dim3 m_blocks_2Dshrunk;

@@ -224,35 +224,33 @@ void DPRA_CUDAF::dpra_per_frame(const cv::Mat &img,
 	cudaEventRecord(m_d_event_1);
 	/* 2. construct matrix A and vector b on GPU */
 	compute_cosPhi_sinPhi(m_d_cosPhi, m_d_sinPhi, m_d_PhiRef, m_iImgWidth, m_iImgHeight, m_iPaddedWidth, m_iPaddedHeight, m_blocks_2D, m_threads2D);
-	cudaEventRecord(m_d_event_2);
-
 	get_A_b(m_d_A, m_d_b, m_d_img_Padded, m_d_cosPhi, m_d_sinPhi, m_iImgWidth, m_iImgHeight, m_iPaddedWidth, m_iPaddedHeight, m_blocks_2Dshrunk, m_threads2D);
-	cudaEventRecord(m_d_event_3);
-	
+	cudaEventRecord(m_d_event_2);
+		
 
 	/* 3. Solve Ax = b and construct the m_h_deltaPhiWFT for, each pixel a thread */
 	Gaussian_Elimination_3x3_kernel<<<256, 256>>>(m_d_A, m_d_b, iSize);
 	getLastCudaError("Gaussian_Elimination_3x3_kernel launch failed!");
-	cudaEventRecord(m_d_event_4);
+	cudaEventRecord(m_d_event_3);
 
 	Update_Delta_Phi_Kernel<<<256, 256>>>(m_d_b, iSize, m_d_deltaPhi_WFT);
 	getLastCudaError("Update_Delta_Phi_Kernel launch failed!");
-
-	cudaEventRecord(m_d_event_5);
+	cudaEventRecord(m_d_event_4);
+	
 
 	/* 4. Run the CUDA based WFF */
 	double d_wft_time = 0;
 	m_d_WFT(m_d_deltaPhi_WFT, m_d_z, d_wft_time);
 	
-	cudaEventRecord(m_d_event_6);
+	cudaEventRecord(m_d_event_5);
 	/* 5. Get the delta phi and current phi */
 	get_deltaPhi_currPhi(m_d_deltaPhi, m_d_PhiCurr, m_d_deltaPhiRef, m_d_PhiRef, m_d_z.m_d_filtered, iSize);
 	
-	
+	cudaEventRecord(m_d_event_6);
 	/* 6. Copy the delta Phi to host */
 	checkCudaErrors(cudaMemcpyAsync(m_h_deltaPhi, m_d_deltaPhi, sizeof(float)*iSize, cudaMemcpyDeviceToHost));
-	
 	cudaEventRecord(m_d_event_7);
+	
 	cudaEventSynchronize(m_d_event_7);
 
 	/* END Per-frame algorithm starts here */
@@ -269,17 +267,17 @@ void DPRA_CUDAF::dpra_per_frame(const cv::Mat &img,
 	float f_4_time = 0;
 	cudaEventElapsedTime(&f_4_time, m_d_event_3, m_d_event_4);
 	float f_5_time = 0;
-	cudaEventElapsedTime(&f_5_time, m_d_event_4, m_d_event_5);
+	cudaEventElapsedTime(&f_5_time, m_d_event_5, m_d_event_6);
 	float f_6_time = 0;
 	cudaEventElapsedTime(&f_6_time, m_d_event_6, m_d_event_7);
 
-	std::cout << "Step 1 running time is: " << f_1_time << "ms" << std::endl;
-	std::cout << "Step 2 running time is: " << f_2_time << "ms" << std::endl;
-	std::cout << "Step 3 running time is: " << f_3_time << "ms" << std::endl;
-	std::cout << "Step 4 running time is: " << f_4_time << "ms" << std::endl;
+	std::cout << "Step 0 running time is: " << f_1_time << "ms" << std::endl;
+	std::cout << "Step 1 running time is: " << f_2_time << "ms" << std::endl;
+	std::cout << "Step 2 running time is: " << f_3_time << "ms" << std::endl;
+	std::cout << "Step 3 running time is: " << f_4_time << "ms" << std::endl;
+	std::cout << "Step 4 running time is: " << d_wft_time << "ms" << std::endl;
 	std::cout << "Step 5 running time is: " << f_5_time << "ms" << std::endl;
-	std::cout << "Step 6 running time is: " << d_wft_time << "ms" << std::endl;
-	std::cout << "Step 7 running time is: " << f_6_time << "ms" << std::endl;
+	std::cout << "Step 6 running time is: " << f_6_time << "ms" << std::endl;
 
 
 	time = double(f_1_time + f_2_time + f_3_time + f_4_time + f_5_time + f_6_time) + d_wft_time;

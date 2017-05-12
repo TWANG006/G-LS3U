@@ -479,6 +479,7 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else if (QString::compare(fileExtension, QLatin1String("flv")) == 0)
@@ -493,6 +494,7 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else if (QString::compare(fileExtension, QLatin1String("wmv")) == 0)
@@ -507,6 +509,7 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else if (QString::compare(fileExtension, QLatin1String("mpeg")) == 0)
@@ -521,6 +524,7 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else

@@ -6,6 +6,7 @@
 #include "aia_cpuf.h"
 #include "dpra_hybridf.h"
 #include "dpra_cudaf.h"
+#include "dpra_cpuf.h"
 
 class DPRAWidget : public QWidget
 {
@@ -36,6 +37,7 @@ private:
 	QString m_outputVideoFileName;
 	QString m_phiFileName;
 	QString m_filePath;
+	std::string m_hardware;
 
 	QStringList m_AIAImgFileList;
 	QStringList m_DPRAImgFileList;
@@ -54,6 +56,7 @@ private:
 	int m_iHeight;
 	
 	std::vector<std::vector<float>> m_deltaPhiSum;
+	std::unique_ptr<DPRA::DPRA_CPUF> m_cpudpraPtr;
 	std::unique_ptr<DPRA::DPRA_HYBRIDF> m_dpraPtr;
 	std::unique_ptr<DPRA::DPRA_CUDAF> m_cudpraPtr;
 

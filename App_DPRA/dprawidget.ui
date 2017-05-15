@@ -219,7 +219,7 @@
       <string>DPRA</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="4" column="0">
+      <item row="5" column="0">
        <widget class="QPushButton" name="computeDPRAButton">
         <property name="text">
          <string>Compute DPRA</string>
@@ -233,7 +233,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0" columnstretch="10,10">
         <item row="0" column="0">
          <widget class="QLabel" name="threadsLabel">
@@ -309,27 +309,14 @@
         </property>
        </widget>
       </item>
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="CPURadioButton">
+        <property name="text">
+         <string>Multi-core CPU Implementation</string>
+        </property>
+       </widget>
+      </item>
      </layout>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="4" column="0">
-    <widget class="QPushButton" name="exitButton">
-     <property name="text">
-      <string>Exit</string>
-     </property>
     </widget>
    </item>
    <item row="2" column="0">
@@ -381,6 +368,26 @@
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="0">
+    <widget class="QPushButton" name="exitButton">
+     <property name="text">
+      <string>Exit</string>
+     </property>
     </widget>
    </item>
   </layout>
@@ -437,8 +444,24 @@
      <y>406</y>
     </hint>
     <hint type="destinationlabel">
-     <x>75</x>
-     <y>438</y>
+     <x>95</x>
+     <y>478</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>CPURadioButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>threadsSpinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>64</x>
+     <y>426</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>64</x>
+     <y>470</y>
     </hint>
    </hints>
   </connection>

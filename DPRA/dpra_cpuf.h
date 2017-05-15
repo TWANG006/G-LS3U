@@ -72,6 +72,8 @@ private:
 	/* DPRA parameters */
 	std::vector<float> m_PhiRef;		// Reference phase
 	std::vector<float> m_PhiCurr;		// Current phase
+	std::vector<float> m_deltaPhiRef;
+	std::vector<float> m_dPhi_per_frame;
 	std::vector<float> m_A;			// Matrix A
 	std::vector<float> m_b;			// Vector b
 

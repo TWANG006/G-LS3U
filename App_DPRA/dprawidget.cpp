@@ -8,6 +8,8 @@ DPRAWidget::DPRAWidget(QWidget *parent)
 	, m_iHeight(0)
 	, m_dpraPtr(nullptr)
 	, m_cudpraPtr(nullptr)
+	, m_cpudpraPtr(nullptr)
+	, m_hardware("CUDA")
 {
 	ui.setupUi(this);
 	ui.computeAIAgroupBox->hide();
@@ -163,7 +165,7 @@ void DPRAWidget::computeAIA()
 		tr("AIA computation completed"),
 		tr("ALA Algorithm on %1 images completed in %2 ms.\n")
 		.arg(m_DPRAImgFileList.size()).arg(time) +
-		tr("Number of Iterations is: %1\n").arg(iter) + 
+		tr("Number of Iterations is: %1\n").arg(iter) +
 		tr("Maximum Error is: %1").arg(err));
 
 	// Enable the DPRA group box
@@ -214,11 +216,14 @@ void DPRAWidget::computeDPRA()
 	}
 	m_deltaPhiSum.reserve(m_DPRAImgFileList.size());
 
-	
+
 	if (ui.GPUradioButton->isChecked())
 	{
 		// Construct the DPRA CUDA object
 		m_cudpraPtr.reset(new DPRA::DPRA_CUDAF(mv_refPhi.data(), m_iWidth, m_iHeight, iupdateRate));
+
+		// Set the output folder path
+		m_hardware = "CUDA";
 
 		// The final deltaPhi
 		std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
@@ -226,7 +231,7 @@ void DPRAWidget::computeDPRA()
 		// Use the progress bar to monitor the progress
 		QProgressDialog progress(this);
 
-		progress.setLabelText(tr("DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
+		progress.setLabelText(tr("CUDA DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
 		progress.setRange(0, m_DPRAImgFileList.size());
 		progress.setModal(true);
 		progress.show();
@@ -301,10 +306,13 @@ void DPRAWidget::computeDPRA()
 			.arg(1000.0 / (dTotaltime / m_DPRAImgFileList.size())));
 
 	}
-	else
+	else if (ui.GPUCPUradioButton->isChecked())
 	{
 		// Construct the DPRA hybrid object
 		m_dpraPtr.reset(new DPRA::DPRA_HYBRIDF(mv_refPhi.data(), m_iWidth, m_iHeight, iupdateRate, iNumThreads));
+
+		// Set the output folder path
+		m_hardware = "Hybrid";
 
 		// The final deltaPhi
 		std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
@@ -312,7 +320,7 @@ void DPRAWidget::computeDPRA()
 		// Use the progress bar to monitor the progress
 		QProgressDialog progress(this);
 
-		progress.setLabelText(tr("DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
+		progress.setLabelText(tr("Hybrid CPU and GPU DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
 		progress.setRange(0, m_DPRAImgFileList.size());
 		progress.setModal(true);
 		progress.show();
@@ -373,6 +381,86 @@ void DPRAWidget::computeDPRA()
 
 			//WFT_FPA::Utils::WriteMatrixToDisk(s.c_str(), m_iHeight, m_iWidth, m_deltaPhiSum[i].data());
 
+
+			++i;
+		}
+
+		QMessageBox::information(
+			this,
+			tr("DPRA computation completed"),
+			tr("DPRA Algorithm on %1 images of %2 images completed in %3 ms. Average FPS is %4.")
+			.arg(i)
+			.arg(m_DPRAImgFileList.size())
+			.arg(dTotaltime)
+			.arg(1000.0 / (dTotaltime / m_DPRAImgFileList.size())));
+	}
+	else
+	{
+		m_cpudpraPtr.reset(new DPRA::DPRA_CPUF(mv_refPhi.data(), m_iWidth, m_iHeight, iupdateRate, iNumThreads));
+
+		// Set the output folder path
+		m_hardware = "Multicore";
+
+		// The final deltaPhi
+		std::vector<float> deltaPhi(m_iWidth*m_iHeight, 0);
+
+		// Use the progress bar to monitor the progress
+		QProgressDialog progress(this);
+
+		progress.setLabelText(tr("CPU Multi-core DPRA algorithm is running on %1 frames. Please wait...").arg(m_DPRAImgFileList.size()));
+		progress.setRange(0, m_DPRAImgFileList.size());
+		progress.setModal(true);
+		progress.show();
+
+		/* DPRA computation starts */
+		int i = 0;
+		foreach(const QString& imgstr, m_DPRAImgFileList)
+		{
+			cv::Mat img = cv::imread(imgstr.toStdString());
+
+			if (img.cols != m_iWidth || img.rows != m_iHeight)
+			{
+				QMessageBox::critical(this, tr("Error!"), tr("DPRA images must have the same size!"));
+				return;
+			}
+
+			// Convert the image to grayscale
+			cv::cvtColor(img, img, CV_BGRA2GRAY);
+
+			// per-frame computation
+			m_cpudpraPtr->dpra_per_frame(img, deltaPhi, dTime_per_Frame);
+
+			// Get the time
+			dTotaltime += dTime_per_Frame;
+
+			m_deltaPhiSum.push_back(deltaPhi);
+
+			// Update the reference
+			if (i % iupdateRate == 0)
+				m_cpudpraPtr->update_ref_phi();
+
+			progress.setValue(i);
+			QApplication::processEvents();
+
+			if (progress.wasCanceled())
+			{
+				QMessageBox::StandardButton result = QMessageBox::warning(
+					this,
+					tr("Cancel Processing"),
+					tr("Would you like to cancle the execution?\n") +
+					tr("Only (%1) of (%2) frames have been computed")
+					.arg(i)
+					.arg(m_DPRAImgFileList.size()),
+					QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+				if (result == QMessageBox::Yes)
+				{
+					break;
+				}
+				else
+				{
+					progress.reset();
+				}
+			}
 
 			++i;
 		}
@@ -456,12 +544,12 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int j = 0; j < m_deltaPhiSum[0].size(); j++)
 		{
 			float tempPhi = m_deltaPhiSum[i][j];
-			v_img.push_back(uchar((atan2(sin(tempPhi), cos(tempPhi)) + float(M_PI)) / 2.0f / float(M_PI)*255.0f));	
+			v_img.push_back(uchar((atan2(sin(tempPhi), cos(tempPhi)) + float(M_PI)) / 2.0f / float(M_PI)*255.0f));
 		}
 
 		outFrames.push_back(cv::Mat(m_iHeight, m_iWidth, CV_8UC1, v_img.data()).clone());
 	}
-	
+
 	// Output the Video
 	QFileInfo fileInfor(fileName);
 	QString fileExtension = fileInfor.suffix();
@@ -470,7 +558,7 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 	if (QString::compare(fileExtension, QLatin1String("mp4")) == 0)
 	{
 		cv::VideoWriter videoW(
-			fileName.toStdString(), 
+			fileName.toStdString(),
 			CV_FOURCC('D', 'I', 'V', 'X'),
 			fps,
 			cv::Size(m_iWidth, m_iHeight),
@@ -479,14 +567,14 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
-			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\/" + m_hardware + "\/" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else if (QString::compare(fileExtension, QLatin1String("flv")) == 0)
 	{
 		cv::VideoWriter videoW(
-			fileName.toStdString(), 
-			CV_FOURCC('F', 'L', 'V', '1'), 
+			fileName.toStdString(),
+			CV_FOURCC('F', 'L', 'V', '1'),
 			fps,
 			cv::Size(m_iWidth, m_iHeight),
 			false);
@@ -494,14 +582,14 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
-			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\/" + m_hardware + "\/" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else if (QString::compare(fileExtension, QLatin1String("wmv")) == 0)
 	{
 		cv::VideoWriter videoW(
-			fileName.toStdString(), 
-			CV_FOURCC('W', 'M', 'V', '2'), 
+			fileName.toStdString(),
+			CV_FOURCC('W', 'M', 'V', '2'),
 			fps,
 			cv::Size(m_iWidth, m_iHeight),
 			false);
@@ -509,14 +597,14 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
-			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\/" + m_hardware + "\/" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else if (QString::compare(fileExtension, QLatin1String("mpeg")) == 0)
 	{
 		cv::VideoWriter videoW(
-			fileName.toStdString(), 
-			CV_FOURCC('P', 'I', 'M', '1'), 
+			fileName.toStdString(),
+			CV_FOURCC('P', 'I', 'M', '1'),
 			fps,
 			cv::Size(m_iWidth, m_iHeight),
 			false);
@@ -524,15 +612,15 @@ bool DPRAWidget::videoWritter(const QString& fileName)
 		for (int i = 0; i < outFrames.size(); i++)
 		{
 			videoW.write(outFrames[i]);
-			cv::imwrite(std::string(m_filePath.toStdString() + "\\" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
+			cv::imwrite(std::string(m_filePath.toStdString() + "\/" + m_hardware + "\/" + std::to_string(i) + ".bmp").c_str(), outFrames[i]);
 		}
 	}
 	else
 	{
 		QMessageBox::critical(
-		this,
-		tr("Format Error!"),
-		tr("Unsupported Video Format!"));
+			this,
+			tr("Format Error!"),
+			tr("Unsupported Video Format!"));
 
 		return false;
 	}

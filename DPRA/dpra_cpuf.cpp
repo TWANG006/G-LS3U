@@ -16,6 +16,8 @@ DPRA_CPUF::DPRA_CPUF(const float *v_Phi0,
 	, m_iNumThreads(iNumThreads)
 	, m_PhiRef(iWidth*iHeight, 0)
 	, m_PhiCurr(iWidth*iHeight, 0)
+	, m_deltaPhiRef(iWidth*iHeight, 0)
+	, m_dPhi_per_frame(iWidth*iHeight, 0)
 	, m_A(iNumThreads * 9, 0)
 	, m_b(iNumThreads * 3, 0)
 	, m_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
@@ -63,7 +65,7 @@ void DPRA_CPUF::operator()(const std::vector<cv::Mat> &f,
 		return;
 	}
 	
-	std::vector<float> dPhi_per_frame(m_iWidth*m_iHeight, 0);
+	std::fill(m_dPhi_per_frame.begin(), m_dPhi_per_frame.end(), 0);
 
 	time = 0;
 
@@ -72,16 +74,16 @@ void DPRA_CPUF::operator()(const std::vector<cv::Mat> &f,
 	{
 		double time_1frame = 0;
 		/* Compute the DPRA for 1 frame */
-		dpra_per_frame(f[i], dPhi_per_frame, time_1frame);
+		dpra_per_frame(f[i], m_dPhi_per_frame, time_1frame);
 		time += time_1frame;
 
 		/* Save the 1 frame results */
-		dPhi_Sum.push_back(dPhi_per_frame);
+		dPhi_Sum.push_back(m_dPhi_per_frame);
 
 		/* Update reference */
 		if (i % m_rr == 0)
 		{
-			update_ref_phi();
+			update_ref_phi();			
 		}
 	}
 }
@@ -235,19 +237,29 @@ void DPRA_CPUF::dpra_per_frame(const cv::Mat &f,
 	double dWFT_time = 0;
 	m_WFT(m_dPhiWFT, m_z, dWFT_time);
 
+	// Output the WFT time
+	std::cout << "Step WFF cost time: " << dWFT_time * 1000.0<< " ms" << std::endl;
+
 	time += dWFT_time;		// DPRA + WFF
+
+	time = time*1000.0;
 
 	// Update phi using the calculated delta phi
 	for (int i = 0; i < iSize; i++)
 	{
-		dPhi[i] = atan2(m_z.m_filtered[i][1], m_z.m_filtered[i][0]);
-		m_PhiCurr[i] = atan2(sin(dPhi[i] + m_PhiRef[i]), cos(dPhi[i] + m_PhiRef[i]));
+
+		float temp = atan2(m_z.m_filtered[i][1], m_z.m_filtered[i][0]);
+		m_PhiCurr[i] = atan2(sin(temp + m_PhiRef[i]), cos(temp + m_PhiRef[i]));
+		dPhi[i] = m_deltaPhiRef[i] + temp;
 	}
+
+	m_dPhi_per_frame = dPhi;
 }
 
 void DPRA_CPUF::update_ref_phi()
 {
 	m_PhiRef = m_PhiCurr;
+	m_deltaPhiRef = m_dPhi_per_frame;
 }
 
 }	// namespace DPRA

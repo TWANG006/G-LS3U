@@ -32,7 +32,7 @@ DPRA_HYBRIDF::DPRA_HYBRIDF(const float *v_Phi0,
 	, m_d_img(nullptr)
 	, m_d_img_Padded(nullptr)
 	, m_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF, 
-			20, -0.2f, 0.2f, 0.1f, 20, -0.2f, 0.2f, 0.1f, 15,
+			20, -0.2f, 0.2f, 0.05f, 20, -0.2f, 0.2f, 0.05f, 15,
 			m_d_z,1)
 	, m_d_deltaPhiWFT(nullptr)
 	, m_h_deltaPhiWFT(nullptr)

@@ -21,7 +21,7 @@ namespace DPRA{
 		, m_A(iNumThreads * 9, 0)
 		, m_b(iNumThreads * 3, 0)
 		, m_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF,
-		20, -0.2, 0.2, 0.05, 20, -0.2, 0.2, 0.05, 15,
+		20, -0.15f, 0.15f, 0.05f, 20, -0.15f, 0.15f, 0.05f, 15,
 		m_z, iNumThreads)
 		, m_dPhiWFT(nullptr)
 		/*, m_deltaPhi(iWidth*iHeight, 0)*/

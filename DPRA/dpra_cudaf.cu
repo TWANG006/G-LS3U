@@ -114,7 +114,7 @@ DPRA_CUDAF::DPRA_CUDAF(const float *v_Phi0,
 	, m_d_img(nullptr)
 	, m_d_img_Padded(nullptr)
 	, m_d_WFT(iWidth, iHeight, WFT_FPA::WFT::WFT_TYPE::WFF,
-			  10, -0.3f, 0.3f, 0.1f, 10, -0.3f, 0.3f, 0.1f, 15,
+			  20, -0.15f, 0.15f, 0.05f, 20, -0.15f, 0.15f, 0.05f, 15,
 			  m_d_z, 1)
 	, m_d_deltaPhi_WFT(nullptr)
 	, m_threads2D(BLOCK_SIZE_16, BLOCK_SIZE_16)

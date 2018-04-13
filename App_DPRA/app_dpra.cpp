@@ -254,3 +254,21 @@ void App_DPRA::handleCursor(QMediaPlayer::MediaStatus status)
 		unsetCursor();
 	}
 }
+
+void App_DPRA::closeEvent(QCloseEvent *event)
+{
+	int result = QMessageBox::warning(this,
+		tr("Exit"),
+		tr("Are you sure you want to close this program?"),
+		QMessageBox::Yes,
+		QMessageBox::No);
+
+	if (result == QMessageBox::Yes)
+	{
+		event->accept();
+	}
+	else
+	{
+		event->ignore();
+	}
+}

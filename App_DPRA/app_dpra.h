@@ -19,6 +19,9 @@ public:
 	App_DPRA(QWidget *parent = 0);
 	~App_DPRA();
 
+protected:
+	void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+
 public slots:
 	void playVideoFile(const QString& qstr);
 

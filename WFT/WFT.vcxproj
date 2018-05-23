@@ -70,7 +70,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_world310d.lib;Utilsd.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world341d.lib;Utilsd.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)\lib\$(Platform)\$(TargetName).lib</ImportLibrary>
     </Link>
@@ -97,7 +97,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(SolutionDir)\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world310.lib;Utils.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world341.lib;Utils.lib;%(AdditionalDependencies);cudart.lib;cufft.lib</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)\lib\$(Platform)\$(TargetName).lib</ImportLibrary>
     </Link>
     <CudaCompile>

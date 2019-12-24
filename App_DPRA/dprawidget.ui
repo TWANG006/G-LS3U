@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>250</width>
-    <height>662</height>
+    <height>708</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -371,7 +371,7 @@
     </widget>
    </item>
    <item row="3" column="0">
-    <spacer name="verticalSpacer">
+    <spacer name="vSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -394,7 +394,6 @@
   <zorder>AIABox</zorder>
   <zorder>DPRABox</zorder>
   <zorder>exitButton</zorder>
-  <zorder>verticalSpacer</zorder>
   <zorder>outputVideogroupBox</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

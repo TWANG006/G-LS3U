@@ -8,41 +8,41 @@ Utility functions written for both CPU and GPU, including fast 2D matrix I/O, ho
 ### AIA 
 Implementation of the AIA algorithm for fast and accurate phase extraction using random phase shifting [2], which is used to comptue the initial phase distribution. 
 
-    - [x] Multi-core double precition 
-    - [x] Multi-core single precition
-    - [ ] CUDA single precition
-    - [ ] CUDA double precition
+    - [x] Multi-core double precision 
+    - [x] Multi-core single precision
+    - [ ] CUDA single precision
+    - [ ] CUDA double precision
     
 ### DPRA
 Core algorithm of the real-time reference-based dynamic phase retrieval algorithm [1].
 
-    - [x] Multi-core double precition 
-    - [x] Multi-core single precition
-    - [x] CUDA single precition
-    - [ ] CUDA double precition
+    - [x] Multi-core double precision 
+    - [x] Multi-core single precision
+    - [x] CUDA single precision
+    - [ ] CUDA double precision
     
     **Note**: The followiwng two implementations are just for testing purpose. Their performance is between the multi-core and CUDA 
     implementaitons 
     
-    - [x] Hybrid CPU and GPU, double precition
-    - [x] Hybrid CPU and GPU, single precition
+    - [x] Hybrid CPU and GPU, double precision
+    - [x] Hybrid CPU and GPU, single precision
 
 ### WFT
 Improved implementaiton of the parallel Windowed Fourier Transform (WFT) algorithm [3].  
 
   Windowed Fourier Filtering (WFF) algorithm (Used in the proposed G-LS3U algorithm): .
   
-    - [x] Multi-core double precition 
-    - [x] Multi-core single precition
-    - [x] CUDA single precition
-    - [x] CUDA double precition
+    - [x] Multi-core double precision 
+    - [x] Multi-core single precision
+    - [x] CUDA single precision
+    - [x] CUDA double precision
     
   Windowed Fourier Ridges (WFR) algorithm:
   
-    - [x] Multi-core double precition 
-    - [x] Multi-core single precition
-    - [x] CUDA single precition
-    - [x] CUDA double precition
+    - [x] Multi-core double precision 
+    - [x] Multi-core single precision
+    - [x] CUDA single precision
+    - [x] CUDA double precision
 
 ### App_DPRA
 A demonstration application written for the G-LS3U algorithm. The application can take a sequence of capdtured fringe patterns and exatract the phase distributions amogn frames then build them into a video. ***Note***: use the AIA function provided int he application's UI to calculate an initial phase distribution first before using any other functionalities. 

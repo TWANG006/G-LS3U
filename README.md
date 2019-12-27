@@ -54,7 +54,7 @@ A demonstration application written for the G-LS3U algorithm. The application ca
 4. [Qt 5.14](https://www1.qt.io/qt5-5/): for GUI and multi-media used in App_DPRA.
 5. [OpenCV 3.4.1](https://opencv.org/opencv-3-1.html): for fast and convenient image I/O.
 
-***Note***: On Windows OS using Visual Studio 2013, install these dependencies and your are all set to compile and run the programs. 
+***Note***: On Windows OS using Visual Studio 2017, install these dependencies and your are all set to compile and run the programs. 
 
 ## Reference
 [1] [Wang, T., Kai, L., & Kemao, Q. (2017). Real-time reference-based dynamic phase retrieval algorithm for optical measurement. Applied Optics, 56(27), 7726-7733.](https://doi.org/10.1364/AO.56.007726)

@@ -10,7 +10,7 @@ Implementation of the AIA algorithm for fast and accurate phase extraction using
 
     - [x] Multi-core double precition 
     - [x] Multi-core single precition
-    - [x] CUDA single precition
+    - [ ] CUDA single precition
     - [ ] CUDA double precition
     
 ### DPRA
@@ -49,10 +49,10 @@ A demonstration application written for the G-LS3U algorithm. The application ca
 
 ## Project dependencies
 1. [Intel Math Kernel Library (MKL)](https://software.intel.com/en-us/performance-libraries): using fftw3 to do fast Fourier transform (FFT) and LAPACK routine to solve linear system in parlalel on CPU.
-2. [CUDA 8.0](https://developer.nvidia.com/cuda-80-ga2-download-archive): for parallel computing on NVIDIA GPUs.
+2. [CUDA 10.2](https://developer.nvidia.com/cuda-80-ga2-download-archive): for parallel computing on NVIDIA GPUs.
 3. CUFFT: associated with CUDA, for perform parallel FFT on GPU.
-4. [Qt 5.5](https://www1.qt.io/qt5-5/): for GUI and multi-media used in App_DPRA.
-5. [OpenCV 3.1](https://opencv.org/opencv-3-1.html): for fast and convenient image I/O.
+4. [Qt 5.14](https://www1.qt.io/qt5-5/): for GUI and multi-media used in App_DPRA.
+5. [OpenCV 3.4.1](https://opencv.org/opencv-3-1.html): for fast and convenient image I/O.
 
 ***Note***: On Windows OS using Visual Studio 2013, install these dependencies and your are all set to compile and run the programs. 
 

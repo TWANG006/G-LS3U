@@ -82,7 +82,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_world341d.lib;%(AdditionalDependencies);cudart.lib;cufft.lib;cusolver.lib;cusparse.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world341d.lib;cudart.lib;cufft.lib;cusolver.lib;cusparse.lib</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)\lib\$(Platform)\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>

@@ -23,10 +23,9 @@
   <ItemGroup>
     <CudaCompile Include="aia_cudaf.cu">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </CudaCompile>
-    <CudaCompile Include="aia_cudaf_yctest.cu">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-arch = sm_30 %(AdditionalOptions)</AdditionalOptions>
-    </CudaCompile>
+    <CudaCompile Include="aia_cudaf_yctest.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FBB75118-EB44-4EB9-A71E-FFFBB6EA8719}</ProjectGuid>

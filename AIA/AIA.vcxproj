@@ -18,9 +18,15 @@
     <ClInclude Include="aia_cpu.h" />
     <ClInclude Include="aia_cpuf.h" />
     <ClInclude Include="aia_cudaf.h" />
+    <ClInclude Include="aia_cudaf_yctest.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="aia_cudaf.cu" />
+    <CudaCompile Include="aia_cudaf.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
+    <CudaCompile Include="aia_cudaf_yctest.cu">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-arch = sm_30 %(AdditionalOptions)</AdditionalOptions>
+    </CudaCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FBB75118-EB44-4EB9-A71E-FFFBB6EA8719}</ProjectGuid>

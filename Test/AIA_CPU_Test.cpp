@@ -9,27 +9,45 @@
 
 TEST(AIA_CPU_3_Frames_Double, AIA_CPU_Test)
 {
+
+	//std::vector<cv::Mat> f;
+
+	//cv::Mat img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f1.bmp");
+	//cv::cvtColor(img,
+	//			 img,
+	//			 CV_BGR2GRAY);
+	//f.push_back(img);
+
+	//img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f2.bmp");
+	//cv::cvtColor(img,
+	//			 img,
+	//			 CV_BGR2GRAY);
+	//f.push_back(img);
+
+	//img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f3.bmp");
+	//cv::cvtColor(img,
+	//			 img,
+	//			 CV_BGR2GRAY);
+	//f.push_back(img);
 	std::vector<cv::Mat> f;
 
 	cv::Mat img = cv::imread("1.bmp");
 	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
+		img,
+		CV_BGR2GRAY);
 	f.push_back(img);
 
 	img = cv::imread("2.bmp");
 	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
+		img,
+		CV_BGR2GRAY);
 	f.push_back(img);
 
 	img = cv::imread("3.bmp");
 	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
+		img,
+		CV_BGR2GRAY);
 	f.push_back(img);
-	
-
 	// computation
 	std::vector<double> phi;
 	std::vector<double> delta{0.8622,

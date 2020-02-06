@@ -1,51 +1,33 @@
 #include <gtest\gtest.h>
 
 #include <vector>
-#include "aia_cudaf_yctest.h"
+#include "aia_cudaf.h"
 #include "opencv2\opencv.hpp"
 #include "opencv2\highgui.hpp"
 
 TEST(AIA_GPU_3_Frames_Single, AIA_GPU_Test)
 {
-	//std::vector<cv::Mat> f;
-
-	//cv::Mat img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f1.bmp");
-	//cv::cvtColor(img,
-	//			 img,
-	//			 CV_BGR2GRAY);
-	//f.push_back(img);
-
-	//img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f2.bmp");
-	//cv::cvtColor(img,
-	//			 img,
-	//			 CV_BGR2GRAY);
-	//f.push_back(img);
-
-	//img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f3.bmp");
-	//cv::cvtColor(img,
-	//			 img,
-	//			 CV_BGR2GRAY);
-	//f.push_back(img);
-	//
 	std::vector<cv::Mat> f;
 
 	cv::Mat img = cv::imread("1.bmp");
 	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
+				 img,
+				 CV_BGR2GRAY);
 	f.push_back(img);
 
 	img = cv::imread("2.bmp");
 	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
+				 img,
+				 CV_BGR2GRAY);
 	f.push_back(img);
 
 	img = cv::imread("3.bmp");
 	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
+				 img,
+				 CV_BGR2GRAY);
 	f.push_back(img);
+	
+
 	// computation
 	std::vector<float> phi;
 	std::vector<float> delta{  
@@ -56,8 +38,8 @@ TEST(AIA_GPU_3_Frames_Single, AIA_GPU_Test)
 	float err = 0;
 	int iter = 0;
 
-	AIA::AIA_CUDAF_YCTEST aia(f);
-	aia(phi, delta, time, iter, err, f, 100, 1e-4, 6);
+	AIA::AIA_CUDAF aia(f);
+	aia(phi, delta, time, iter, err, f, 20, 1e-4, 6);
 
 
 	

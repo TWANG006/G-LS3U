@@ -7,27 +7,27 @@
 
 TEST(AIA_GPU_3_Frames_Single, AIA_GPU_Test)
 {
-	//std::vector<cv::Mat> f;
-
-	//cv::Mat img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f1.bmp");
-	//cv::cvtColor(img,
-	//			 img,
-	//			 CV_BGR2GRAY);
-	//f.push_back(img);
-
-	//img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f2.bmp");
-	//cv::cvtColor(img,
-	//			 img,
-	//			 CV_BGR2GRAY);
-	//f.push_back(img);
-
-	//img = cv::imread("C:\\Users\\Wafersight\\Documents\\GitHub\\G-LS3U_2\\Test_image\\choped_f3.bmp");
-	//cv::cvtColor(img,
-	//			 img,
-	//			 CV_BGR2GRAY);
-	//f.push_back(img);
-	//
 	std::vector<cv::Mat> f;
+
+	cv::Mat img = cv::imread("../Test_image/choped_f1.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("../Test_image/choped_f2.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+
+	img = cv::imread("../Test_image/choped_f3.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	//
+	/*std::vector<cv::Mat> f;
 
 	cv::Mat img = cv::imread("1.bmp");
 	cv::cvtColor(img,
@@ -45,7 +45,7 @@ TEST(AIA_GPU_3_Frames_Single, AIA_GPU_Test)
 	cv::cvtColor(img,
 		img,
 		CV_BGR2GRAY);
-	f.push_back(img);
+	f.push_back(img);*/
 	// computation
 	std::vector<float> phi;
 	std::vector<float> delta{  
@@ -57,10 +57,8 @@ TEST(AIA_GPU_3_Frames_Single, AIA_GPU_Test)
 	int iter = 0;
 
 	AIA::AIA_CUDAF_YCTEST aia(f);
-	aia(phi, delta, time, iter, err, f, 20, 1e-4, 6);
-
-
-	
+	aia(phi, delta, time, iter, err, f, 20, 1e-4, 12);
+	   	
 
 	std::cout << "Running Time: " << time << std::endl;
 	std::cout << "Error is: " << err << std::endl;

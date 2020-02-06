@@ -109,6 +109,7 @@ void AIA_CPU_DnF::computePhi(std::vector<float>& v_A,
 	/* Construct m_v_A only once and use accross multiple RHS vectors m_v_b */
 	// Save the Cholesky factorized version of m_v_A 
 	float dA3 = 0, dA4 = 0, dA6 = 0, dA7 = 0, dA8 = 0;
+	
 
 	for (int i = 0; i < m_M; i++)
 	{
@@ -144,7 +145,7 @@ void AIA_CPU_DnF::computePhi(std::vector<float>& v_A,
 		v_b_phi[j * 3 + 1] = b1;
 		v_b_phi[j * 3 + 2] = b2;
 	}
-
+	
 	/* Solve the Ax = b */
 	int info = LAPACKE_sposv(LAPACK_COL_MAJOR, 'U', 3, m_N, v_A.data(), 3, v_b_phi.data(), 3);
 	 /* Check for the positive definiteness */
@@ -153,12 +154,24 @@ void AIA_CPU_DnF::computePhi(std::vector<float>& v_A,
 		printf("definite;\nThe solution could not be computed.\n");
 		exit(1);
 	}
+	//std::ofstream out("Phi_CPU.csv", std::ios::out | std::ios::trunc);
 
+	//for (int i = 0; i < 256 * 3 * 256; i++)
+	//{
+
+	//	out << v_b_phi[i];
+
+	//	out << "\n";
+	//}
+	//out.close();
 	#pragma omp parallel for
 	for (int j = 0; j < m_N; j++)
 	{
 		v_phi[j] = atan2(-v_b_phi[j * 3 + 2], v_b_phi[j * 3 + 1]);
 	}
+
+	
+
 }
 
 void AIA_CPU_DnF::computeDelta(std::vector<float>& v_A,

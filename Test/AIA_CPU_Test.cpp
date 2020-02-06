@@ -102,7 +102,7 @@ TEST(AIA_CPU_3_Frames_Single, AIA_CPU_Test)
 	int iter = 0;
 
 	AIA::AIA_CPU_DnF aia;
-	aia(phi, delta, time, iter, err, f, 20, 1e-4, 12);
+	aia(phi, delta, time, iter, err, f,20, 1e-4, 12);
 
 	std::cout << "Running Time: " << time << std::endl;
 	std::cout << "Error is: " << err << std::endl;

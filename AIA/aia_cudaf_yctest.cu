@@ -38,7 +38,7 @@ namespace AIA {
 			int idb = i * 3; // Index in Vec b
 
 			// Load values from A&b to the augmented matrix A per thread
-			A[0][0] = 9;		A[0][1] = in_A[idA + 3];	A[0][2] = in_A[idA + 6];	A[0][3] = out_b[idb + 0];
+			A[0][0] = in_A[idA + 0];		A[0][1] = in_A[idA + 3];	A[0][2] = in_A[idA + 6];	A[0][3] = out_b[idb + 0];
 			A[1][0] = A[0][1];	A[1][1] = in_A[idA + 4];	A[1][2] = in_A[idA + 7];	A[1][3] = out_b[idb + 1];
 			A[2][0] = A[0][2];	A[2][1] = A[1][2];			A[2][2] = in_A[idA + 8];	A[2][3] = out_b[idb + 2];
 
@@ -101,7 +101,7 @@ namespace AIA {
 			const int M,
 			const int N)
 	{
-		float a3 = 0, a4 = 0, a6 = 0, a7 = 0, a8 = 0;
+		/*float a3 = 0, a4 = 0, a6 = 0, a7 = 0, a8 = 0;
 		for (int i = 0; i < M; i++)
 		{
 			float delta = d_in_delta[i];
@@ -138,6 +138,45 @@ namespace AIA {
 			}
 
 			
+			d_out_csrValA1[j * 9 + 0] = M;
+			d_out_csrValA1[j * 9 + 1] = a3;
+			d_out_csrValA1[j * 9 + 2] = a6;
+			d_out_csrValA1[j * 9 + 3] = a3;
+			d_out_csrValA1[j * 9 + 4] = a4;
+			d_out_csrValA1[j * 9 + 5] = a7;
+			d_out_csrValA1[j * 9 + 6] = a6;
+			d_out_csrValA1[j * 9 + 7] = a7;
+			d_out_csrValA1[j * 9 + 8] = a8;
+
+			d_out_csr_rhs1[j * 3 + 0] = b0;
+			d_out_csr_rhs1[j * 3 + 1] = b1;
+			d_out_csr_rhs1[j * 3 + 2] = b2;
+		}*/
+		
+		for (int j = threadIdx.x + blockDim.x *blockIdx.x;
+			j < N;
+			j += blockDim.x * gridDim.x)
+		{
+			float a3 = 0, a4 = 0, a6 = 0, a7 = 0, a8 = 0;
+			float b0 = 0, b1 = 0, b2 = 0;
+
+			for (int i = 0; i < M; i++)
+			{
+				float delta = d_in_delta[i];
+				float cos_delta = cos(delta);
+				float sin_delta = sin(delta);
+				float Iij = static_cast<float>(d_in_img[i*N + j]);
+
+				a3 += cos_delta;
+				a4 += cos_delta * cos_delta;
+				a6 += sin_delta;
+				a7 += sin_delta * cos_delta;
+				a8 += sin_delta * sin_delta;
+				b0 += Iij;
+				b1 += Iij * cos_delta;
+				b2 += Iij * sin_delta;
+			}
+
 			d_out_csrValA1[j * 9 + 0] = M;
 			d_out_csrValA1[j * 9 + 1] = a3;
 			d_out_csrValA1[j * 9 + 2] = a6;
@@ -453,7 +492,7 @@ namespace AIA {
 			}
 
 			// Step 1: pixel-by-pixel iterations
-
+			
 			computePhi_YC();
 
 			// Step 2: frame-by-frame iterations
@@ -491,6 +530,7 @@ namespace AIA {
 
 	void AIA_CUDAF_YCTEST::computePhi_YC()
 	{
+	
 		// Load the new deltas
 		checkCudaErrors(cudaMemcpy(m_d_delta, m_h_delta, sizeof(float)*m_M, cudaMemcpyHostToDevice));
 
@@ -506,9 +546,22 @@ namespace AIA {
 		//std::vector<float> h_b(m_N*3);
 		//cudaMemcpy(h_b.data(), m_d_b1, sizeof(float) * 3 * m_N, cudaMemcpyDeviceToHost);
 
-
 		Gaussian_Elimination_3x3_kernel_YC <<<256, 256 >>> (m_d_csrValA1, m_d_b1, m_N);
 		getLastCudaError("Gaussian_Elimination_3x3_kernel_YC launch failed!");
+
+		/*std::vector<float>h_b1(m_N * 3);
+		cudaMemcpy(h_b1.data(), m_d_b1, sizeof(float)*m_N * 3, cudaMemcpyDeviceToHost);
+		std::ofstream out("Phi_GPU.csv", std::ios::out | std::ios::trunc);
+
+		for (int i = 0; i < 256 * 3 * 256; i++)
+		{
+
+			out << h_b1[i];
+
+			out << "\n";
+		}
+		out.close();*/
+
 		/*float tol = 1e-4f;
 		int singularity = -1;
 		checkCudaErrors(cusolverSpScsrlsvchol(m_cuSolverHandle, 3 * m_N, 9 * m_N, m_desrA,
@@ -526,9 +579,11 @@ namespace AIA {
 		/*cudaEventRecord(end);
 		cudaEventSynchronize(end);
 		float t = 0;
-		cudaEventElapsedTime(&t, start, end);*/
-		/*std::vector<float>h_phi(m_N);
-		cudaMemcpy(h_phi.data(), m_d_phi, sizeof(float)*m_N, cudaMemcpyDeviceToHost);*/
+		//cudaEventElapsedTime(&t, start, end);*/
+		//std::vector<float>h_phi(m_N);
+		//cudaMemcpy(h_phi.data(), m_d_phi, sizeof(float)*m_N, cudaMemcpyDeviceToHost);
+
+
 	}
 
 	void AIA_CUDAF_YCTEST::computeDelta_YC()

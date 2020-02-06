@@ -57,7 +57,7 @@ TEST(AIA_GPU_3_Frames_Single, AIA_GPU_Test)
 	int iter = 0;
 
 	AIA::AIA_CUDAF_YCTEST aia(f);
-	aia(phi, delta, time, iter, err, f, 100, 1e-4, 6);
+	aia(phi, delta, time, iter, err, f, 20, 1e-4, 6);
 
 
 	

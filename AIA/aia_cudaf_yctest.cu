@@ -644,7 +644,7 @@ namespace AIA {
 
 		for (int i = 0; i < m; i++)
 		{
-			abs.push_back(std::abs(v_delta[i] - v_deltaOld[i]));
+			abs.push_back(std::abs((v_delta[i]- v_delta[0]) - (v_deltaOld[i]- v_deltaOld[0])));
 		}
 		std::sort(abs.begin(), abs.end(), std::greater<float>());
 

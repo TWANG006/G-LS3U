@@ -36,7 +36,7 @@ void AIA_CPU_DnF::operator()(// Outputs
 
 		// Random numbers picked from standard normal distribution g(0,1)
 		std::normal_distribution<float> distribution(0.0f, 1.0f);
-
+		v_deltas.clear();
 		v_deltas.push_back(0);
 		for (int i = 0; i < v_f.size() - 1; i++)
 		{
@@ -250,7 +250,7 @@ float AIA_CPU_DnF::computeMaxError(const std::vector<float> &v_delta,
 
 	for (int i = 0; i < v_delta.size(); i++)
 	{
-		v_abs.push_back(abs(v_delta[i] - v_deltaOld[i]));
+		v_abs.push_back(abs((v_delta[i] - v_delta[0]) - (v_deltaOld[i] - v_deltaOld[0])));
 	}
 
 	std::sort(v_abs.begin(), v_abs.end(), std::greater<float>());

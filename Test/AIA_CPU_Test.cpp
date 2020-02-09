@@ -63,24 +63,61 @@ TEST(AIA_CPU_3_Frames_Single, AIA_CPU_Test)
 {
 	std::vector<cv::Mat> f;
 
-	cv::Mat img = cv::imread("../Test_image/choped_f1.tiff");
+	cv::Mat img = cv::imread("../Test_image/t2/1.tiff");
 	cv::cvtColor(img,
 		img,
 		CV_BGR2GRAY);
 	f.push_back(img);
-
-	img = cv::imread("../Test_image/choped_f2.tiff");
+	img = cv::imread("../Test_image/t2/2.tiff");
 	cv::cvtColor(img,
 		img,
 		CV_BGR2GRAY);
 	f.push_back(img);
-
-	img = cv::imread("../Test_image/choped_f3.tiff");
+	img = cv::imread("../Test_image/t2/3.tiff");
 	cv::cvtColor(img,
 		img,
 		CV_BGR2GRAY);
 	f.push_back(img);
-
+	img = cv::imread("../Test_image/t2/4.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	img = cv::imread("../Test_image/t2/5.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	img = cv::imread("../Test_image/t2/6.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	img = cv::imread("../Test_image/t2/7.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	img = cv::imread("../Test_image/t2/8.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	img = cv::imread("../Test_image/t2/9.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	img = cv::imread("../Test_image/t2/10.tiff");
+	cv::cvtColor(img,
+		img,
+		CV_BGR2GRAY);
+	f.push_back(img);
+	//img = cv::imread("../Test_image/t2/11.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
 	/*std::vector<cv::Mat> f;
 
 	cv::Mat img = cv::imread("1.bmp");
@@ -113,13 +150,20 @@ TEST(AIA_CPU_3_Frames_Single, AIA_CPU_Test)
 	int iter = 0;
 
 	AIA::AIA_CPU_DnF aia;
-	aia(phi, delta, time, iter, err, f, 20, 1e-4, 12);
+	aia(phi, delta, time, iter, err, f, 55, 1e-4, 12);
 
 	std::cout << "Running Time: " << time << std::endl;
 	std::cout << "Error is: " << err << std::endl;
 	std::cout << "Iteration is: " << iter << std::endl;
+	std::cout << "delta: ";
 
-	std::cout << "Delta is: " << delta[0] << "," << delta[1] << "," << delta[2] << std::endl;
+	for (int i = 0; i < delta.size(); i++)
+	{
+
+		std::cout << delta[i] << ",";
+
+	}
+	std::cout << std::endl;
 	
 }
 

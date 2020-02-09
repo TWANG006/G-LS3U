@@ -30,6 +30,9 @@
     <ClInclude Include="aia_cudaf_yctest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="aia_cudaf_v2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="aia_cpu.cpp">
@@ -44,6 +47,9 @@
       <Filter>CUDA Source</Filter>
     </CudaCompile>
     <CudaCompile Include="aia_cudaf_yctest.cu">
+      <Filter>CUDA Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="aia_cudaf_v2.cu">
       <Filter>CUDA Source</Filter>
     </CudaCompile>
   </ItemGroup>

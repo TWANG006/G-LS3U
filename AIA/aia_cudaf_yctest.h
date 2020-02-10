@@ -40,7 +40,7 @@ namespace AIA {
 	private:
 		void computePhi_YC();
 		void computeDelta_YC();
-		float computeMaxError(const float *v_delta,
+		float computeMaxError_YC(const float *v_delta,
 			const float *v_deltaOld,
 			int m);
 

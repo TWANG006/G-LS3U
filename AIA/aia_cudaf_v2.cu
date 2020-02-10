@@ -24,7 +24,7 @@ namespace AIA {
 
 	/*---------------------------------------CUDA Kernels----------------------------------*/
 	__global__
-	void Gaussian_Elimination_3x3_kernel_YC(const float *in_A,
+	void Gaussian_Elimination_3x3_kernel_YC2(const float *in_A,
 		float *out_b,
 		int iSize)
 	{
@@ -93,7 +93,7 @@ namespace AIA {
 
 
 	__global__
-		void generate_csrValA1_rhs1_kernel_YC(float* d_out_csrValA1,
+		void generate_csrValA1_rhs1_kernel_YC2(float* d_out_csrValA1,
 			float* d_out_csr_rhs1,
 			uchar* d_in_img,
 			float* d_in_delta,
@@ -564,13 +564,13 @@ namespace AIA {
 		cudaEventRecord(start);*/
 
 		// Generate csrValA & RHS
-		generate_csrValA1_rhs1_kernel_YC <<<8 * 32, 256 >>> (m_d_csrValA1, m_d_b1, m_d_img, m_d_delta, m_M, m_N);
+		generate_csrValA1_rhs1_kernel_YC2 <<<8 * 32, 256 >>> (m_d_csrValA1, m_d_b1, m_d_img, m_d_delta, m_M, m_N);
 		getLastCudaError("generate_csrValA1_rhs1_kernel_YC launch failed!");
 
 		//std::vector<float> h_b(m_N*3);
 		//cudaMemcpy(h_b.data(), m_d_b1, sizeof(float) * 3 * m_N, cudaMemcpyDeviceToHost);
 
-		Gaussian_Elimination_3x3_kernel_YC <<<256, 256 >>> (m_d_csrValA1, m_d_b1, m_N);
+		Gaussian_Elimination_3x3_kernel_YC2 <<<256, 256 >>> (m_d_csrValA1, m_d_b1, m_N);
 		getLastCudaError("Gaussian_Elimination_3x3_kernel_YC launch failed!");
 
 		/*std::vector<float>h_b1(m_N * 3);
@@ -650,7 +650,7 @@ namespace AIA {
 		//	printf("definite;\nThe solution could not be computed.\n");
 		//	exit(1);
 		//}
-		Gaussian_Elimination_3x3_kernel_YC << <256, 256 >> > (m_d_A2, m_d_b2, m_M);
+		Gaussian_Elimination_3x3_kernel_YC2 << <256, 256 >> > (m_d_A2, m_d_b2, m_M);
 		getLastCudaError("Gaussian_Elimination_3x3_kernel_YC launch failed!");
 		
 		

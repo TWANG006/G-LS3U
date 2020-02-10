@@ -78,73 +78,83 @@ TEST(AIA_CPU_3_Frames_Single, AIA_CPU_Test)
 		img,
 		CV_BGR2GRAY);
 	f.push_back(img);
-	img = cv::imread("../Test_image/t2/4.tiff");
-	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
-	f.push_back(img);
-	img = cv::imread("../Test_image/t2/5.tiff");
-	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
-	f.push_back(img);
-	img = cv::imread("../Test_image/t2/6.tiff");
-	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
-	f.push_back(img);
-	img = cv::imread("../Test_image/t2/7.tiff");
-	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
-	f.push_back(img);
-	img = cv::imread("../Test_image/t2/8.tiff");
-	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
-	f.push_back(img);
-	img = cv::imread("../Test_image/t2/9.tiff");
-	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
-	f.push_back(img);
-	img = cv::imread("../Test_image/t2/10.tiff");
-	cv::cvtColor(img,
-		img,
-		CV_BGR2GRAY);
-	f.push_back(img);
+	//img = cv::imread("../Test_image/t2/4.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
+	//img = cv::imread("../Test_image/t2/5.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
+	//img = cv::imread("../Test_image/t2/6.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
+	//img = cv::imread("../Test_image/t2/7.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
+	//img = cv::imread("../Test_image/t2/8.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
+	//img = cv::imread("../Test_image/t2/9.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
+	//img = cv::imread("../Test_image/t2/10.tiff");
+	//cv::cvtColor(img,
+	//	img,
+	//	CV_BGR2GRAY);
+	//f.push_back(img);
 	//img = cv::imread("../Test_image/t2/11.tiff");
 	//cv::cvtColor(img,
 	//	img,
 	//	CV_BGR2GRAY);
 	//f.push_back(img);
+
 	/*std::vector<cv::Mat> f;
 
 	cv::Mat img = cv::imread("1.bmp");
 	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
+		img,
+		CV_BGR2GRAY);
 	f.push_back(img);
 
 	img = cv::imread("2.bmp");
 	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
+		img,
+		CV_BGR2GRAY);
 	f.push_back(img);
 
 	img = cv::imread("3.bmp");
 	cv::cvtColor(img,
-				 img,
-				 CV_BGR2GRAY);
+		img,
+		CV_BGR2GRAY);
 	f.push_back(img);*/
-	
-
 	// computation
 	std::vector<float> phi;
-	std::vector<float> delta{  
-		 0.8622f,
-    0.3188f,
-   -1.3077f};
+	//std::vector<float> delta{
+	//	 0.8622f,
+	//0.3188f,
+ //  -1.3077f ,
+ //  0.8622f,
+	//0.3188f,
+ //  -1.3077f,
+	// 0.8622f,
+	//0.3188f,
+ //  -1.3077f ,
+	// 0.8622f };
+	std::vector<float> delta{
+	 0.8622f,
+0.3188f,
+-1.3077f };
 	double time = 0;
 	float err = 0;
 	int iter = 0;

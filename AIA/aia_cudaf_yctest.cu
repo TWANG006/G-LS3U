@@ -194,7 +194,7 @@ namespace AIA {
 	}
 
 	__global__
-		void generate_csrColIndA1_csrRowPtrA1_kernel(int* d_out_csrColIndA1,
+		void generate_csrColIndA1_csrRowPtrA1_kernel_YC(int* d_out_csrColIndA1,
 			int* d_out_csrRowPtrA1,
 			const int N)
 	{
@@ -229,7 +229,7 @@ namespace AIA {
 	}
 
 	__global__
-		void get_phi_kernel(float *d_out_phi, float* d_in_x, int N)
+		void get_phi_kernel_YC(float *d_out_phi, float* d_in_x, int N)
 	{
 		for (int i = threadIdx.x + blockIdx.x * blockDim.x;
 			i < N;
@@ -240,7 +240,7 @@ namespace AIA {
 	}
 
 	__global__
-		void get_final_phi_kernel(float* d_out_phi, float* d_in_delta, int N)
+		void get_final_phi_kernel_YC(float* d_out_phi, float* d_in_delta, int N)
 	{
 		float delta0 = d_in_delta[0];
 
@@ -254,7 +254,7 @@ namespace AIA {
 	}
 
 	__global__
-		void generate_A2_kernel(float *d_out_A2temp, int N, float* d_in_phi)
+		void generate_A2_kernel_YC(float *d_out_A2temp, int N, float* d_in_phi)
 	{
 		if (blockIdx.x == 0 && threadIdx.x < 5)
 		{
@@ -293,7 +293,7 @@ namespace AIA {
 		}
 	}
 	__global__
-		void generate_b2_kernel(float *d_out_b2, int i, int N, float* d_in_phi, uchar* d_in_img)
+		void generate_b2_kernel_YC(float *d_out_b2, int i, int N, float* d_in_phi, uchar* d_in_img)
 	{
 		float b1 = 0, b2 = 0, b3 = 0;
 
@@ -365,7 +365,7 @@ namespace AIA {
 		checkCudaErrors(cudaMalloc((void**)&m_d_A2temp, sizeof(float) * 5));
 
 		// Initialize the csrRowPtrA & csrColIndA here because they remain at the same patterns
-		generate_csrColIndA1_csrRowPtrA1_kernel <<<8 * 32, 256 >>> (m_d_csrColIndA1, m_d_csrRowPtrA1, m_N);
+		generate_csrColIndA1_csrRowPtrA1_kernel_YC <<<8 * 32, 256 >>> (m_d_csrColIndA1, m_d_csrRowPtrA1, m_N);
 		getLastCudaError("generate_csrColIndA1_csrRowPtrA1_kernel launch failed!");
 
 		// Create cuSolver required handles
@@ -403,7 +403,7 @@ namespace AIA {
 		checkCudaErrors(cudaMalloc((void**)&m_d_A2temp, sizeof(float) * 5));
 
 		// Initialize the csrRowPtrA & csrColIndA here because they remain at the same patterns
-		generate_csrColIndA1_csrRowPtrA1_kernel <<<8 * 32, 256 >>> (m_d_csrColIndA1, m_d_csrRowPtrA1, m_N);
+		generate_csrColIndA1_csrRowPtrA1_kernel_YC <<<8 * 32, 256 >>> (m_d_csrColIndA1, m_d_csrRowPtrA1, m_N);
 		getLastCudaError("generate_csrColIndA1_csrRowPtrA1_kernel launch failed!");
 
 		// Create cuSolver required handles
@@ -500,7 +500,7 @@ namespace AIA {
 
 			// Step 3: update & check convergence criterion
 			iters++;
-			err = computeMaxError(m_h_delta, m_h_old_delta, m_M);
+			err = computeMaxError_YC(m_h_delta, m_h_old_delta, m_M);
 		}
 
 		double end = omp_get_wtime();
@@ -511,7 +511,7 @@ namespace AIA {
 		computePhi_YC();
 
 		/* Get the final phi and  deltas */
-		get_final_phi_kernel <<<8 * 32, 256 >>> (m_d_phi, m_d_delta, m_N);
+		get_final_phi_kernel_YC <<<8 * 32, 256 >>> (m_d_phi, m_d_delta, m_N);
 		getLastCudaError("get_final_phi_kernel launch failed!");
 
 		v_phi.resize(m_N);
@@ -573,7 +573,7 @@ namespace AIA {
 		}*/
 
 		// Update phi
-		get_phi_kernel <<<8 * 32, 256 >>> (m_d_phi, m_d_b1, m_N);
+		get_phi_kernel_YC <<<8 * 32, 256 >>> (m_d_phi, m_d_b1, m_N);
 		getLastCudaError("get_phi_kernel launch failed!");
 
 		/*cudaEventRecord(end);
@@ -589,7 +589,7 @@ namespace AIA {
 	void AIA_CUDAF_YCTEST::computeDelta_YC()
 	{
 		// Generate A2
-		generate_A2_kernel <<<8 * 32, 256 >>> (m_d_A2temp, m_N, m_d_phi);
+		generate_A2_kernel_YC <<<8 * 32, 256 >>> (m_d_A2temp, m_N, m_d_phi);
 		getLastCudaError("generate_A2_kernel launch failed!");
 
 		checkCudaErrors(cudaMemcpy(m_h_A2temp, m_d_A2temp, sizeof(float) * 5, cudaMemcpyDeviceToHost));
@@ -597,7 +597,7 @@ namespace AIA {
 		// Generate b2
 		for (int i = 0; i < m_M; i++)
 		{
-			generate_b2_kernel <<<8 * 32, 256 >>> (m_d_b2, i, m_N, m_d_phi, m_d_img);
+			generate_b2_kernel_YC <<<8 * 32, 256 >>> (m_d_b2, i, m_N, m_d_phi, m_d_img);
 			getLastCudaError("generate_b2_kernel launch failed!");
 		}
 
@@ -636,7 +636,7 @@ namespace AIA {
 		}
 	}
 
-	float AIA_CUDAF_YCTEST::computeMaxError(const float *v_delta,
+	float AIA_CUDAF_YCTEST::computeMaxError_YC(const float *v_delta,
 		const float *v_deltaOld,
 		int m)
 	{

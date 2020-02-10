@@ -105,6 +105,7 @@
   <ItemGroup>
     <ClCompile Include="AIA_CPU_Test.cpp" />
     <ClCompile Include="AIA_CUDA_Test.cpp" />
+    <ClCompile Include="AIA_CUDA_Test2.cpp" />
     <ClCompile Include="DPRA_CPU_Test.cpp" />
     <ClCompile Include="DPRA_CUDA_Test.cpp" />
     <ClCompile Include="DPRA_HYBRID_Test.cpp" />

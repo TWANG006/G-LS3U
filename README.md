@@ -10,7 +10,7 @@ Implementation of the AIA algorithm for fast and accurate phase extraction using
 
     - [x] Multi-core double precision 
     - [x] Multi-core single precision
-    - [ ] CUDA single precision
+    - [x] CUDA single precision
     - [ ] CUDA double precision
     
 ### DPRA

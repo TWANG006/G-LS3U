@@ -57,11 +57,10 @@ A demonstration application written for the G-LS3U algorithm. The application ca
 ***Note***: On Windows OS using Visual Studio 2017, install these dependencies and your are all set to compile and run the programs. 
 
 ## Reference
-[1] [Wang, T., Kai, L., & Kemao, Q. (2017). Real-time reference-based dynamic phase retrieval algorithm for optical measurement. Applied Optics, 56(27), 7726-7733.](https://doi.org/10.1364/AO.56.007726)
+[1] [Chen, Y., Wang, T., & Kemao, Q. Parallel advanced iterative algorithm for phase extraction with unknown phase-shifts. Optics and Lasers in Engineering, 138, 106408.](https://doi.org/10.1016/j.optlaseng.2020.106408)
 
-[2] [Wang, Z., & Han, B. (2004). Advanced iterative algorithm for phase extraction of randomly phase-shifted interferograms. Optics letters, 29(14), 1671-1673.](https://doi.org/10.1364/OL.29.001671)
+[2] [Wang, T., Kai, L., & Kemao, Q. (2017). Real-time reference-based dynamic phase retrieval algorithm for optical measurement. Applied Optics, 56(27), 7726-7733.](https://doi.org/10.1364/AO.56.007726)
 
-[3] [Gao, W., Huyen, N. T. T., Loi, H. S., & Kemao, Q. (2009). Real-time 2D parallel windowed Fourier transform for fringe pattern analysis using Graphics Processing Unit. Optics express, 17(25), 23147-23152.](https://doi.org/10.1364/OE.17.023147)
+[3] [Wang, Z., & Han, B. (2004). Advanced iterative algorithm for phase extraction of randomly phase-shifted interferograms. Optics letters, 29(14), 1671-1673.](https://doi.org/10.1364/OL.29.001671)
 
-[4] [Chen, Y., Wang, T., & Kemao, Q. Parallel advanced iterative algorithm for phase extraction with unknown phase-shifts. Optics and Lasers in Engineering, 138, 106408.](https://doi.org/10.1016/j.optlaseng.2020.106408)
-
+[4] [Gao, W., Huyen, N. T. T., Loi, H. S., & Kemao, Q. (2009). Real-time 2D parallel windowed Fourier transform for fringe pattern analysis using Graphics Processing Unit. Optics express, 17(25), 23147-23152.](https://doi.org/10.1364/OE.17.023147)

@@ -63,3 +63,5 @@ A demonstration application written for the G-LS3U algorithm. The application ca
 
 [3] [Gao, W., Huyen, N. T. T., Loi, H. S., & Kemao, Q. (2009). Real-time 2D parallel windowed Fourier transform for fringe pattern analysis using Graphics Processing Unit. Optics express, 17(25), 23147-23152.](https://doi.org/10.1364/OE.17.023147)
 
+[4] [Chen, Y., Wang, T., & Kemao, Q. Parallel advanced iterative algorithm for phase extraction with unknown phase-shifts. Optics and Lasers in Engineering, 138, 106408.](https://doi.org/10.1016/j.optlaseng.2020.106408)
+

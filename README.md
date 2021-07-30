@@ -11,7 +11,7 @@ Implementation of the AIA algorithm for fast and accurate phase extraction using
     - [x] Multi-core double precision 
     - [x] Multi-core single precision
     - [x] CUDA single precision
-    - [ ] CUDA double precision
+    - [x] CUDA double precision
     
 ### DPRA
 Core algorithm of the real-time reference-based dynamic phase retrieval algorithm [1].
@@ -19,7 +19,7 @@ Core algorithm of the real-time reference-based dynamic phase retrieval algorith
     - [x] Multi-core double precision 
     - [x] Multi-core single precision
     - [x] CUDA single precision
-    - [ ] CUDA double precision
+    - [x] CUDA double precision
     
     **Note**: The followiwng two implementations are just for testing purpose. Their performance is between the multi-core and CUDA 
     implementaitons 
